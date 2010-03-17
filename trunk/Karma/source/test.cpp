@@ -17,7 +17,7 @@ protected:
 		mCamera = mSceneMgr->createCamera("PlayerCam");
 		mCamera->setPosition(Vector3(0,10,500));
 		mCamera->lookAt(Vector3(0,0,0));
-		mCamera->setNearClipDistance(5);
+		mCamera->setNearClipDistance(10);
 	}
 
 	virtual void createViewports(void)
