@@ -61,7 +61,7 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="OgreMain_d.lib OIS_d.lib OgreGUIRenderer_d.lib dxguid.lib dinput8.lib"
+				AdditionalDependencies="OgreMain_d.lib dxguid.lib dinput8.lib OIS_d.lib CEGUIBase_d.lib OgreGUIRenderer_d.lib"
 				LinkIncremental="2"
 				AdditionalLibraryDirectories="$(DXSDK_DIR)\Lib\x86;$(OGRE_HOME)\lib"
 				GenerateDebugInformation="true"
