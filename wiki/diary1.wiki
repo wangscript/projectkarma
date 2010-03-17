@@ -17,15 +17,15 @@ Viktiga milstolpar:
 
 Spelidé
 
-* Målet med spel (vad går spelet ut på) : Att komma till slutet av banan så fort som möjligt
+ * Målet med spel (vad går spelet ut på) : Att komma till slutet av banan så fort som möjligt
 
-* På vägen dit möter man hinder vilket man behöver olika spells/abilities för att kunna ta sig igenom. Dessa spells samlar man på sig utmed banan och aktiverar genom olika knapptryckskombinationer
+ * På vägen dit möter man hinder vilket man behöver olika spells/abilities för att kunna ta sig igenom. Dessa spells samlar man på sig utmed banan och aktiverar genom olika knapptryckskombinationer
 
 
 Heldag med projektet, tittat på en tutorial vid namn practical application som kan hantera states, gui etc. Vi har även fått igång ankhsvn tillsammans med google code och det fungerar bra!
 
 Nästa steg blir;
 
-* Steg 1: hantera gamestates
-* Steg 2: Specifiera klasser
-* Steg 3: implementera klasser
+ * Steg 1: hantera gamestates
+ * Steg 2: Specifiera klasser
+ * Steg 3: implementera klasser
