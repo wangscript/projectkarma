@@ -1,8 +1,11 @@
 #include "input.h"
 #include "OgreStringConverter.h"
 #include "simulation.h"
+#include "CEGUISystem.h"
 
-InputHandler::InputHandler(Simulation *sim, unsigned long hWnd)  {
+InputHandler::InputHandler(CEGUI::System* pSystem, Simulation *sim, unsigned long hWnd) :
+m_pSystem(pSystem)
+{
 
 	OIS::ParamList pl;
 	pl.insert(OIS::ParamList::value_type("WINDOW", Ogre::StringConverter::toString(hWnd)));
@@ -19,10 +22,9 @@ InputHandler::InputHandler(Simulation *sim, unsigned long hWnd)  {
 
 InputHandler::~InputHandler() {
 	if (mMouse)
-		m_ois->destroyInputObject(mMouse);
+		delete mMouse;
 	if (mKeyboard)
-		m_ois->destroyInputObject(mKeyboard);
-
+		delete mKeyboard;
 	OIS::InputManager::destroyInputSystem(m_ois);
 }
 
@@ -41,28 +43,54 @@ void  InputHandler::setWindowExtents(int width, int height){
 
 // MouseListener
 bool InputHandler::mouseMoved(const OIS::MouseEvent &evt) {
-	return true;
+	m_pSystem->injectMouseWheelChange(evt.state.Z.rel);
+	return m_pSystem->injectMouseMove(evt.state.X.rel, evt.state.Y.rel);
 }
 
 bool InputHandler::mousePressed(const OIS::MouseEvent &evt, OIS::MouseButtonID btn) {
-	return true;
+	CEGUI::MouseButton button = CEGUI::NoButton;
+
+	if (btn == OIS::MB_Left)
+		button = CEGUI::LeftButton;
+
+	if (btn == OIS::MB_Middle)
+		button = CEGUI::MiddleButton;
+
+	if (btn == OIS::MB_Right)
+		button = CEGUI::RightButton;
+
+	return m_pSystem->injectMouseButtonDown(button);
 }
 
 bool InputHandler::mouseReleased(const OIS::MouseEvent &evt, OIS::MouseButtonID btn) {
-	return true;
+	CEGUI::MouseButton button = CEGUI::NoButton;
+
+	if (btn == OIS::MB_Left)
+		button = CEGUI::LeftButton;
+
+	if (btn == OIS::MB_Middle)
+		button = CEGUI::MiddleButton;
+
+	if (btn == OIS::MB_Right)
+		button = CEGUI::RightButton;
+
+	return m_pSystem->injectMouseButtonUp(button);
 }
 
 
 // KeyListener
 bool InputHandler::keyPressed(const OIS::KeyEvent &evt) {
-	return true;
+	unsigned int ch = evt.text;
+
+	m_pSystem->injectKeyDown(evt.key);
+	return m_pSystem->injectChar(ch);
 }
 
 bool InputHandler::keyReleased(const OIS::KeyEvent &evt) {
 	if (evt.key == OIS::KC_ESCAPE)
 		m_simulation->requestStateChange(SHUTDOWN);
 
-	return true;
+	return m_pSystem->injectKeyUp(evt.key);
 }
 
 
@@ -83,3 +111,4 @@ bool InputHandler::axisMoved(const OIS::JoyStickEvent &evt, int index) {
 bool InputHandler::povMoved(const OIS::JoyStickEvent &evt, int index) {
 	return true;
 }
+
