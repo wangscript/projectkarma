@@ -1,0 +1,17 @@
+#summary Vår Period 1.
+#labels Featured
+
+= Vår Period 1=
+
+Under julen lärde vi oss basics i C++. Under hela period 1 hade vi labbar, så när vi fick tid över satt vi och gick igenom alla tutorials.
+
+Viktiga milstolpar
+
+* Får Ogre att kompilera
+* Egen chasingcam
+* Importera modeller från 3D studio max
+* Importera scener från 3D studio max
+* Använda fysikbiblioteket Bullet för collisiondetection
+
+
+
