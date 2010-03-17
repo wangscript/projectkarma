@@ -4,9 +4,14 @@
 #include "OISInputManager.h"
 #include "OISMouse.h"
 #include "OISKeyboard.h"
-#include "OISJoyStick.h"
+#include "OISJoystick.h"
 
 class Simulation;
+
+namespace CEGUI
+{
+	class System;
+}
 
 class InputHandler : 
 	public OIS::MouseListener, 
@@ -19,8 +24,10 @@ private:
 	OIS::Keyboard *mKeyboard;
 	unsigned long m_hWnd;
 	Simulation *m_simulation;	
+	CEGUI::System* m_pSystem;
+
 public:
-	InputHandler(Simulation *sim, unsigned long hWnd); 
+	InputHandler(CEGUI::System* pSystem, Simulation *sim, unsigned long hWnd); 
 	~InputHandler();
 
 	void setWindowExtents(int width, int height) ;
