@@ -1,4 +1,4 @@
-#include "MainMenuDlg.h"
+#include <MainMenuDlg.h>
 #include "Simulation.h"
 #include "CEGUISystem.h"
 #include "CEGUIWindow.h"

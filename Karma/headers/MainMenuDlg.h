@@ -2,6 +2,8 @@
 
 #include "CEGUIWindow.h"
 
+
+
 namespace CEGUI
 {
 	class System;

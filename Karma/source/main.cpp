@@ -1,3 +1,6 @@
+
+
+
 #include "input.h"
 #include "simulation.h"
 
@@ -16,7 +19,8 @@
 #include "elements/CEGUIFrameWindow.h"
 
 // GUI sheet handlers
-#include "MainMenuDlg.h"
+#include <MainMenuDlg.h>
+
 
 #if defined(WIN32)
 #include "windows.h"
@@ -60,9 +64,9 @@ int main (int argc, char *argv[]) {
 
 	// load the basic resource location(s)
 	Ogre::ResourceGroupManager::getSingleton().addResourceLocation(
-		"resource", "FileSystem", "General");
+		"media", "FileSystem", "General");
 	Ogre::ResourceGroupManager::getSingleton().addResourceLocation(
-		"resource/gui.zip", "Zip", "GUI");
+		"media/gui.zip", "Zip", "GUI");
 #if defined(WIN32)
 	Ogre::ResourceGroupManager::getSingleton().addResourceLocation(
 		"c:\\windows\\fonts", "FileSystem", "GUI");
