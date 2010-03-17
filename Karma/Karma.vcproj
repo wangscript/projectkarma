@@ -41,7 +41,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="&quot;$(OGRE_HOME)\samples\include&quot;;&quot;$(OGRE_HOME)\include\OIS&quot;;&quot;$(OGRE_HOME)\include\CEGUI&quot;;&quot;$(OGRE_HOME)\include&quot;;&quot;$(OGRE_HOME)\bin\debug&quot;;&quot;$(SolutionDir)\$(ConfigurationName)\source&quot;;&quot;$(SolutionDir)\$(ConfigurationName)\media&quot;;C:\Development\Karma\Karma\headers;&quot;$(SolutionDir)\$(ConfigurationName)\headers&quot;"
+				AdditionalIncludeDirectories="&quot;$(OGRE_HOME)\samples\include&quot;;&quot;$(OGRE_HOME)\include\OIS&quot;;&quot;$(OGRE_HOME)\include\CEGUI&quot;;&quot;$(OGRE_HOME)\include&quot;;&quot;$(OGRE_HOME)\bin\debug&quot;;&quot;$(SolutionDir)\source&quot;;&quot;$(SolutionDir)\media&quot;;&quot;$(SolutionDir)\headers&quot;"
 				PreprocessorDefinitions="WIN32;_DEBUG;_WINDOWS"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
@@ -117,7 +117,7 @@
 				Name="VCCLCompilerTool"
 				Optimization="2"
 				EnableIntrinsicFunctions="true"
-				AdditionalIncludeDirectories="C:\Development\Karma\Karma\headers;&quot;$(SolutionDir)\$(ConfigurationName)\media&quot;;&quot;$(OGRE_HOME)\samples\include&quot;;&quot;$(OGRE_HOME)\bin\release&quot;;&quot;$(SolutionDir)\$(ConfigurationName)\source&quot;;&quot;$(SolutionDir)\$(ConfigurationName)\headers&quot;;&quot;$(OGRE_HOME)\include\OIS&quot;;&quot;$(OGRE_HOME)\include\CEGUI&quot;;&quot;$(OGRE_HOME)\include&quot;"
+				AdditionalIncludeDirectories="C:\Development\Karma\Karma\headers;&quot;$(SolutionDir)\media&quot;;&quot;$(OGRE_HOME)\samples\include&quot;;&quot;$(OGRE_HOME)\bin\release&quot;;&quot;$(SolutionDir)\source&quot;;&quot;$(SolutionDir)\headers&quot;;&quot;$(OGRE_HOME)\include\OIS&quot;;&quot;$(OGRE_HOME)\include\CEGUI&quot;;&quot;$(OGRE_HOME)\include&quot;"
 				PreprocessorDefinitions="WIN32;NDEBUG;_WINDOWS"
 				RuntimeLibrary="2"
 				EnableFunctionLevelLinking="true"
