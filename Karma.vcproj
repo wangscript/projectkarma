@@ -65,7 +65,8 @@
 				LinkIncremental="2"
 				AdditionalLibraryDirectories="$(DXSDK_DIR)\Lib\x86;$(OGRE_HOME)\lib"
 				GenerateDebugInformation="true"
-				SubSystem="2"
+				SubSystem="1"
+				EntryPointSymbol="WinMainCRTStartup"
 				TargetMachine="1"
 			/>
 			<Tool

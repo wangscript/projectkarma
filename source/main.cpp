@@ -1,5 +1,5 @@
 
-
+//PER TEST
 
 #include "input.h"
 #include "simulation.h"
@@ -71,7 +71,7 @@ int main (int argc, char *argv[]) {
 	Ogre::ResourceGroupManager::getSingleton().addResourceLocation(
 		"c:\\windows\\fonts", "FileSystem", "GUI");
 #endif
-
+	
 	Ogre::ResourceGroupManager::getSingleton().initialiseResourceGroup("General");
 	Ogre::ResourceGroupManager::getSingleton().initialiseResourceGroup("GUI");
 
