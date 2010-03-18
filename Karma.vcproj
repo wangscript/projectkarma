@@ -41,7 +41,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="&quot;$(OGRE_HOME)\samples\include&quot;;&quot;$(OGRE_HOME)\include\OIS&quot;;&quot;$(OGRE_HOME)\include\CEGUI&quot;;&quot;$(OGRE_HOME)\include&quot;;&quot;$(OGRE_HOME)\bin\debug&quot;;&quot;$(SolutionDir)\source&quot;;&quot;$(SolutionDir)\media&quot;;&quot;$(SolutionDir)\headers&quot;"
+				AdditionalIncludeDirectories="&quot;$(OGRE_HOME)\include\tinyxml&quot;;&quot;$(OGRE_HOME)\samples\include&quot;;&quot;$(OGRE_HOME)\include\OIS&quot;;&quot;$(OGRE_HOME)\include\CEGUI&quot;;&quot;$(OGRE_HOME)\include&quot;;&quot;$(OGRE_HOME)\bin\debug&quot;;&quot;$(SolutionDir)\source&quot;;&quot;$(SolutionDir)\media&quot;;&quot;$(SolutionDir)\headers&quot;"
 				PreprocessorDefinitions="WIN32;_DEBUG;_WINDOWS"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
@@ -61,7 +61,7 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="OgreMain_d.lib dxguid.lib dinput8.lib OIS_d.lib CEGUIBase_d.lib OgreGUIRenderer_d.lib"
+				AdditionalDependencies="OgreMain_d.lib dxguid.lib dinput8.lib OIS_d.lib CEGUIBase_d.lib OgreGUIRenderer_d.lib tinyxmld.lib"
 				LinkIncremental="2"
 				AdditionalLibraryDirectories="$(DXSDK_DIR)\Lib\x86;$(OGRE_HOME)\lib"
 				GenerateDebugInformation="true"
@@ -117,7 +117,7 @@
 				Name="VCCLCompilerTool"
 				Optimization="2"
 				EnableIntrinsicFunctions="true"
-				AdditionalIncludeDirectories="C:\Development\Karma\Karma\headers;&quot;$(SolutionDir)\media&quot;;&quot;$(OGRE_HOME)\samples\include&quot;;&quot;$(OGRE_HOME)\bin\release&quot;;&quot;$(SolutionDir)\source&quot;;&quot;$(SolutionDir)\headers&quot;;&quot;$(OGRE_HOME)\include\OIS&quot;;&quot;$(OGRE_HOME)\include\CEGUI&quot;;&quot;$(OGRE_HOME)\include&quot;"
+				AdditionalIncludeDirectories="$(OGRE_HOME)\include\tinyxml;C:\Development\Karma\Karma\headers;&quot;$(SolutionDir)\media&quot;;&quot;$(OGRE_HOME)\samples\include&quot;;&quot;$(OGRE_HOME)\bin\release&quot;;&quot;$(SolutionDir)\source&quot;;&quot;$(SolutionDir)\headers&quot;;&quot;$(OGRE_HOME)\include\OIS&quot;;&quot;$(OGRE_HOME)\include\CEGUI&quot;;&quot;$(OGRE_HOME)\include&quot;"
 				PreprocessorDefinitions="WIN32;NDEBUG;_WINDOWS"
 				RuntimeLibrary="2"
 				EnableFunctionLevelLinking="true"
@@ -136,7 +136,7 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="OgreMain.lib OIS.lib OgreGUIRenderer.lib dxguid.lib dinput8.lib"
+				AdditionalDependencies="OgreMain.lib OIS.lib OgreGUIRenderer.lib dxguid.lib dinput8.lib CEGUIBase.lib tinyxml.lib"
 				LinkIncremental="1"
 				AdditionalLibraryDirectories="$(DXSDK_DIR)\Lib\x86;$(OGRE_HOME)\lib"
 				GenerateDebugInformation="true"
