@@ -176,12 +176,68 @@
 			Filter="cpp;c;cc;cxx;def;odl;idl;hpj;bat;asm;asmx"
 			UniqueIdentifier="{4FC737F1-C7A5-4376-A066-2A32D752A2FF}"
 			>
+			<File
+				RelativePath=".\source\AdvancedOgreFramework.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\source\AppStateManager.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\source\DemoApp.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\source\DotSceneLoader.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\source\GameState.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\source\main.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\source\MenuState.cpp"
+				>
+			</File>
 		</Filter>
 		<Filter
 			Name="Header Files"
 			Filter="h;hpp;hxx;hm;inl;inc;xsd"
 			UniqueIdentifier="{93995380-89BD-4b04-88EB-625FBE52EBFB}"
 			>
+			<File
+				RelativePath=".\headers\AdvancedOgreFramework.hpp"
+				>
+			</File>
+			<File
+				RelativePath=".\headers\AppState.hpp"
+				>
+			</File>
+			<File
+				RelativePath=".\headers\AppStateManager.hpp"
+				>
+			</File>
+			<File
+				RelativePath=".\headers\DemoApp.hpp"
+				>
+			</File>
+			<File
+				RelativePath=".\headers\DotSceneLoader.hpp"
+				>
+			</File>
+			<File
+				RelativePath=".\headers\GameState.hpp"
+				>
+			</File>
+			<File
+				RelativePath=".\headers\MenuState.hpp"
+				>
+			</File>
 		</Filter>
 		<Filter
 			Name="Resource Files"
