@@ -88,7 +88,7 @@ int main (int argc, char *argv[]) {
 	// we'll see how to change this
 	sceneMgr = ogre->createSceneManager(Ogre::ST_GENERIC);
 	camera = sceneMgr->createCamera("camera");
-	camera->setNearClipDistance(5);
+	camera->setNearClipDistance(10);
 	Ogre::Viewport* vp = window->addViewport(camera);
 	vp->setBackgroundColour(Ogre::ColourValue(0,0,0));
 
