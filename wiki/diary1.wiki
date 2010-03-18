@@ -1,7 +1,7 @@
 #summary Vår Period 1.
 #labels Featured
-
-= Vår Period 1=
+= Dagbok =
+== Vår Period 1==
 
 Under julen lärde vi oss basics i C++. Under hela period 1 hade vi labbar, så när vi fick tid över satt vi och gick igenom alla tutorials.
 
@@ -13,7 +13,7 @@ Viktiga milstolpar:
  * Importera scener från 3D studio max
  * Använda fysikbiblioteket Bullet för collisiondetection
 
-=17 mars=
+== 17 mars ==
 
 Spelidé
 
@@ -29,3 +29,7 @@ Nästa steg blir;
  * Steg 1: hantera gamestates
  * Steg 2: Specifiera klasser
  * Steg 3: implementera klasser
+
+== 18 mars ==
+
+http://projectkarma.googlecode.com/files/gamestateplusbullet.jpg
