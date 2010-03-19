@@ -29,7 +29,8 @@ void DemoApp::startDemo()
 	m_pAppStateManager = new AppStateManager();
 
 	MenuState::create(m_pAppStateManager, "MenuState");
-	GameState::create(m_pAppStateManager, "GameState");
+	//GameState::create(m_pAppStateManager, "GameState");
+	TestState::create(m_pAppStateManager,"TestState");
 
 	m_pAppStateManager->start(m_pAppStateManager->findByName("MenuState"));
 }

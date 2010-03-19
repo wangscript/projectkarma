@@ -42,9 +42,6 @@ public:
 
 	void update(double timeSinceLastFrame);
 
-	void setBufferedMode();
-	void setUnbufferedMode();
-
 private:
 	Ogre::SceneNode*			m_pSphereNode;
 	Ogre::Entity*				m_pSphereEntity;
@@ -60,12 +57,10 @@ private:
 	float						m_MoveScale; 
 	Ogre::Degree				m_RotScale;
 
-	//Ogre::RaySceneQuery*		m_pRSQ;
 	Ogre::SceneNode*			m_pCurrentObject;
 	Ogre::Entity*				m_pCurrentEntity;
 	bool						m_bLMouseDown, m_bRMouseDown;
 	
-	CEGUI::Window*				m_pMainWnd;	
 };
 
 //|||||||||||||||||||||||||||||||||||||||||||||||

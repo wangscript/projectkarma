@@ -39,25 +39,23 @@ void TestState::enter()
 	OgreFramework::getSingletonPtr()->m_pKeyboard->setEventCallback(this);
 	OgreFramework::getSingletonPtr()->m_pMouse->setEventCallback(this);
 
-	OgreFramework::getSingletonPtr()->m_pGUIRenderer->setTargetSceneManager(m_pSceneMgr);
+	//OgreFramework::getSingletonPtr()->m_pGUIRenderer->setTargetSceneManager(m_pSceneMgr);
 
-	OgreFramework::getSingletonPtr()->m_pGUISystem->setDefaultMouseCursor((CEGUI::utf8*)"TaharezLook", (CEGUI::utf8*)"MouseArrow"); 
-	CEGUI::MouseCursor::getSingleton().setImage("TaharezLook", "MouseArrow"); 
-	const OIS::MouseState state = OgreFramework::getSingletonPtr()->m_pMouse->getMouseState();
-	CEGUI::Point mousePos = CEGUI::MouseCursor::getSingleton().getPosition(); 
-	CEGUI::System::getSingleton().injectMouseMove(state.X.abs-mousePos.d_x,state.Y.abs-mousePos.d_y);
+	//OgreFramework::getSingletonPtr()->m_pGUISystem->setDefaultMouseCursor((CEGUI::utf8*)"TaharezLook", (CEGUI::utf8*)"MouseArrow"); 
+	//CEGUI::MouseCursor::getSingleton().setImage("TaharezLook", "MouseArrow"); 
+	//const OIS::MouseState state = OgreFramework::getSingletonPtr()->m_pMouse->getMouseState();
+	//CEGUI::Point mousePos = CEGUI::MouseCursor::getSingleton().getPosition(); 
+	//CEGUI::System::getSingleton().injectMouseMove(state.X.abs-mousePos.d_x,state.Y.abs-mousePos.d_y);
 
-	m_pMainWnd = CEGUI::WindowManager::getSingleton().getWindow("AOF_GUI_GAME");
+	//m_pMainWnd = CEGUI::WindowManager::getSingleton().getWindow("AOF_GUI_GAME");
 
-	OgreFramework::getSingletonPtr()->m_pGUISystem->setGUISheet(m_pMainWnd);
+	//OgreFramework::getSingletonPtr()->m_pGUISystem->setGUISheet(m_pMainWnd);
 
-	CEGUI::PushButton* pExitButton = (CEGUI::PushButton*)m_pMainWnd->getChild("ExitButton_Game");
-	pExitButton->subscribeEvent(CEGUI::PushButton::EventClicked, CEGUI::Event::Subscriber(&TestState::onExitButtonGame, this));
+	//CEGUI::PushButton* pExitButton = (CEGUI::PushButton*)m_pMainWnd->getChild("ExitButton_Game");
+	//pExitButton->subscribeEvent(CEGUI::PushButton::EventClicked, CEGUI::Event::Subscriber(&TestState::onExitButtonGame, this));
 
 	m_bLMouseDown = m_bRMouseDown = false;
 	m_bQuit = false;
-
-	setBufferedMode();
 
 	createScene();
 
@@ -84,9 +82,9 @@ void TestState::resume()
 	OgreFramework::getSingletonPtr()->m_pLog->logMessage("Resuming TestState...");
 
 	OgreFramework::getSingletonPtr()->m_pViewport->setCamera(m_pCamera);
-	OgreFramework::getSingletonPtr()->m_pGUIRenderer->setTargetSceneManager(m_pSceneMgr);
+	//OgreFramework::getSingletonPtr()->m_pGUIRenderer->setTargetSceneManager(m_pSceneMgr);
 
-	OgreFramework::getSingletonPtr()->m_pGUISystem->setGUISheet(CEGUI::WindowManager::getSingleton().getWindow("AOF_GUI_GAME"));
+	//OgreFramework::getSingletonPtr()->m_pGUISystem->setGUISheet(CEGUI::WindowManager::getSingleton().getWindow("AOF_GUI_GAME"));
 
 	m_bQuit = false;
 
@@ -98,8 +96,8 @@ void TestState::exit()
 {
 	OgreFramework::getSingletonPtr()->m_pLog->logMessage("Leaving TestState...");
 
-	OgreFramework::getSingletonPtr()->m_pGUISystem->setGUISheet(0);
-	OgreFramework::getSingletonPtr()->m_pGUIRenderer->setTargetSceneManager(0);
+	//OgreFramework::getSingletonPtr()->m_pGUISystem->setGUISheet(0);
+	//OgreFramework::getSingletonPtr()->m_pGUIRenderer->setTargetSceneManager(0);
 
 	m_pSceneMgr->destroyCamera(m_pCamera);
 	if (m_pSceneMgr)
@@ -129,7 +127,7 @@ void TestState::createScene()
 	m_pGroundEntity->setMaterialName("Examples/Rockwall");
 	m_pGroundEntity->setCastShadows(false);
 
-	m_pSphereEntity = m_pSceneMgr->createEntity("Sphere","sphere.mesh");
+	m_pSphereEntity = m_pSceneMgr->createEntity("Sphere","ogrehead.mesh");
 	m_pSphereNode = m_pSceneMgr->getRootSceneNode()->createChildSceneNode("SphereNode");
 	m_pSphereNode->attachObject(m_pSphereEntity);
 	m_pSphereNode->setPosition(0, 50,0);
@@ -164,9 +162,6 @@ bool TestState::keyReleased(const OIS::KeyEvent &keyEventRef)
 
 bool TestState::mouseMoved(const OIS::MouseEvent &evt)
 {
-	OgreFramework::getSingletonPtr()->m_pGUISystem->injectMouseWheelChange(evt.state.Z.rel);
-	OgreFramework::getSingletonPtr()->m_pGUISystem->injectMouseMove(evt.state.X.rel, evt.state.Y.rel);
-
 	if(m_bRMouseDown)
 	{
 		m_pCamera->yaw(Degree(evt.state.X.rel * -0.1));
@@ -185,7 +180,6 @@ bool TestState::mousePressed(const OIS::MouseEvent &evt, OIS::MouseButtonID id)
 		onLeftPressed(evt);
 		m_bLMouseDown = true;
 
-		OgreFramework::getSingletonPtr()->m_pGUISystem->injectMouseButtonDown(CEGUI::LeftButton);
 	} 
 	else if(id == OIS::MB_Right)
 	{
@@ -300,21 +294,3 @@ void TestState::update(double timeSinceLastFrame)
 	getInput();
 	moveCamera();
 }
-
-//************************************************
-
-void TestState::setBufferedMode()
-{
-	CEGUI::Editbox* pModeCaption = (CEGUI::Editbox*)TestState::m_pMainWnd->getChild("ModeCaption");
-	pModeCaption->setText("Buffered Input Mode");
-}
-
-//************************************************
-
-void TestState::setUnbufferedMode()
-{
-	CEGUI::Editbox* pModeCaption = (CEGUI::Editbox*)TestState::m_pMainWnd->getChild("ModeCaption");
-	pModeCaption->setText("UnBuffered Input Mode");
-}
-
-//************************************************
