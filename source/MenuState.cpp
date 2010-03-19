@@ -107,7 +107,7 @@ bool MenuState::onExitButton(const CEGUI::EventArgs &args)
 
 bool MenuState::onEnterButton(const CEGUI::EventArgs &args)
 {
-	this->pushAppState(findByName("GameState"));
+	this->pushAppState(findByName("TestState"));
 	return true;
 }
 
