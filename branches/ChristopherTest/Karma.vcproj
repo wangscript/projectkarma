@@ -204,6 +204,10 @@
 				RelativePath=".\source\MenuState.cpp"
 				>
 			</File>
+			<File
+				RelativePath=".\source\TestState.cpp"
+				>
+			</File>
 		</Filter>
 		<Filter
 			Name="Header Files"
@@ -236,6 +240,10 @@
 			</File>
 			<File
 				RelativePath=".\headers\MenuState.hpp"
+				>
+			</File>
+			<File
+				RelativePath=".\headers\TestState.h"
 				>
 			</File>
 		</Filter>
