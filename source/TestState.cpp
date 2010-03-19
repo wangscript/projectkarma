@@ -127,7 +127,7 @@ void TestState::createScene()
 	m_pGroundEntity->setMaterialName("Examples/Rockwall");
 	m_pGroundEntity->setCastShadows(false);
 
-	m_pSphereEntity = m_pSceneMgr->createEntity("Sphere","ogrehead.mesh");
+	m_pSphereEntity = m_pSceneMgr->createEntity("Sphere","sphere.mesh");
 	m_pSphereNode = m_pSceneMgr->getRootSceneNode()->createChildSceneNode("SphereNode");
 	m_pSphereNode->attachObject(m_pSphereEntity);
 	m_pSphereNode->setPosition(0, 50,0);
