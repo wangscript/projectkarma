@@ -10,6 +10,7 @@
 
 #include "MenuState.hpp"
 #include "GameState.hpp"
+#include "TestState.h"
 
 //|||||||||||||||||||||||||||||||||||||||||||||||
 
