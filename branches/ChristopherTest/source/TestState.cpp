@@ -145,7 +145,7 @@ bool TestState::keyPressed(const OIS::KeyEvent &keyEventRef)
 		m_bQuit = true;
 		return true;
 	}
-
+	
 	return true;
 }
 
