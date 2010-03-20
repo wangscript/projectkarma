@@ -30,7 +30,7 @@ void TestState::enter()
 	m_pCamera->setPosition(Vector3(5,60,60));
 	m_pCamera->lookAt(Vector3(5,20,0));
 	m_pCamera->setNearClipDistance(5);
-
+	
 	m_pCamera->setAspectRatio(Real(OgreFramework::getSingletonPtr()->m_pViewport->getActualWidth() /
 		Real(OgreFramework::getSingletonPtr()->m_pViewport->getActualHeight())));
 	
@@ -127,10 +127,10 @@ void TestState::createScene()
 	m_pGroundEntity->setMaterialName("Examples/Rockwall");
 	m_pGroundEntity->setCastShadows(false);
 
-	m_pSphereEntity = m_pSceneMgr->createEntity("Sphere","sphere.mesh");
-	m_pSphereNode = m_pSceneMgr->getRootSceneNode()->createChildSceneNode("SphereNode");
+	m_pSphereEntity = m_pSceneMgr->createEntity("OgreEntity","ogrehead.mesh");
+	m_pSphereNode = m_pSceneMgr->getRootSceneNode()->createChildSceneNode("OgreNode");
 	m_pSphereNode->attachObject(m_pSphereEntity);
-	m_pSphereNode->setPosition(0, 50,0);
+	m_pSphereNode->setPosition(0, 100,0);
 	m_pSphereEntity->setCastShadows(true);
 
 }
