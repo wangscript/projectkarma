@@ -247,6 +247,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\headers\PhysicsManager.h"
+				>
+			</File>
+			<File
 				RelativePath=".\headers\Player.h"
 				>
 			</File>
