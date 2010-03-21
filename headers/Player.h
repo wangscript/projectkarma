@@ -15,45 +15,51 @@
 
 #include "BulletCollision/CollisionShapes/btConvexHullShape.h"
 
+#include "BulletDynamics/Character/btKinematicCharacterController.h"
+
 
 class btCollisionShape;
 
+class btKinematicCharacterController;
+
 //*****************************************
 
-class Player : btKinematicCharacterController
+using namespace Ogre;
+
+class Player : public btKinematicCharacterController
 {
 	public:
 
-		Player(SceneManager* sceneMgr, btCollisionWorld* btColWorld, btPairCachingGhostObject* ghostObject,btConvexShape* convexShape,btScalar stepHeight, int upAxis)
-
-		//******************************** OGRE
-
-		Ogre::SceneManager*		m_pSceneMgr;
+		Player(SceneManager* sceneMgr, btDynamicsWorld* btDynWorld, btPairCachingGhostObject* ghostObject,btConvexShape* convexShape,btScalar stepHeight, int upAxis);
 		
-		Ogre::Entity*			m_pCharacterEntity;
-		
-		Ogre::SceneNode*		m_pCharacterNode;
+		~Player();
 
-		//******************************** BULLET
+		//****************************************************** OGRE
 
-		btCollisionWorld*					m_pCollisionWorld;
+		SceneManager*						m_pSceneMgr;
 		
-		class btPairCachingGhostObject*		m_pGhostObject;
+		Entity*								m_pCharacterEntity;
+		
+		SceneNode*							m_pCharacterNode;
+
+		//****************************************************** BULLET
+
+		btDynamicsWorld*					m_pDynamicsWorld;
+		
+		class btPairCachingGhostObject*		m_pGhostObject;		
 		
 		btConvexShape*						m_pCharacterConvexShape;
 
-		btScalar							characterHeight;
-		btScalar							characterWidth;
-		btScalar							stepHeight;
+		btScalar							m_stepHeight;
 
 		void addEntity(Ogre::Entity* ent);
+		Entity * getEntity(void);		
+		btConvexShape * setConvexShape(int characterHeight, int CharacterWidth);
 
-		Ogre::Entity * getEntity(void);
-				
+	private:
 
+		btScalar							m_characterHeight;
+		btScalar							m_characterWidth;
 };
-
-
-
 
 #endif

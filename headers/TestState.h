@@ -11,6 +11,20 @@
 
 #include <OgreSubEntity.h>
 #include <OgreMaterialManager.h>
+#include "Player.h"
+
+#include "btBulletCollisionCommon.h"
+#include "btBulletDynamicsCommon.h"
+#include "BulletDynamics/Character/btKinematicCharacterController.h"
+
+#include "BulletCollision/CollisionShapes/btConvexHullShape.h"
+
+#include "BulletCollision/CollisionShapes/btHeightfieldTerrainShape.h"
+#include "BulletCollision/CollisionDispatch/btGhostObject.h"
+
+class btKinematicCharacterController;
+
+class btCollisionShape;
 
 //|||||||||||||||||||||||||||||||||||||||||||||||
 
@@ -26,6 +40,7 @@ public:
 	void exit();
 	bool pause();
 	void resume();
+	void initPhysics();
 
 	void moveCamera();
 	void getInput();
@@ -42,12 +57,39 @@ public:
 
 	void update(double timeSinceLastFrame);
 
+	
+	//************** BULLET
+	btDiscreteDynamicsWorld*	m_pDynamicsWorld;
+
+	btKinematicCharacterController* m_character;
+
+	class btPairCachingGhostObject* m_ghostObject;
+
+	btAlignedObjectArray<btCollisionShape*> m_collisionShapes;
+
+	class btBroadphaseInterface*	m_overlappingPairCache;
+
+	class btCollisionDispatcher*	m_dispatcher;
+
+	btConstraintSolver*	m_constraintSolver;
+
+	class btDefaultCollisionConfiguration* m_collisionConfiguration;
+
+	class btTriangleIndexVertexArray*	m_indexVertexArrays;
+
+	btVector3*	m_vertices;
+
+	//*************************************
+
 private:
-	Ogre::SceneNode*			m_pSphereNode;
-	Ogre::Entity*				m_pSphereEntity;
+
+	Player*						m_pKinematicPlayer;
+
+	Ogre::SceneNode*			m_pCharacterNode;
+	Ogre::Entity*				m_pCharacterEntity;
 
 	Ogre::SceneNode*			m_pGroundNode;
-	Ogre::Entity*			m_pGroundEntity;
+	Ogre::Entity*				m_pGroundEntity;
 
 	bool						m_bQuit;
 
@@ -61,6 +103,7 @@ private:
 	Ogre::Entity*				m_pCurrentEntity;
 	bool						m_bLMouseDown, m_bRMouseDown;
 	
+
 };
 
 //|||||||||||||||||||||||||||||||||||||||||||||||
