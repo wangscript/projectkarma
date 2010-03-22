@@ -38,6 +38,9 @@ m_vertices(0)
 
 	m_pCurrentObject	= 0;
 
+	walkDirection = btVector3(0.0, 0.0, 0.0);
+	
+
 }
 
 //******************************
@@ -74,7 +77,8 @@ void TestState::enter()
 void TestState::initPhysics()
 {
 	//init physics here
-	btCollisionShape* groundShape = new btBoxShape(btVector3(100,3,100));	
+	btCollisionShape* groundShape = new btBoxShape(btVector3(1000,20,1000));
+
 	m_collisionShapes.push_back(groundShape);
 
 	btCollisionObject* colObj = new btCollisionObject();
@@ -206,18 +210,18 @@ void TestState::createScene()
 
 	m_pSceneMgr->createLight("Light")->setPosition(75,75,75);
 
-// 	Plane plane(Vector3::UNIT_Y, 0);
-// 
-// 	Ogre::MeshManager::getSingleton().createPlane("ground",
-// 		ResourceGroupManager::DEFAULT_RESOURCE_GROUP_NAME, plane,
-// 		1500,1500,20,20,true,1,5,5,Vector3::UNIT_Z);
-// 
-// 	m_pGroundEntity = m_pSceneMgr->createEntity("GroundEntity", "ground");
-// 	m_pGroundNode = m_pSceneMgr->getRootSceneNode()->createChildSceneNode("GroundNode");
-// 	m_pGroundNode->attachObject(m_pGroundEntity);
-// 
-// 	m_pGroundEntity->setMaterialName("Examples/Rockwall");
-// 	m_pGroundEntity->setCastShadows(false);
+	Plane plane(Vector3::UNIT_Y, 0);
+
+	Ogre::MeshManager::getSingleton().createPlane("ground",
+		ResourceGroupManager::DEFAULT_RESOURCE_GROUP_NAME, plane,
+		1500,1500,20,20,true,1,5,5,Vector3::UNIT_Z);
+
+	m_pGroundEntity = m_pSceneMgr->createEntity("GroundEntity", "ground");
+	m_pGroundNode = m_pSceneMgr->getRootSceneNode()->createChildSceneNode("GroundNode");
+	m_pGroundNode->attachObject(m_pGroundEntity);
+
+	m_pGroundEntity->setMaterialName("Examples/Rockwall");
+	m_pGroundEntity->setCastShadows(false);
 
 
 
@@ -340,6 +344,7 @@ void TestState::getInput()
 		orn *= btMatrix3x3(btQuaternion(btVector3(0,1,0),0.01));
 		m_ghostObject->getWorldTransform ().setBasis(orn);
 
+
 	}
 	
 	//Right
@@ -384,6 +389,11 @@ void TestState::getInput()
 	{
 		m_pCamera->pitch(-m_RotScale);
 	}
+
+	if(OgreFramework::getSingletonPtr()->m_pKeyboard->isKeyDown(OIS::KC_SPACE))
+	{
+		m_character->jump();
+	}
 }
 
 //************************************************
@@ -423,8 +433,8 @@ void TestState::update(double timeSinceLastFrame)
 		upDir.normalize ();
 		strafeDir.normalize ();
 
-		walkDirection = btVector3(0.0, 0.0, 0.0);
-		walkVelocity = btScalar(1.1) * 4.0; // 4 km/h -> 1.1 m/s
+		
+		walkVelocity = btScalar(0.1) * 4.0; // 4 km/h -> 1.1 m/s
 		walkSpeed = walkVelocity * timeSinceLastFrame;
 
 		m_character->setWalkDirection(walkDirection*walkSpeed);
@@ -437,6 +447,8 @@ void TestState::update(double timeSinceLastFrame)
 		m_pCharacterNode->setOrientation(rot.w(), rot.x(), rot.y(), rot.z());
 		btVector3 pos = xform.getOrigin();
 		m_pCharacterNode->setPosition(pos.x(), pos.y(), pos.z());
+
+		walkDirection = btVector3(0.0, 0.0, 0.0);
 
 	}
 
