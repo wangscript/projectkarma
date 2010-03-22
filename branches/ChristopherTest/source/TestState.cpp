@@ -37,8 +37,6 @@ m_vertices(0)
 	m_RotateSpeed		= 0.3;
 
 	m_pCurrentObject	= 0;
-	
-
 
 }
 
@@ -52,7 +50,7 @@ void TestState::enter()
 	m_pSceneMgr->setAmbientLight(Ogre::ColourValue(0.7,0.7,0.7));
 	
 	m_pCamera = m_pSceneMgr->createCamera("TestCamera");
-	m_pCamera->setPosition(Vector3(5,60,-100));
+	m_pCamera->setPosition(Vector3(5,60,-300));
 	m_pCamera->lookAt(Vector3(0,0,0));
 	m_pCamera->setNearClipDistance(5);
 	
@@ -92,7 +90,9 @@ void TestState::initPhysics()
 	m_constraintSolver = new btSequentialImpulseConstraintSolver();
 	m_pDynamicsWorld = new btDiscreteDynamicsWorld(m_dispatcher,m_overlappingPairCache,m_constraintSolver,m_collisionConfiguration);
 
+	
 
+	//add ground coll object
 	m_pDynamicsWorld->addCollisionObject(colObj);
 
 	startTransform.setIdentity ();
