@@ -5,17 +5,14 @@
 
 #include "Player.h"
 
+#include "btBulletCollisionCommon.h"
+#include "btBulletDynamicsCommon.h"
+
 //*****************************
 
 using namespace Ogre;
 
 //*****************************
-
-static int gForward = 0;
-static int gBackward = 0;
-static int gLeft = 0;
-static int gRight = 0;
-static int gJump = 0;
 
 btVector3 forwardDir;
 btVector3 upDir;
@@ -53,7 +50,7 @@ void TestState::enter()
 	m_pSceneMgr->setAmbientLight(Ogre::ColourValue(0.7,0.7,0.7));
 	
 	m_pCamera = m_pSceneMgr->createCamera("TestCamera");
-	m_pCamera->setPosition(Vector3(5,60,-300));
+	m_pCamera->setPosition(Vector3(5,300,-800));
 	m_pCamera->lookAt(Vector3(0,0,0));
 	m_pCamera->setNearClipDistance(5);
 	
@@ -68,9 +65,9 @@ void TestState::enter()
 	m_bLMouseDown = m_bRMouseDown = false;
 	m_bQuit = false;
 
-	createScene();
-
 	initPhysics();
+
+	createScene();
 
 }
 
@@ -79,10 +76,18 @@ void TestState::initPhysics()
 	//init physics here
 	btCollisionShape* groundShape = new btBoxShape(btVector3(1000,20,1000));
 
+	btCollisionShape* wallShape = new btBoxShape(btVector3(500,500,20));
+
+	m_collisionShapes.push_back(wallShape);
 	m_collisionShapes.push_back(groundShape);
 
 	btCollisionObject* colObj = new btCollisionObject();
 	colObj->setCollisionShape(groundShape);
+
+
+	btCollisionObject* colObjWall = new btCollisionObject();
+	colObjWall->setCollisionShape(wallShape);
+	
 	
 	m_collisionConfiguration = new btDefaultCollisionConfiguration();	
 	m_dispatcher = new btCollisionDispatcher(m_collisionConfiguration);
@@ -93,11 +98,11 @@ void TestState::initPhysics()
 
 	m_constraintSolver = new btSequentialImpulseConstraintSolver();
 	m_pDynamicsWorld = new btDiscreteDynamicsWorld(m_dispatcher,m_overlappingPairCache,m_constraintSolver,m_collisionConfiguration);
-
 	
 
 	//add ground coll object
 	m_pDynamicsWorld->addCollisionObject(colObj);
+	m_pDynamicsWorld->addCollisionObject(colObjWall);
 
 	startTransform.setIdentity ();
 	//startTransform.setOrigin (btVector3(0.0, 4.0, 0.0));
@@ -116,11 +121,11 @@ void TestState::initPhysics()
 
 	btScalar stepHeight = btScalar(0.35);
 	m_character = new btKinematicCharacterController (m_ghostObject,capsule,stepHeight);
+
 	
 	m_pDynamicsWorld->addCollisionObject(m_ghostObject,btBroadphaseProxy::CharacterFilter, btBroadphaseProxy::StaticFilter|btBroadphaseProxy::DefaultFilter);
 
 	m_pDynamicsWorld->addAction(m_character);
-
 
 }
 
@@ -210,6 +215,8 @@ void TestState::createScene()
 
 	m_pSceneMgr->createLight("Light")->setPosition(75,75,75);
 
+	m_pSceneMgr->setShadowTechnique(SHADOWTYPE_STENCIL_ADDITIVE);
+
 	Plane plane(Vector3::UNIT_Y, 0);
 
 	Ogre::MeshManager::getSingleton().createPlane("ground",
@@ -225,11 +232,12 @@ void TestState::createScene()
 
 
 
-	btQuaternion rot = startTransform.getRotation();	
-	btVector3 pos = startTransform.getOrigin();
+	xform = m_ghostObject->getWorldTransform();
+	btQuaternion rot = xform.getRotation();
+	btVector3 pos = xform.getOrigin();
 	
 	m_pCharacterEntity = m_pSceneMgr->createEntity("OgreEntity", "ogrehead.mesh");
-	m_pCharacterNode = m_pSceneMgr->getRootSceneNode()->createChildSceneNode("OgreHeadNode",Ogre::Vector3(pos.x(),pos.y(),pos.z()),Ogre::Quaternion(rot.x(),rot.y(),rot.z(),rot.w()));
+	m_pCharacterNode = m_pSceneMgr->getRootSceneNode()->createChildSceneNode("OgreHeadNode",Ogre::Vector3(pos.x(),pos.y(),pos.z()),Ogre::Quaternion(rot.w(),rot.x(),rot.y(),rot.z()));
 	m_pCharacterNode->attachObject(m_pCharacterEntity);
 	m_pCharacterEntity->setCastShadows(true);
 
@@ -360,6 +368,7 @@ void TestState::getInput()
 	if(OgreFramework::getSingletonPtr()->m_pKeyboard->isKeyDown(OIS::KC_W))
 	{
 		//m_TranslateVector.z = -m_MoveScale;
+
 		walkDirection += forwardDir;
 	}
 	
@@ -368,6 +377,14 @@ void TestState::getInput()
 	{
 		//m_TranslateVector.z = m_MoveScale;
 		walkDirection -= forwardDir;
+	}
+
+	if(OgreFramework::getSingletonPtr()->m_pKeyboard->isKeyDown(OIS::KC_B))
+	{
+		if(m_pCharacterNode->getShowBoundingBox())
+			m_pCharacterNode->showBoundingBox(false);
+		else
+			m_pCharacterNode->showBoundingBox(true);
 	}
 	
 	if(OgreFramework::getSingletonPtr()->m_pKeyboard->isKeyDown(OIS::KC_LEFT))
@@ -426,7 +443,7 @@ void TestState::update(double timeSinceLastFrame)
 		xform = m_ghostObject->getWorldTransform ();
 
 		forwardDir = xform.getBasis()[2];
-		//	printf("forwardDir=%f,%f,%f\n",forwardDir[0],forwardDir[1],forwardDir[2]);
+		//printf("forwardDir=%f,%f,%f\n",forwardDir[0],forwardDir[1],forwardDir[2]);
 		upDir = xform.getBasis()[1];
 		strafeDir = xform.getBasis()[0];
 		forwardDir.normalize ();
@@ -442,13 +459,15 @@ void TestState::update(double timeSinceLastFrame)
 
 		int numSimSteps = m_pDynamicsWorld->stepSimulation(timeSinceLastFrame,maxSimSubSteps);
 	
-
+		xform = m_ghostObject->getWorldTransform ();
 		btQuaternion rot = xform.getRotation();
-		m_pCharacterNode->setOrientation(rot.w(), rot.x(), rot.y(), rot.z());
+		m_pCharacterNode->setOrientation(rot.w(),rot.x(), rot.y(), rot.z());
 		btVector3 pos = xform.getOrigin();
 		m_pCharacterNode->setPosition(pos.x(), pos.y(), pos.z());
 
 		walkDirection = btVector3(0.0, 0.0, 0.0);
+
+		m_pCamera->lookAt(m_pCharacterNode->_getDerivedPosition());
 
 	}
 
