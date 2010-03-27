@@ -6,9 +6,9 @@
 //|||||||||||||||||||||||||||||||||||||||||||||||
 
 #include "AppState.hpp"
-
 #include "DotScene.h"
 #include <btBulletCollisionCommon.h>
+#include <btBulletDynamicsCommon.h>
 #include "OgreToBtMeshConverter.h"
 #include "Player.h"
 
@@ -44,7 +44,6 @@ public:
 	bool onExitButtonGame(const CEGUI::EventArgs &args);
 
 	void update(double timeSinceLastFrame);
-
 	void setBufferedMode();
 	void setUnbufferedMode();
 
@@ -64,8 +63,9 @@ private:
 	CEGUI::Window*				m_pChatWnd;
 
 	Player*						m_Player;
-	
+
 	btDefaultCollisionConfiguration*	m_ColConfig; 
+	btSequentialImpulseConstraintSolver* m_constraintSolver;
     btCollisionWorld*					m_ColWorld;
     btCollisionDispatcher*				m_Dispatcher;
     btAxisSweep3*						m_Broadphase; 

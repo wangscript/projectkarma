@@ -5,7 +5,6 @@
 //|||||||||||||||||||||||||||||||||||||||||||||||
 
 using namespace Ogre;
-
 //|||||||||||||||||||||||||||||||||||||||||||||||
 
 GameState::GameState()
@@ -61,11 +60,11 @@ void GameState::enter()
 	m_bChatMode = false;
 
 	setUnbufferedMode();
-
 	createScene();
 }
 
 //|||||||||||||||||||||||||||||||||||||||||||||||
+
 
 bool GameState::pause()
 {
@@ -99,11 +98,11 @@ void GameState::exit()
 
 	OgreFramework::getSingletonPtr()->m_pGUISystem->setGUISheet(0);
 	OgreFramework::getSingletonPtr()->m_pGUIRenderer->setTargetSceneManager(0);
-	
-    delete m_ColWorld;
-    delete m_Dispatcher;
-    delete m_ColConfig;
-    delete m_Broadphase;
+
+   delete m_ColWorld;
+   delete m_Dispatcher;
+   delete m_ColConfig;
+	delete m_Broadphase;
 	m_pSceneMgr->destroyCamera(m_pCamera);
 	if(m_pSceneMgr)
 		OgreFramework::getSingletonPtr()->m_pRoot->destroySceneManager(m_pSceneMgr);
@@ -126,7 +125,9 @@ void GameState::createScene()
     m_Broadphase = new btAxisSweep3(worldAabbMin, worldAabbMax); // broadphase
     m_ColConfig = new btDefaultCollisionConfiguration();
     m_Dispatcher = new btCollisionDispatcher(m_ColConfig); // narrowphase pair-wise checking
-    m_ColWorld = new btCollisionWorld(m_Dispatcher, m_Broadphase, m_ColConfig);
+    m_constraintSolver = new btSequentialImpulseConstraintSolver();
+
+	m_ColWorld = new btDiscreteDynamicsWorld(m_Dispatcher, m_Broadphase,m_constraintSolver, m_ColConfig);
 	registerAllEntitiesAsColliders(m_pSceneMgr, m_ColWorld);
 	//Player
     m_Player = new Player(m_pSceneMgr, m_ColWorld);
@@ -143,6 +144,7 @@ bool GameState::keyPressed(const OIS::KeyEvent &keyEventRef)
 		OgreFramework::getSingletonPtr()->m_pGUISystem->injectChar(keyEventRef.text);
 	}
 	
+
 	if(OgreFramework::getSingletonPtr()->m_pKeyboard->isKeyDown(OIS::KC_ESCAPE))
 	{
 		m_bQuit = true;
@@ -182,6 +184,7 @@ bool GameState::keyPressed(const OIS::KeyEvent &keyEventRef)
 
 bool GameState::keyReleased(const OIS::KeyEvent &keyEventRef)
 {
+
 	OgreFramework::getSingletonPtr()->keyReleased(keyEventRef);
 
 	return true;
@@ -331,6 +334,7 @@ void GameState::update(double timeSinceLastFrame)
 {
 	if(m_bQuit == true)
 	{
+		this->pushAppState(findByName("MenuState"));
 		this->popAppState();
 		return;
 	}
@@ -339,6 +343,7 @@ void GameState::update(double timeSinceLastFrame)
 	m_RotScale  = m_RotateSpeed * timeSinceLastFrame;
 		
 	m_TranslateVector = Vector3::ZERO;
+
 
 	getInput();
 	move();
