@@ -24,6 +24,7 @@
 
 #include <CEGUI/CEGUI.h>
 #include <OgreCEGUIRenderer.h>
+#include "ExampleLoadingBar.h"
 
 //|||||||||||||||||||||||||||||||||||||||||||||||
 
@@ -61,6 +62,7 @@ private:
 	OgreFramework(const OgreFramework&);
 	OgreFramework& operator= (const OgreFramework&);
 
+	ExampleLoadingBar       m_LoadingBar;
 	Ogre::Overlay*			m_pDebugOverlay;
 	Ogre::Overlay*			m_pInfoOverlay;
 	int				m_iNumScreenShots;

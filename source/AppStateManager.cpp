@@ -1,7 +1,6 @@
 //|||||||||||||||||||||||||||||||||||||||||||||||
 
 #include "AppStateManager.hpp"
-
 #include <OgreWindowEventUtilities.h>
 
 //|||||||||||||||||||||||||||||||||||||||||||||||
@@ -68,7 +67,7 @@ void AppStateManager::start(AppState* state)
 	
 	int timeSinceLastFrame = 1;
 	int startTime = 0;
-	
+
 	while(!m_bShutdown) 
 	{
 		if(OgreFramework::getSingletonPtr()->m_pRenderWnd->isClosed())m_bShutdown = true;
