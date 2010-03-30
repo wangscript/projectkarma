@@ -126,8 +126,8 @@ void TestState::initPhysics()
 	m_pDynamicsWorld->addCollisionObject(colObj);
 	
 
-	startTransform.setIdentity ();	
-	startTransform.setOrigin (btVector3(100,300,0));
+	startTransform.setIdentity();	
+	startTransform.setOrigin(btVector3(100,300,0));
 	
 
 
