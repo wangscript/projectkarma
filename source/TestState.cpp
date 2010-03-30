@@ -8,9 +8,12 @@
 #include "btBulletCollisionCommon.h"
 #include "btBulletDynamicsCommon.h"
 
+
 //*****************************
 
 using namespace Ogre;
+
+using namespace std;
 
 //*****************************
 
@@ -22,6 +25,9 @@ btScalar walkVelocity;
 btScalar walkSpeed;
 btTransform xform;
 btTransform startTransform;
+
+SceneNode* node;
+btRigidBody* body;
 
 
 TestState::TestState()
@@ -74,25 +80,41 @@ void TestState::enter()
 void TestState::initPhysics()
 {
 	//init physics here
-	btCollisionShape* groundShape = new btBoxShape(btVector3(1000,20,1000));
+	btCollisionShape* groundShape = new btBoxShape(btVector3(10000,20,10000));
 
-	btCollisionShape* wallShape = new btBoxShape(btVector3(500,500,20));
 
-	m_collisionShapes.push_back(wallShape);
+
 	m_collisionShapes.push_back(groundShape);
 
 	btCollisionObject* colObj = new btCollisionObject();
 	colObj->setCollisionShape(groundShape);
 
+	/////////////////////////////////////////////////   RIGID BODY
+	btTransform boxTransform;
+	boxTransform.setIdentity();
+	boxTransform.setOrigin(btVector3(0,100,100));
 
-	btCollisionObject* colObjWall = new btCollisionObject();
-	colObjWall->setCollisionShape(wallShape);
+	btCollisionShape* wallShape = new btBoxShape(btVector3(10,10,10));
+
+	m_collisionShapes.push_back(wallShape);
+
+	wallShape->calculateLocalInertia(30.0f,btVector3(0,0,0));
+	
+	btDefaultMotionState* myMotionState = new btDefaultMotionState(boxTransform);
+	btRigidBody::btRigidBodyConstructionInfo rbInfo(30.0f,myMotionState,wallShape,btVector3(0,0,0));
+	body = new btRigidBody(rbInfo);
+	
+	body->setActivationState(ISLAND_SLEEPING);
+
+	
+	body->setActivationState(ISLAND_SLEEPING);
+	//////////////////////////////////////////////////////
 	
 	
 	m_collisionConfiguration = new btDefaultCollisionConfiguration();	
 	m_dispatcher = new btCollisionDispatcher(m_collisionConfiguration);
-	btVector3 worldMin(-1000,-1000,-1000);
-	btVector3 worldMax(1000,1000,1000);
+	btVector3 worldMin(-10000,-10000,-10000);
+	btVector3 worldMax(10000,10000,10000);
 	btAxisSweep3* sweepBP = new btAxisSweep3(worldMin,worldMax);
 	m_overlappingPairCache = sweepBP;
 
@@ -102,16 +124,16 @@ void TestState::initPhysics()
 
 	//add ground coll object
 	m_pDynamicsWorld->addCollisionObject(colObj);
-	m_pDynamicsWorld->addCollisionObject(colObjWall);
+	
 
-	startTransform.setIdentity ();
-	//startTransform.setOrigin (btVector3(0.0, 4.0, 0.0));
-	startTransform.setOrigin (btVector3(0,100,0));
-	//startTransform.setOrigin(btVector3(0,300,0));
+	startTransform.setIdentity ();	
+	startTransform.setOrigin (btVector3(100,300,0));
+	
 
 
 	m_ghostObject = new btPairCachingGhostObject();
 	m_ghostObject->setWorldTransform(startTransform);
+	
 	sweepBP->getOverlappingPairCache()->setInternalGhostPairCallback(new btGhostPairCallback());
 	btScalar characterHeight=1.75;
 	btScalar characterWidth =1.75;
@@ -126,7 +148,13 @@ void TestState::initPhysics()
 	m_pDynamicsWorld->addCollisionObject(m_ghostObject,btBroadphaseProxy::CharacterFilter, btBroadphaseProxy::StaticFilter|btBroadphaseProxy::DefaultFilter);
 
 	m_pDynamicsWorld->addAction(m_character);
+	//m_pDynamicsWorld->setGravity(btVector3(0,-9.82,0));
 
+
+	m_pDynamicsWorld->addRigidBody(body);
+
+
+	
 }
 
 //*********************************************
@@ -231,15 +259,32 @@ void TestState::createScene()
 	m_pGroundEntity->setCastShadows(false);
 
 
-
 	xform = m_ghostObject->getWorldTransform();
 	btQuaternion rot = xform.getRotation();
 	btVector3 pos = xform.getOrigin();
+
+	cout << "x: " << pos.x() << "  " << "y: " << pos.y() << "z:  " << pos.z() << endl;
 	
 	m_pCharacterEntity = m_pSceneMgr->createEntity("OgreEntity", "ogrehead.mesh");
 	m_pCharacterNode = m_pSceneMgr->getRootSceneNode()->createChildSceneNode("OgreHeadNode",Ogre::Vector3(pos.x(),pos.y(),pos.z()),Ogre::Quaternion(rot.w(),rot.x(),rot.y(),rot.z()));
 	m_pCharacterNode->attachObject(m_pCharacterEntity);
 	m_pCharacterEntity->setCastShadows(true);
+
+	xform = body->getWorldTransform();
+	rot = xform.getRotation();
+	pos = xform.getOrigin();
+
+	cout << "x: " << pos.x() << "  " << "y: " << pos.y() << "z:  " << pos.z() << endl;
+
+	Entity* ent = m_pSceneMgr->createEntity("RigidEnt", "cube.mesh");
+	
+	node = m_pSceneMgr->getRootSceneNode()->createChildSceneNode("RigidNode",Ogre::Vector3(pos.x(),pos.y(),pos.z()),Ogre::Quaternion(rot.w(),rot.x(),rot.y(),rot.z()));
+	//node = m_pSceneMgr->getRootSceneNode()->createChildSceneNode("RigidNode");
+	//node->translate(100,200,0,Node::TS_WORLD);
+	node->attachObject(ent);
+	
+	ent->setCastShadows(true);
+	
 
 }
 
@@ -349,7 +394,7 @@ void TestState::getInput()
 	{
 		//m_TranslateVector.x = -m_MoveScale;
 		btMatrix3x3 orn = m_ghostObject->getWorldTransform().getBasis();
-		orn *= btMatrix3x3(btQuaternion(btVector3(0,1,0),0.01));
+		orn *= btMatrix3x3(btQuaternion(btVector3(0,1,0),-0.01));
 		m_ghostObject->getWorldTransform ().setBasis(orn);
 
 
@@ -358,10 +403,12 @@ void TestState::getInput()
 	//Right
 	if(OgreFramework::getSingletonPtr()->m_pKeyboard->isKeyDown(OIS::KC_D))
 	{
+
 		//m_TranslateVector.x = m_MoveScale;
 		btMatrix3x3 orn = m_ghostObject->getWorldTransform().getBasis();
-		orn *= btMatrix3x3(btQuaternion(btVector3(0,1,0),-0.01));
+		orn *= btMatrix3x3(btQuaternion(btVector3(0,1,0),0.01));
 		m_ghostObject->getWorldTransform ().setBasis(orn);
+		
 	}
 	
 	//Forward
@@ -409,7 +456,7 @@ void TestState::getInput()
 
 	if(OgreFramework::getSingletonPtr()->m_pKeyboard->isKeyDown(OIS::KC_SPACE))
 	{
-		m_character->jump();
+		walkDirection += btVector3(0,2,0);
 	}
 }
 
@@ -461,13 +508,23 @@ void TestState::update(double timeSinceLastFrame)
 	
 		xform = m_ghostObject->getWorldTransform ();
 		btQuaternion rot = xform.getRotation();
-		m_pCharacterNode->setOrientation(rot.w(),rot.x(), rot.y(), rot.z());
+		m_pCharacterNode->setOrientation(rot.w(),rot.x(), -rot.y(), rot.z());
 		btVector3 pos = xform.getOrigin();
 		m_pCharacterNode->setPosition(pos.x(), pos.y(), pos.z());
+
 
 		walkDirection = btVector3(0.0, 0.0, 0.0);
 
 		m_pCamera->lookAt(m_pCharacterNode->_getDerivedPosition());
+
+
+		xform = body->getWorldTransform ();
+		rot = xform.getRotation();
+		node->setOrientation(rot.w(),rot.x(), -rot.y(), rot.z());
+		pos = xform.getOrigin();
+		node->setPosition(pos.x(), pos.y(), pos.z());
+
+
 
 	}
 
