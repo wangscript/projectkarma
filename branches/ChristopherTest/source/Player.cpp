@@ -40,6 +40,7 @@ Entity * Player::getEntity()
 {
 	if (m_pCharacterEntity != 0)
 		return m_pCharacterEntity;
+	return 0;
 }
 
 btConvexShape * Player::setConvexShape(int characterHeight, int characterWidth)
@@ -47,4 +48,5 @@ btConvexShape * Player::setConvexShape(int characterHeight, int characterWidth)
 	m_characterHeight = characterHeight;
 	m_characterHeight = characterWidth;
 	m_pCharacterConvexShape = new btCapsuleShape(m_characterWidth,m_characterHeight);
+	return m_pCharacterConvexShape;
 }

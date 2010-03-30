@@ -140,9 +140,10 @@
 				LinkIncremental="1"
 				AdditionalLibraryDirectories="C:\BulletSDK\lib\Release;&quot;$(DXSDK_DIR)\Lib\x86&quot;;&quot;$(OGRE_HOME)\lib&quot;"
 				GenerateDebugInformation="true"
-				SubSystem="2"
+				SubSystem="1"
 				OptimizeReferences="2"
 				EnableCOMDATFolding="2"
+				EntryPointSymbol="WinMainCRTStartup"
 				TargetMachine="1"
 			/>
 			<Tool
