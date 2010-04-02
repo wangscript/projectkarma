@@ -41,7 +41,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="&quot;$(OGRE_HOME)\samples\include&quot;;&quot;$(OGRE_HOME)\include\OIS&quot;;&quot;$(OGRE_HOME)\include\CEGUI&quot;;&quot;$(OGRE_HOME)\include&quot;;&quot;$(OGRE_HOME)\bin\debug&quot;;&quot;$(SolutionDir)\source&quot;;&quot;$(SolutionDir)\media&quot;;&quot;$(SolutionDir)\headers&quot;"
+				AdditionalIncludeDirectories="&quot;$(OGRE_HOME)\samples\include&quot;;&quot;$(OGRE_HOME)\include\OIS&quot;;&quot;$(OGRE_HOME)\include\CEGUI&quot;;&quot;$(OGRE_HOME)\include&quot;;&quot;$(BULLET_HOME)\src&quot;;&quot;$(OGRE_HOME)\bin\debug&quot;;&quot;$(SolutionDir)\source&quot;;&quot;$(SolutionDir)\media&quot;;&quot;$(SolutionDir)\headers&quot;;&quot;C:\sound\irrKlang-1.3.0\include&quot;"
 				PreprocessorDefinitions="WIN32;_DEBUG;_WINDOWS"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
@@ -61,11 +61,12 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="OgreMain_d.lib dxguid.lib dinput8.lib OIS_d.lib CEGUIBase_d.lib OgreGUIRenderer_d.lib"
+				AdditionalDependencies="OgreMain_d.lib dxguid.lib dinput8.lib OIS_d.lib CEGUIBase_d.lib OgreGUIRenderer_d.lib BulletCollision.lib BulletDynamics.lib LinearMath.lib irrKlang.lib"
 				LinkIncremental="2"
-				AdditionalLibraryDirectories="$(DXSDK_DIR)\Lib\x86;$(OGRE_HOME)\lib"
+				AdditionalLibraryDirectories="&quot;$(DXSDK_DIR)\Lib\x86&quot;;&quot;$(OGRE_HOME)\lib&quot;;&quot;$(BULLET_HOME)\lib&quot;;&quot;C:\sound\irrKlang-1.3.0\lib\Win32-visualStudio&quot;"
 				GenerateDebugInformation="true"
-				SubSystem="2"
+				SubSystem="1"
+				EntryPointSymbol="WinMainCRTStartup"
 				TargetMachine="1"
 			/>
 			<Tool
@@ -177,7 +178,23 @@
 			UniqueIdentifier="{4FC737F1-C7A5-4376-A066-2A32D752A2FF}"
 			>
 			<File
-				RelativePath=".\source\input.cpp"
+				RelativePath=".\source\AdvancedOgreFramework.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\source\AppStateManager.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\source\DemoApp.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\source\DotScene.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\source\GameState.cpp"
 				>
 			</File>
 			<File
@@ -185,11 +202,31 @@
 				>
 			</File>
 			<File
-				RelativePath=".\source\MainMenuDlg.cpp"
+				RelativePath=".\source\MenuState.cpp"
 				>
 			</File>
 			<File
-				RelativePath=".\source\simulation.cpp"
+				RelativePath=".\source\OgreToBtMeshConverter.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\source\Player.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\source\tinystr.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\source\tinyxml.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\source\tinyxmlerror.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\source\tinyxmlparser.cpp"
 				>
 			</File>
 		</Filter>
@@ -199,15 +236,51 @@
 			UniqueIdentifier="{93995380-89BD-4b04-88EB-625FBE52EBFB}"
 			>
 			<File
-				RelativePath=".\headers\input.h"
+				RelativePath=".\headers\AdvancedOgreFramework.hpp"
 				>
 			</File>
 			<File
-				RelativePath=".\headers\MainMenuDlg.h"
+				RelativePath=".\headers\AppState.hpp"
 				>
 			</File>
 			<File
-				RelativePath=".\headers\simulation.h"
+				RelativePath=".\headers\AppStateManager.hpp"
+				>
+			</File>
+			<File
+				RelativePath=".\headers\DemoApp.hpp"
+				>
+			</File>
+			<File
+				RelativePath=".\headers\DotScene.h"
+				>
+			</File>
+			<File
+				RelativePath=".\headers\ExampleLoadingBar.h"
+				>
+			</File>
+			<File
+				RelativePath=".\headers\GameState.hpp"
+				>
+			</File>
+			<File
+				RelativePath=".\headers\MenuState.hpp"
+				>
+			</File>
+			<File
+				RelativePath=".\headers\OgreToBtMeshConverter.h"
+				>
+			</File>
+			<File
+				RelativePath=".\headers\Player.h"
+				>
+			</File>
+			<File
+				RelativePath=".\headers\tinystr.h"
+				>
+			</File>
+			<File
+				RelativePath=".\headers\tinyxml.h"
 				>
 			</File>
 		</Filter>
