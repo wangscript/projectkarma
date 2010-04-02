@@ -41,7 +41,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="&quot;$(OGRE_HOME)\samples\include&quot;;&quot;$(OGRE_HOME)\include\OIS&quot;;&quot;$(OGRE_HOME)\include\CEGUI&quot;;&quot;$(OGRE_HOME)\include&quot;;&quot;$(BULLET_HOME)\src&quot;;&quot;$(OGRE_HOME)\bin\debug&quot;;&quot;$(SolutionDir)\source&quot;;&quot;$(SolutionDir)\media&quot;;&quot;$(SolutionDir)\headers&quot;;&quot;C:\sound\irrKlang-1.3.0\include&quot;"
+				AdditionalIncludeDirectories="&quot;$(OGRE_HOME)\samples\include&quot;;&quot;$(OGRE_HOME)\include\OIS&quot;;&quot;$(OGRE_HOME)\include\CEGUI&quot;;&quot;$(OGRE_HOME)\include&quot;;&quot;$(OGRE_HOME)\bin\debug&quot;;&quot;$(SolutionDir)\source&quot;;&quot;$(SolutionDir)\media&quot;;&quot;$(SolutionDir)\headers&quot;;&quot;$(IRRKLANG_HOME)\include&quot;;&quot;$(NXOGRE_HOME)\sdk&quot;;&quot;$(PHYSX_DIR)\SDKs\Physics\include&quot;;&quot;$(PHYSX_DIR)\SDKs\Foundation\include&quot;"
 				PreprocessorDefinitions="WIN32;_DEBUG;_WINDOWS"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
@@ -61,9 +61,9 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="OgreMain_d.lib dxguid.lib dinput8.lib OIS_d.lib CEGUIBase_d.lib OgreGUIRenderer_d.lib BulletCollision.lib BulletDynamics.lib LinearMath.lib irrKlang.lib"
+				AdditionalDependencies="OgreMain_d.lib dxguid.lib dinput8.lib OIS_d.lib CEGUIBase_d.lib OgreGUIRenderer_d.lib irrKlang.lib NxOgre_Debug.lib NxOgreOGRE3D_Debug.lib"
 				LinkIncremental="2"
-				AdditionalLibraryDirectories="&quot;$(DXSDK_DIR)\Lib\x86&quot;;&quot;$(OGRE_HOME)\lib&quot;;&quot;$(BULLET_HOME)\lib&quot;;&quot;C:\sound\irrKlang-1.3.0\lib\Win32-visualStudio&quot;"
+				AdditionalLibraryDirectories="&quot;$(DXSDK_DIR)\Lib\x86&quot;;&quot;$(OGRE_HOME)\lib&quot;;&quot;$(IRRKLANG_HOME)\lib\Win32-visualStudio&quot;;&quot;$(NXOGRE_HOME)\sdk&quot;"
 				GenerateDebugInformation="true"
 				SubSystem="1"
 				EntryPointSymbol="WinMainCRTStartup"
@@ -118,7 +118,7 @@
 				Name="VCCLCompilerTool"
 				Optimization="2"
 				EnableIntrinsicFunctions="true"
-				AdditionalIncludeDirectories="C:\Development\Karma\Karma\headers;&quot;$(SolutionDir)\media&quot;;&quot;$(OGRE_HOME)\samples\include&quot;;&quot;$(OGRE_HOME)\bin\release&quot;;&quot;$(SolutionDir)\source&quot;;&quot;$(SolutionDir)\headers&quot;;&quot;$(OGRE_HOME)\include\OIS&quot;;&quot;$(OGRE_HOME)\include\CEGUI&quot;;&quot;$(OGRE_HOME)\include&quot;"
+				AdditionalIncludeDirectories="&quot;$(OGRE_HOME)\samples\include&quot;;&quot;$(OGRE_HOME)\include\OIS&quot;;&quot;$(OGRE_HOME)\include\CEGUI&quot;;&quot;$(OGRE_HOME)\include&quot;;&quot;$(OGRE_HOME)\bin\debug&quot;;&quot;$(SolutionDir)\source&quot;;&quot;$(SolutionDir)\media&quot;;&quot;$(SolutionDir)\headers&quot;;&quot;$(IRRKLANG_HOME)\include&quot;;&quot;$(NXOGRE_HOME)\sdk&quot;;&quot;$(PHYSX_DIR)\SDKs\Physics\include&quot;;&quot;$(PHYSX_DIR)\SDKs\Foundation\include&quot;"
 				PreprocessorDefinitions="WIN32;NDEBUG;_WINDOWS"
 				RuntimeLibrary="2"
 				EnableFunctionLevelLinking="true"
@@ -137,9 +137,9 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="OgreMain.lib OIS.lib OgreGUIRenderer.lib dxguid.lib dinput8.lib"
+				AdditionalDependencies="OgreMain.lib OIS.lib OgreGUIRenderer.lib dxguid.lib dinput8.lib NxOgre.lib NxOgreOGRE3D.lib"
 				LinkIncremental="1"
-				AdditionalLibraryDirectories="$(DXSDK_DIR)\Lib\x86;$(OGRE_HOME)\lib"
+				AdditionalLibraryDirectories="&quot;$(DXSDK_DIR)\Lib\x86&quot;;&quot;$(OGRE_HOME)\lib&quot;;&quot;$(NXOGRE_HOME)\sdk&quot;"
 				GenerateDebugInformation="true"
 				SubSystem="2"
 				OptimizeReferences="2"
@@ -182,7 +182,15 @@
 				>
 			</File>
 			<File
+				RelativePath=".\source\AnimationBlender.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\source\AppStateManager.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\source\CameraHandler.cpp"
 				>
 			</File>
 			<File
@@ -206,11 +214,11 @@
 				>
 			</File>
 			<File
-				RelativePath=".\source\OgreToBtMeshConverter.cpp"
+				RelativePath=".\source\Player.cpp"
 				>
 			</File>
 			<File
-				RelativePath=".\source\Player.cpp"
+				RelativePath=".\source\SoundManager.cpp"
 				>
 			</File>
 			<File
@@ -240,11 +248,19 @@
 				>
 			</File>
 			<File
+				RelativePath=".\headers\AnimationBlender.h"
+				>
+			</File>
+			<File
 				RelativePath=".\headers\AppState.hpp"
 				>
 			</File>
 			<File
 				RelativePath=".\headers\AppStateManager.hpp"
+				>
+			</File>
+			<File
+				RelativePath=".\headers\CameraHandler.h"
 				>
 			</File>
 			<File
@@ -268,11 +284,11 @@
 				>
 			</File>
 			<File
-				RelativePath=".\headers\OgreToBtMeshConverter.h"
+				RelativePath=".\headers\Player.h"
 				>
 			</File>
 			<File
-				RelativePath=".\headers\Player.h"
+				RelativePath=".\headers\SoundManager.h"
 				>
 			</File>
 			<File
