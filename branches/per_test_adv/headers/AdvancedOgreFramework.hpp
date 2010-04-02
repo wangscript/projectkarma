@@ -22,6 +22,7 @@
 #include <OISKeyboard.h>
 #include <OISMouse.h>
 
+#include "SoundManager.h"
 #include <CEGUI/CEGUI.h>
 #include <OgreCEGUIRenderer.h>
 #include "ExampleLoadingBar.h"
@@ -53,7 +54,8 @@ public:
 	
 	OIS::InputManager*		m_pInputMgr;
 	OIS::Keyboard*			m_pKeyboard;
-	OIS::Mouse*			m_pMouse;
+	OIS::Mouse*				m_pMouse;
+	SoundManager*			m_Sound;
 
 	CEGUI::OgreCEGUIRenderer*	m_pGUIRenderer;
 	CEGUI::System*			m_pGUISystem;

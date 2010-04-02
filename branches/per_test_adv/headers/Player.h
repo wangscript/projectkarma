@@ -1,58 +1,32 @@
 #ifndef PLAYER_H
 #define PLAYER_H
-#include <btBulletCollisionCommon.h>
 #include <Ogre.h>
-#include <cmath>
-
-#define BTVEC3_TO_OGREVEC3(v) \
-    btVector3(v[0], v[1], v[2])
-#define OGREVEC3_TO_BTVEC3(v) \
-    Vector3(v[0], v[1], v[2])
-
-
-using namespace Ogre;
+#include <NxOgreOGRE3D.h>
+#include <NxActor.h>
+#include <NxScene.h>
+#include <NxUserContactReport.h>
+#define CHARACTER_SCALE			0.2 //For ogre.mesh 0.2 is good
+#define CHARACTER_ROTATION		180 //Turns the character 180 degrees
 
 class Player
 {
 public:
-    // movement direction
-    enum direction { FORWARD, BACKWARD, TURN_LEFT, TURN_RIGHT };
-    
+	Player(Ogre::SceneManager*,OGRE3DRenderSystem*);
+	virtual ~Player();
+	virtual void changeAnimation(const Ogre::String& name,const double time);
+	virtual void setJumping() {jumping=true;};
+	virtual bool isJumping() {return jumping;};
+	virtual void move(const double );
+	
+
 protected:
-    //
-    // OGRE
-    //
-    SceneManager* mSceneMgr;
-    Vector3 latestValid;
-		ManualObject* debugRayObject;
-		    SceneNode* debugRayNode;
-    Entity* charEnt;             // character entity
-    SceneNode* charNode;         // character node
-    Entity* contactEnt; 
-    SceneNode* contactNode;   
-    // last frame begin and frame end event
-    FrameEvent evtFrameBegin, evtFrameEnd;
-    
-    //
-    // BULLET
-    //
-    btCollisionWorld* mColWorld;
-
-    // cylinder shape and object for part3
-    btCylinderShape* mCylShape;    
-    btCollisionObject* mCylColObj; 
-    
-    
-public:
-    Player(SceneManager* sceneMgr, btCollisionWorld* btColWorld);
-
-    virtual ~Player();
-    virtual void init();
-	virtual bool vardetettvalidmove();
-    virtual void move(Vector3 dir);
-    virtual void updateFrameBegin(const FrameEvent& evt);
-    virtual void updateFrameEnd(const FrameEvent& evt);
+	Ogre::Entity* charEnt;           
+	Ogre::SceneNode* charNode; 
+	Ogre::SceneNode* camCollisionNode;
+   OGRE3DBody* mCapsule;
+   Ogre::AnimationState* m_AnimationState; 
+   bool jumping;
+	
 };
+#endif
 
-
-#endif /*PLAYER_H_*/

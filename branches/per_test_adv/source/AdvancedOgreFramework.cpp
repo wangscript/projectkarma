@@ -40,7 +40,8 @@ OgreFramework::~OgreFramework()
 		delete m_pMouse;
 		OIS::InputManager::destroyInputSystem(m_pInputMgr);
 	}
-
+	m_Sound->deleteSound();
+	delete m_Sound;
 	delete m_pRoot;
 }
 
@@ -123,6 +124,9 @@ void OgreFramework::initOgre(Ogre::String wndTitle, OIS::KeyListener *pKeyListen
 	m_pDebugOverlay->show();
 
 	m_pRenderWnd->setActive(true);
+
+	m_Sound = new SoundManager();
+	m_Sound->initSound();
 }
 
 //|||||||||||||||||||||||||||||||||||||||||||||||
