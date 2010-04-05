@@ -8,8 +8,6 @@
 #include "AppState.hpp"
 #include "CameraHandler.h"
 #include "Character.h"
-#include <OgreSubEntity.h>
-#include <OgreMaterialManager.h>
 #include <NxOgre.h>
 #include <NxOgreOGRE3D.h>
 
