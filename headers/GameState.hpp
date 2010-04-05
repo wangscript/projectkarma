@@ -6,69 +6,71 @@
 //|||||||||||||||||||||||||||||||||||||||||||||||
 
 #include "AppState.hpp"
-#include "DotScene.h"
-#include <btBulletCollisionCommon.h>
-#include <btBulletDynamicsCommon.h>
-#include "OgreToBtMeshConverter.h"
-#include "Player.h"
+#include "CameraHandler.h"
+#include "Character.h"
+#include <NxOgre.h>
+#include <NxOgreOGRE3D.h>
 
+#define CAMERA_HEIGHT			1.2
+#define CAMERA_DISTANCE			3
 
-//|||||||||||||||||||||||||||||||||||||||||||||||
 
 //|||||||||||||||||||||||||||||||||||||||||||||||
 
 class GameState : public AppState
 {
 public:
-	GameState();
+        GameState();
 
-	DECLARE_APPSTATE_CLASS(GameState)
+        DECLARE_APPSTATE_CLASS(GameState)
 
-	void enter();
-	void createScene();
-	void exit();
-	bool pause();
-	void resume();
+        void enter();
+        void createScene();
+        void exit();
+        bool pause();
+        void resume();
 
-	void move();
-	void getInput();
+        void moveCamera();
+        void getInput();
 
-	bool keyPressed(const OIS::KeyEvent &keyEventRef);
-	bool keyReleased(const OIS::KeyEvent &keyEventRef);
+        bool keyPressed(const OIS::KeyEvent &keyEventRef);
+        bool keyReleased(const OIS::KeyEvent &keyEventRef);
 
-	bool mouseMoved(const OIS::MouseEvent &arg);
-	bool mousePressed(const OIS::MouseEvent &arg, OIS::MouseButtonID id); 
-	bool mouseReleased(const OIS::MouseEvent &arg, OIS::MouseButtonID id);
+        bool mouseMoved(const OIS::MouseEvent &arg);
+        bool mousePressed(const OIS::MouseEvent &arg, OIS::MouseButtonID id); 
+        bool mouseReleased(const OIS::MouseEvent &arg, OIS::MouseButtonID id);
 
-	void onLeftPressed(const OIS::MouseEvent &evt);
-	bool onExitButtonGame(const CEGUI::EventArgs &args);
+        void onLeftPressed(const OIS::MouseEvent &evt);
+        bool onExitButtonGame(const CEGUI::EventArgs &args);
 
-	void update(double timeSinceLastFrame);
-	void setBufferedMode();
-	void setUnbufferedMode();
+        void update(double timeSinceLastFrame);
+
+        void setBufferedMode();
+        void setUnbufferedMode();
 
 private:
-	bool						m_bQuit;
-		
-	Ogre::Vector3				m_TranslateVector;
-	Ogre::Real					m_MoveSpeed; 
-	Ogre::Degree				m_RotateSpeed; 
-	float						m_MoveScale; 
-	Ogre::Degree				m_RotScale;
 
-	bool						m_bLMouseDown, m_bRMouseDown;
-	bool						m_bChatMode;
+    //NxOgre instances
+	NxOgre::World*							m_PhysicsWorld;
+	NxOgre::Scene*							m_PhysicsScene;
+	NxOgre::TimeController*					m_PhysicsTimeController;
+	OGRE3DRenderSystem*						m_PhysicsRenderSystem;
 
-	CEGUI::Window*				m_pMainWnd;
-	CEGUI::Window*				m_pChatWnd;
+	//NxOgre objects
 
-	Player*						m_Player;
+	CameraHandler*									m_CameraHandler;
+	Character*									m_Character;
+	bool                                    m_bQuit;
 
-	btDefaultCollisionConfiguration*	m_ColConfig; 
-	btSequentialImpulseConstraintSolver* m_constraintSolver;
-    btCollisionWorld*					m_ColWorld;
-    btCollisionDispatcher*				m_Dispatcher;
-    btAxisSweep3*						m_Broadphase; 
+	Ogre::Vector3                           m_TranslateVector;
+	Ogre::Real                              m_MoveSpeed; 
+	float                                   m_MoveScale; 
+
+	bool                                    m_bLMouseDown, m_bRMouseDown;
+	bool                                    m_bChatMode;
+
+        CEGUI::Window*                          m_pMainWnd;
+        CEGUI::Window*                          m_pChatWnd;
 };
 
 //|||||||||||||||||||||||||||||||||||||||||||||||
