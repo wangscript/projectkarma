@@ -7,7 +7,7 @@
 
 #include "AppState.hpp"
 #include "CameraHandler.h"
-#include "Player.h"
+#include "Character.h"
 #include <OgreSubEntity.h>
 #include <OgreMaterialManager.h>
 #include <NxOgre.h>
@@ -61,7 +61,7 @@ private:
 	//NxOgre objects
 
 	CameraHandler*									m_CameraHandler;
-	Player*									m_Player;
+	Character*									m_Character;
 	bool                                    m_bQuit;
 
 	Ogre::Vector3                           m_TranslateVector;

@@ -40,48 +40,55 @@ CameraHandler::~CameraHandler()
 
 void CameraHandler::Rotate(const OIS::MouseEvent &arg)
 {
-	//Förklara kod sen
-	camOrginNode->yaw(Ogre::Degree(-mRotate * arg.state.X.rel), Ogre::Node::TS_LOCAL);
-	bool okToPitch = false;
-	if ( arg.state.Y.rel < 0)
-	{
-		if (camNoCollisionNode->_getDerivedPosition().y > CAMERA_MIN_Y)
-		{
-			okToPitch = true;
-		}
-	}
-	else
-	{	
-		if (camNoCollisionNode->_getDerivedPosition().y < CAMERA_MAX_Y)
-		{
-			okToPitch = true;
-		}
-	}
-	if (okToPitch)
-	{
-		camHelperNode->pitch(Ogre::Degree(-mRotate * arg.state.Y.rel), Ogre::Node::TS_LOCAL);
-	}
-	std::cout << camNoCollisionNode->_getDerivedPosition().x << " <--- JAHA\n";
+    //Yaw the camera. Rotate around the Y axis
+    //@todo add raycast so the camera cant get stuck behind stuff
+    camOrginNode->yaw(Ogre::Degree(-mRotate * arg.state.X.rel), Ogre::Node::TS_LOCAL);
+
+    /*It is not allowed to pitch the camera (rotate around Z axis) if it
+    A. Rotates more than 90 degrees, making the world "flip"
+    B. Position itself under the world.*/
+    bool okToPitch = false;
+
+    //If the relative mouse movement is negative, we only have to worry about Case B.
+    if ( arg.state.Y.rel < 0 &&camNoCollisionNode->_getDerivedPosition().y > CAMERA_MIN_Y)
+    {
+        okToPitch = true;
+    }
+    //To get here the mouse movement must be positive. Case A.
+    else if (camNoCollisionNode->_getDerivedPosition().y < CAMERA_MAX_Y)
+    {
+        okToPitch = true;
+    }
+
+    if (okToPitch)
+    {
+        camHelperNode->pitch(Ogre::Degree(-mRotate * arg.state.Y.rel), Ogre::Node::TS_LOCAL);
+    }
 }
+
 
 void CameraHandler::AdjustCamera()
 {
-		//städa denna koden sen
-		Ogre::Vector3 noCollisionPos = camNoCollisionNode->_getDerivedPosition();
-		NxOgre::Vec3 collisionSpherePos = cameraSphere->getGlobalPosition();
-		NxOgre::Vec3 linearVelocityDirection;
-		linearVelocityDirection.x = (noCollisionPos.x - collisionSpherePos.x) * CAMERA_VELOCITY_XZ;
-		linearVelocityDirection.y = (noCollisionPos.y - collisionSpherePos.y) * CAMERA_VELOCITY_Y;
-		linearVelocityDirection.z = (noCollisionPos.z - collisionSpherePos.z) * CAMERA_VELOCITY_XZ  ;
-		cameraSphere->setLinearVelocity(linearVelocityDirection);
+    //Get position of imaginary camera and the bounding sphere.
+    Ogre::Vector3 noCollisionPos = camNoCollisionNode->_getDerivedPosition();
+    NxOgre::Vec3 collisionSpherePos = cameraSphere->getGlobalPosition();
+
+    //Get direction from bounding sphere to imaginary camera and set it as linear velocity
+    NxOgre::Vec3 linearVelocityDirection;
+    linearVelocityDirection.x = (noCollisionPos.x - collisionSpherePos.x) * CAMERA_VELOCITY_XZ;
+    linearVelocityDirection.y = (noCollisionPos.y - collisionSpherePos.y) * CAMERA_VELOCITY_Y;
+    linearVelocityDirection.z = (noCollisionPos.z - collisionSpherePos.z) * CAMERA_VELOCITY_XZ  ;
+    cameraSphere->setLinearVelocity(linearVelocityDirection);
 }
 
 void CameraHandler::MoveCamera()
 {
-		//Förklara kod
-		NxOgre::Vec3 collisionSpherePos = cameraSphere->getGlobalPosition();
-		camCollisionNode->setPosition(Ogre::Vector3(collisionSpherePos.x,collisionSpherePos.y,collisionSpherePos.z));
-		Ogre::Vector3 directionToCharacter =  charNode->_getDerivedPosition() - camCollisionNode->_getDerivedPosition();
-		camera->setDirection(directionToCharacter);
+    //Get position of bounding sphere and set the camera's position
+    NxOgre::Vec3 collisionSpherePos = cameraSphere->getGlobalPosition();
+    camCollisionNode->setPosition(Ogre::Vector3(collisionSpherePos.x,collisionSpherePos.y,collisionSpherePos.z));
+
+    //So the camera always will look at the character  
+    Ogre::Vector3 directionToCharacter =  charNode->_getDerivedPosition() - camCollisionNode->_getDerivedPosition();
+    camera->setDirection(directionToCharacter);
 }
 
