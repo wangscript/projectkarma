@@ -137,9 +137,9 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="OgreMain.lib OIS.lib OgreGUIRenderer.lib dxguid.lib dinput8.lib NxOgre.lib NxOgreOGRE3D.lib"
+				AdditionalDependencies="OgreMain.lib OIS.lib CEGUIBase.lib OgreGUIRenderer.lib dxguid.lib dinput8.lib NxOgre.lib NxOgreOGRE3D.lib irrKlang.lib"
 				LinkIncremental="1"
-				AdditionalLibraryDirectories="&quot;$(DXSDK_DIR)\Lib\x86&quot;;&quot;$(OGRE_HOME)\lib&quot;;&quot;$(NXOGRE_HOME)\sdk&quot;"
+				AdditionalLibraryDirectories="&quot;$(DXSDK_DIR)\Lib\x86&quot;;&quot;$(OGRE_HOME)\lib&quot;;&quot;$(NXOGRE_HOME)\sdk&quot;;&quot;$(IRRKLANG_HOME)\lib\Win32-visualStudio&quot;"
 				GenerateDebugInformation="true"
 				SubSystem="2"
 				OptimizeReferences="2"
@@ -182,15 +182,15 @@
 				>
 			</File>
 			<File
-				RelativePath=".\source\AnimationBlender.cpp"
-				>
-			</File>
-			<File
 				RelativePath=".\source\AppStateManager.cpp"
 				>
 			</File>
 			<File
 				RelativePath=".\source\CameraHandler.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\source\Character.cpp"
 				>
 			</File>
 			<File
@@ -211,10 +211,6 @@
 			</File>
 			<File
 				RelativePath=".\source\MenuState.cpp"
-				>
-			</File>
-			<File
-				RelativePath=".\source\Player.cpp"
 				>
 			</File>
 			<File
@@ -248,10 +244,6 @@
 				>
 			</File>
 			<File
-				RelativePath=".\headers\AnimationBlender.h"
-				>
-			</File>
-			<File
 				RelativePath=".\headers\AppState.hpp"
 				>
 			</File>
@@ -261,6 +253,10 @@
 			</File>
 			<File
 				RelativePath=".\headers\CameraHandler.h"
+				>
+			</File>
+			<File
+				RelativePath=".\headers\Character.h"
 				>
 			</File>
 			<File
@@ -281,10 +277,6 @@
 			</File>
 			<File
 				RelativePath=".\headers\MenuState.hpp"
-				>
-			</File>
-			<File
-				RelativePath=".\headers\Player.h"
 				>
 			</File>
 			<File
