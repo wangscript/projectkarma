@@ -21,7 +21,7 @@ GameState::GameState()
 void GameState::enter()
 {
 	OgreFramework::getSingletonPtr()->m_pLog->logMessage("Entering GameState...");
-	
+
 	m_pSceneMgr = OgreFramework::getSingletonPtr()->m_pRoot->createSceneManager(ST_GENERIC, "GameSceneMgr");
 	m_pSceneMgr->setAmbientLight(Ogre::ColourValue(0.7, 0.7, 0.7));		
 
@@ -34,17 +34,17 @@ void GameState::enter()
 	m_pCamera->setNearClipDistance(5);
 
 	m_pCamera->setAspectRatio(Real(OgreFramework::getSingletonPtr()->m_pViewport->getActualWidth()) / 
-							  Real(OgreFramework::getSingletonPtr()->m_pViewport->getActualHeight()));
-	
+		Real(OgreFramework::getSingletonPtr()->m_pViewport->getActualHeight()));
+
 	OgreFramework::getSingletonPtr()->m_pViewport->setCamera(m_pCamera);
 
 	OgreFramework::getSingletonPtr()->m_pKeyboard->setEventCallback(this);
 	OgreFramework::getSingletonPtr()->m_pMouse->setEventCallback(this);
-	
+
 	OgreFramework::getSingletonPtr()->m_pGUIRenderer->setTargetSceneManager(m_pSceneMgr);
 
 	OgreFramework::getSingletonPtr()->m_pGUISystem->setDefaultMouseCursor((CEGUI::utf8*)"TaharezLook", (CEGUI::utf8*)"MouseArrow"); 
-    CEGUI::MouseCursor::getSingleton().setImage("TaharezLook", "MouseArrow"); 
+	CEGUI::MouseCursor::getSingleton().setImage("TaharezLook", "MouseArrow"); 
 	const OIS::MouseState state = OgreFramework::getSingletonPtr()->m_pMouse->getMouseState();
 	CEGUI::Point mousePos = CEGUI::MouseCursor::getSingleton().getPosition(); 
 	CEGUI::System::getSingleton().injectMouseMove(state.X.abs-mousePos.d_x,state.Y.abs-mousePos.d_y);
@@ -56,7 +56,7 @@ void GameState::enter()
 
 	CEGUI::PushButton* pExitButton = (CEGUI::PushButton*)m_pMainWnd->getChild("ExitButton_Game");
 	pExitButton->subscribeEvent(CEGUI::PushButton::EventClicked, CEGUI::Event::Subscriber(&GameState::onExitButtonGame, this));
-	
+
 	m_bLMouseDown = m_bRMouseDown = false;
 	m_bQuit = false;
 	m_bChatMode = false;
@@ -100,7 +100,7 @@ void GameState::exit()
 
 	OgreFramework::getSingletonPtr()->m_pGUISystem->setGUISheet(0);
 	OgreFramework::getSingletonPtr()->m_pGUIRenderer->setTargetSceneManager(0);
-	
+
 	m_pSceneMgr->destroyCamera(m_pCamera);
 	m_pSceneMgr->destroyQuery(m_pRSQ);
 	if(m_pSceneMgr)
@@ -143,7 +143,7 @@ bool GameState::keyPressed(const OIS::KeyEvent &keyEventRef)
 		OgreFramework::getSingletonPtr()->m_pGUISystem->injectKeyDown(keyEventRef.key);
 		OgreFramework::getSingletonPtr()->m_pGUISystem->injectChar(keyEventRef.text);
 	}
-	
+
 	if(OgreFramework::getSingletonPtr()->m_pKeyboard->isKeyDown(OIS::KC_ESCAPE))
 	{
 		m_bQuit = true;
@@ -153,12 +153,12 @@ bool GameState::keyPressed(const OIS::KeyEvent &keyEventRef)
 	if(OgreFramework::getSingletonPtr()->m_pKeyboard->isKeyDown(OIS::KC_TAB))
 	{
 		m_bChatMode = !m_bChatMode;
-		
+
 		if(m_bChatMode)
 			setBufferedMode();
 		else
 			setUnbufferedMode();
-		
+
 		return true;
 	}
 
@@ -172,7 +172,7 @@ bool GameState::keyPressed(const OIS::KeyEvent &keyEventRef)
 		pChatContentBox->setCaratIndex(pChatContentBox->getText().size());
 		pChatContentBox->ensureCaratIsVisible();
 	}
-	
+
 	if(!m_bChatMode || (m_bChatMode && !OgreFramework::getSingletonPtr()->m_pKeyboard->isKeyDown(OIS::KC_O)))
 		OgreFramework::getSingletonPtr()->keyPressed(keyEventRef);
 
@@ -194,13 +194,13 @@ bool GameState::mouseMoved(const OIS::MouseEvent &evt)
 {
 	OgreFramework::getSingletonPtr()->m_pGUISystem->injectMouseWheelChange(evt.state.Z.rel);
 	OgreFramework::getSingletonPtr()->m_pGUISystem->injectMouseMove(evt.state.X.rel, evt.state.Y.rel);
-	
+
 	if(m_bRMouseDown)
 	{
 		m_pCamera->yaw(Degree(evt.state.X.rel * -0.1));
 		m_pCamera->pitch(Degree(evt.state.Y.rel * -0.1));
 	}
-	
+
 	return true;
 }
 
@@ -209,17 +209,17 @@ bool GameState::mouseMoved(const OIS::MouseEvent &evt)
 bool GameState::mousePressed(const OIS::MouseEvent &evt, OIS::MouseButtonID id)
 {
 	if(id == OIS::MB_Left)
-    {
-        onLeftPressed(evt);
-        m_bLMouseDown = true;
-		
+	{
+		onLeftPressed(evt);
+		m_bLMouseDown = true;
+
 		OgreFramework::getSingletonPtr()->m_pGUISystem->injectMouseButtonDown(CEGUI::LeftButton);
-    } 
-    else if(id == OIS::MB_Right)
-    {
-        m_bRMouseDown = true;
-    } 
-	
+	} 
+	else if(id == OIS::MB_Right)
+	{
+		m_bRMouseDown = true;
+	} 
+
 	return true;
 }
 
@@ -228,16 +228,16 @@ bool GameState::mousePressed(const OIS::MouseEvent &evt, OIS::MouseButtonID id)
 bool GameState::mouseReleased(const OIS::MouseEvent &evt, OIS::MouseButtonID id)
 {
 	if(id == OIS::MB_Left)
-    {
-        m_bLMouseDown = false;
+	{
+		m_bLMouseDown = false;
 
 		OgreFramework::getSingletonPtr()->m_pGUISystem->injectMouseButtonUp(CEGUI::LeftButton);
-    } 
-    else if(id == OIS::MB_Right)
-    {
-        m_bRMouseDown = false;
-    }
-	
+	} 
+	else if(id == OIS::MB_Right)
+	{
+		m_bRMouseDown = false;
+	}
+
 	return true;
 }
 
@@ -250,7 +250,7 @@ void GameState::onLeftPressed(const OIS::MouseEvent &evt)
 		m_pCurrentObject->showBoundingBox(false);
 		m_pCurrentEntity->getSubEntity(1)->setMaterial(m_pOgreHeadMat);
 	}
-		
+
 	CEGUI::Point mousePos = CEGUI::MouseCursor::getSingleton().getPosition();
 	Ogre::Ray mouseRay = m_pCamera->getCameraToViewportRay(mousePos.d_x/float(evt.state.width), mousePos.d_y/float(evt.state.height));
 	m_pRSQ->setRay(mouseRay);
@@ -259,19 +259,19 @@ void GameState::onLeftPressed(const OIS::MouseEvent &evt)
 	Ogre::RaySceneQueryResult &result = m_pRSQ->execute();
 	Ogre::RaySceneQueryResult::iterator itr;
 
-    for(itr = result.begin(); itr != result.end(); itr++)
-    {
-        if(itr->movable)
-        {
+	for(itr = result.begin(); itr != result.end(); itr++)
+	{
+		if(itr->movable)
+		{
 			OgreFramework::getSingletonPtr()->m_pLog->logMessage("MovableName: " + itr->movable->getName());
 			m_pCurrentObject = m_pSceneMgr->getEntity(itr->movable->getName())->getParentSceneNode();
 			OgreFramework::getSingletonPtr()->m_pLog->logMessage("ObjName " + m_pCurrentObject->getName());
 			m_pCurrentObject->showBoundingBox(true);
 			m_pCurrentEntity = m_pSceneMgr->getEntity(itr->movable->getName());
 			m_pCurrentEntity->getSubEntity(1)->setMaterial(m_pOgreHeadMatHigh);
-            break;
-        }			
-    }
+			break;
+		}			
+	}
 }
 
 //|||||||||||||||||||||||||||||||||||||||||||||||
@@ -351,7 +351,7 @@ void GameState::update(double timeSinceLastFrame)
 
 	m_MoveScale = m_MoveSpeed   * timeSinceLastFrame;
 	m_RotScale  = m_RotateSpeed * timeSinceLastFrame;
-		
+
 	m_TranslateVector = Vector3::ZERO;
 
 	getInput();
