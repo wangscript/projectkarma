@@ -60,6 +60,7 @@ public:
 	virtual ~Character();
 	virtual void setPowerUp(const int& p){mPowerUp = p;};
 	virtual void removePowerUp(){mPowerUp = PowerUp_None;};
+	virtual NxOgre::RigidBody* getCapsule(){return mCapsule;};
 	virtual int getPowerUp(){return mPowerUp;};
 	virtual bool move(const double& timeSinceLastFrame);
 	virtual void setMoveDirection (const int& d){mMoveDir = d;};

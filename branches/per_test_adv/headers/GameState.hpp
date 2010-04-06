@@ -8,6 +8,7 @@
 #include "AppState.hpp"
 #include "CameraHandler.h"
 #include "Character.h"
+#include "PowerUp.h"
 #include <NxOgre.h>
 #include <NxOgreOGRE3D.h>
 
@@ -59,6 +60,7 @@ private:
 
 	CameraHandler*							m_CameraHandler;
 	Character*								m_Character;
+	PowerUp*								m_PowerUps;
 	bool                                    m_bQuit;
 
 	bool                                    m_bLMouseDown, m_bRMouseDown;
