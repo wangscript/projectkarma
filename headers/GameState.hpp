@@ -57,15 +57,15 @@ private:
 
 	//NxOgre objects
 
-	CameraHandler*									m_CameraHandler;
-	Character*									m_Character;
+	CameraHandler*							m_CameraHandler;
+	Character*								m_Character;
 	bool                                    m_bQuit;
 
 	bool                                    m_bLMouseDown, m_bRMouseDown;
 	bool                                    m_bChatMode;
 
-        CEGUI::Window*                          m_pMainWnd;
-        CEGUI::Window*                          m_pChatWnd;
+        CEGUI::Window*                      m_pMainWnd;
+        CEGUI::Window*                      m_pChatWnd;
 };
 
 //|||||||||||||||||||||||||||||||||||||||||||||||
