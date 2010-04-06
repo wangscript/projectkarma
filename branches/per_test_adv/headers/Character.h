@@ -27,7 +27,8 @@ public:
 	{
 		PowerUp_None = 0, 
 		PowerUp_SuperJump = 1,
-		PowerUp_SuperSpeed = 2
+		PowerUp_SuperSpeed = 2,
+		PowerUp_MoveBox = 3
 	};
 
 	enum MoveDirection
@@ -46,7 +47,10 @@ protected:
 	Ogre::SceneNode* charNode; 
 	Ogre::SceneNode* camCollisionNode;
 	OGRE3DBody* mCapsule;
+	OGRE3DKinematicBody* mMoveBoxController;
+	NxOgre::FixedJoint* mMoveBoxJoint;
 	Ogre::AnimationState* m_AnimationState;
+	Ogre::Camera* mCamera;
 	bool jumping;
 	int mPowerUp;
 	int mMoveDir;
@@ -63,6 +67,8 @@ public:
 	virtual void changeAnimation(const Ogre::String& name,const double time);
 	virtual bool isJumping() {return jumping;};
 	virtual void debugMode();
+	virtual void moveBox(const OIS::MouseEvent &e);
+	virtual void releaseBox();
 };
 #endif
 

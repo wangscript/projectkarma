@@ -15,6 +15,8 @@ Character::Character(Ogre::SceneManager* sceneMgr, OGRE3DRenderSystem* renderSys
 	m_AnimationState= NULL;
 	jumping=false;
 	mMoveDir = Move_None;
+	mCamera = OgreFramework::getSingletonPtr()->m_pViewport->getCamera();
+	//mMoveBoxJoint = NULL;
 
 	//Pointer to cam node. Going to be used a lot
 	camCollisionNode = sceneMgr->getSceneNode("CamCollisionNode");
@@ -34,6 +36,16 @@ Character::Character(Ogre::SceneManager* sceneMgr, OGRE3DRenderSystem* renderSys
 	NxShape* const* s = mCapsule->getNxActor()->getShapes();
 	//@todo fix enums for groups. bit operations useful maybe :)
 	(*s)->setGroup(1);
+
+	//Add a kinematic controller for the move box powerup. Position,size,mesh doesn't really matter. Only a reference.
+	mMoveBoxController = renderSystem->createKinematicBody(new NxOgre::Box(1, 1,1), NxOgre::Vec3(0, 0, 0), "cube.1m.mesh");
+	//Collision Group 1
+	NxShape* const* ss = mMoveBoxController->getNxActor()->getShapes();
+	(*ss)->setGroup(1);
+	//Not making any other dynamic objects move
+	mMoveBoxController->getNxActor()->raiseActorFlag(NX_AF_DISABLE_COLLISION);
+	//Invisible of course.
+	mMoveBoxController->getEntity()->setVisible(false);
 }
 
 Character::~Character() 
@@ -155,7 +167,17 @@ bool Character::move(const double& timeSinceLastFrame)
 	//Get position of capsule and set the characters position to the capsule's position.
 	NxOgre::Vec3 capsulePos = mCapsule->getGlobalPosition();
 	//Move the "RootNode". CHARACTER_ADJUST_Y , translate node if orgin is not in origo
-	charNode->getParentSceneNode()->setPosition(capsulePos.x ,capsulePos.y,capsulePos.z);  
+	charNode->getParentSceneNode()->setPosition(capsulePos.x ,capsulePos.y,capsulePos.z);
+
+	//MoveBoxController
+	if (mPowerUp == PowerUp_MoveBox)
+	{
+	CEGUI::Point mousePos = CEGUI::MouseCursor::getSingleton().getPosition();
+	Ogre::Ray mouseRay = mCamera->getCameraToViewportRay(mousePos.d_x/float(OgreFramework::getSingletonPtr()->m_pRenderWnd->getWidth()), mousePos.d_y/float(OgreFramework::getSingletonPtr()->m_pRenderWnd->getHeight()));
+	Ogre::Vector3 myOgreVector = mouseRay.getPoint(Ogre::Real (10));
+	NxOgre::Vec3 myNxOgreVector(myOgreVector);		
+	mMoveBoxController->moveGlobalPosition(myNxOgreVector); 
+	}
 	return move;
 
 }
@@ -170,5 +192,38 @@ void Character::debugMode()
 	{
 		mCapsule->getEntity()->setVisible(true);
 	}
+}
+
+void Character::moveBox(const OIS::MouseEvent &e)
+{
+	//Get X and Y position of 2D CEGUI cursor
+		CEGUI::Point mousePos = CEGUI::MouseCursor::getSingleton().getPosition();
+		//Create a ray from camera trough the CEGUI 2D Screen X & Y
+		Ogre::Ray mouseRay = mCamera->getCameraToViewportRay(mousePos.d_x/float(e.state.width), mousePos.d_y/float(e.state.height));
+		//Get orgin and direction of ray
+		NxOgre::Vec3 rayDirection(mouseRay.getDirection());
+		NxOgre::Vec3 rayOrgin(mouseRay.getOrigin());
+		//NxOgre Raycast. Only hitting dynamic objects . No intersecting with collision group 1
+		//@todo fix collision groups
+		NxOgre::RaycastHit rayCastResult = mMoveBoxController->getScene()->raycastClosestShape(NxOgre::Ray(rayOrgin,rayDirection),NxOgre::Enums::ShapesType_Dynamic,1);
+		
+		//True if it hits a Rigid Body
+		if (rayCastResult.mRigidBody)
+		{
+			NxOgre::FixedJointDescription desciptionJoint;
+			//Removes earlier joints (if there's any)
+			if (mMoveBoxJoint != NULL)
+			{
+				mMoveBoxController->getScene()->destroyJoint(mMoveBoxJoint);
+			}
+			//Create Joint between the raycast hit and MoveBoxController
+			mMoveBoxJoint = mMoveBoxController->getScene()->createFixedJoint( mMoveBoxController, rayCastResult.mRigidBody, desciptionJoint );
+		}
+}
+void Character::releaseBox()
+{
+	//Destroys the joint between the Rigid body object and the BoxController
+	mMoveBoxController->getScene()->destroyJoint(mMoveBoxJoint);
+	mMoveBoxJoint = NULL;
 }
 

@@ -322,6 +322,9 @@ bool GameState::keyPressed(const OIS::KeyEvent &keyEventRef)
 	case OIS::KC_3:
 		m_Character->setPowerUp(Character::PowerUp_SuperJump);
 		break;
+	case OIS::KC_4:
+		m_Character->setPowerUp(Character::PowerUp_MoveBox);
+		break;
 	case OIS::KC_Q:
 		m_Character->debugMode();
 		break;
@@ -397,6 +400,10 @@ bool GameState::mousePressed(const OIS::MouseEvent &evt, OIS::MouseButtonID id)
 {
 	if(id == OIS::MB_Left)
 	{
+		if (m_Character->getPowerUp()==Character::PowerUp_MoveBox)
+		{
+			m_Character->moveBox(evt);
+		}
 		onLeftPressed(evt);
 		m_bLMouseDown = true;
 
@@ -406,6 +413,7 @@ bool GameState::mousePressed(const OIS::MouseEvent &evt, OIS::MouseButtonID id)
 	{
 		m_bRMouseDown = true;
 	} 
+
 
 	return true;
 }
@@ -417,7 +425,10 @@ bool GameState::mouseReleased(const OIS::MouseEvent &evt, OIS::MouseButtonID id)
 	if(id == OIS::MB_Left)
 	{
 		m_bLMouseDown = false;
-
+		if (m_Character->getPowerUp()==Character::PowerUp_MoveBox)
+		{
+			m_Character->releaseBox();
+		}
 		OgreFramework::getSingletonPtr()->m_pGUISystem->injectMouseButtonUp(CEGUI::LeftButton);
 	} 
 	else if(id == OIS::MB_Right)
