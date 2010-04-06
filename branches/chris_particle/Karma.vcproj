@@ -65,7 +65,7 @@
 				LinkIncremental="2"
 				AdditionalLibraryDirectories="&quot;$(DXSDK_DIR)\Lib\x86&quot;;&quot;$(OGRE_HOME)\lib&quot;;&quot;$(IRRKLANG_HOME)\lib\Win32-visualStudio&quot;;&quot;$(NXOGRE_HOME)\sdk&quot;"
 				GenerateDebugInformation="true"
-				SubSystem="1"
+				SubSystem="2"
 				EntryPointSymbol="WinMainCRTStartup"
 				TargetMachine="1"
 			/>
@@ -141,9 +141,10 @@
 				LinkIncremental="1"
 				AdditionalLibraryDirectories="&quot;$(DXSDK_DIR)\Lib\x86&quot;;&quot;$(OGRE_HOME)\lib&quot;;&quot;$(NXOGRE_HOME)\sdk&quot;;&quot;$(IRRKLANG_HOME)\lib\Win32-visualStudio&quot;"
 				GenerateDebugInformation="true"
-				SubSystem="2"
+				SubSystem="1"
 				OptimizeReferences="2"
 				EnableCOMDATFolding="2"
+				EntryPointSymbol="WinMainCRTStartup"
 				TargetMachine="1"
 			/>
 			<Tool
