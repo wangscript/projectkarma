@@ -65,7 +65,7 @@ void AppStateManager::start(AppState* state)
 {
 	changeAppState(state);
 	
-	int timeSinceLastFrame = 1;
+	double timeSinceLastFrame = 1;
 	int startTime = 0;
 
 	while(!m_bShutdown) 
@@ -77,8 +77,7 @@ void AppStateManager::start(AppState* state)
 #endif	
 		if(OgreFramework::getSingletonPtr()->m_pRenderWnd->isActive())
 		{
-			startTime = OgreFramework::getSingletonPtr()->m_pTimer->getMillisecondsCPU();
-					
+			startTime = OgreFramework::getSingletonPtr()->m_pTimer->getMillisecondsCPU();			
 			OgreFramework::getSingletonPtr()->m_pKeyboard->capture();
 			OgreFramework::getSingletonPtr()->m_pMouse->capture();
 
@@ -88,6 +87,7 @@ void AppStateManager::start(AppState* state)
 			OgreFramework::getSingletonPtr()->m_pRoot->renderOneFrame();
 		
 			timeSinceLastFrame = OgreFramework::getSingletonPtr()->m_pTimer->getMillisecondsCPU() - startTime;
+			timeSinceLastFrame = timeSinceLastFrame / 1000;
 		}
 		else
 		{
