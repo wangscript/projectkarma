@@ -1,6 +1,7 @@
 #ifndef CHARACTER_H
 #define CHARACTER_H
 #include <Ogre.h>
+#include "AppState.hpp"//Singelton usage
 #include <NxOgreOGRE3D.h>
 #include <NxActor.h>
 #include <NxScene.h>
@@ -8,13 +9,13 @@
 
 #define BOUNDING_CAPSULE_MASS	80
 #define SUPERSPEED				5
-#define FORWARD_SPEED			2
-#define BACKWARD_SPEED			1
+#define FORWARD_SPEED			3
+#define BACKWARD_SPEED			-1
 #define STRAFE_LEFT_SPEED		1.5
 #define STRAFE_RIGHT_SPEED		1.5
 #define CHARACTER_ADJUST_Y		0.5
 #define CHARACTER_ADJUST_X		-0.2
-#define CHARACTER_ADJUST_Z		-0.4
+#define CHARACTER_ADJUST_Z		-0.1
 #define CHARACTER_SCALE			0.2 //For ogre.mesh 0.2 is good
 #define CHARACTER_ROTATION		180 //Turns the character 180 degrees
 
@@ -45,7 +46,7 @@ protected:
 	Ogre::SceneNode* charNode; 
 	Ogre::SceneNode* camCollisionNode;
 	OGRE3DBody* mCapsule;
-	Ogre::AnimationState* m_AnimationState; 
+	Ogre::AnimationState* m_AnimationState;
 	bool jumping;
 	int mPowerUp;
 	int mMoveDir;
@@ -61,6 +62,7 @@ public:
 	virtual void jump();
 	virtual void changeAnimation(const Ogre::String& name,const double time);
 	virtual bool isJumping() {return jumping;};
+	virtual void debugMode();
 };
 #endif
 

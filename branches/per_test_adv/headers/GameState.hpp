@@ -26,11 +26,10 @@ public:
 
         void enter();
         void createScene();
+		void createMotionBlurEffects();
         void exit();
         bool pause();
         void resume();
-
-        void moveCamera();
         void getInput();
 
         bool keyPressed(const OIS::KeyEvent &keyEventRef);
@@ -61,10 +60,6 @@ private:
 	CameraHandler*									m_CameraHandler;
 	Character*									m_Character;
 	bool                                    m_bQuit;
-
-	Ogre::Vector3                           m_TranslateVector;
-	Ogre::Real                              m_MoveSpeed; 
-	float                                   m_MoveScale; 
 
 	bool                                    m_bLMouseDown, m_bRMouseDown;
 	bool                                    m_bChatMode;

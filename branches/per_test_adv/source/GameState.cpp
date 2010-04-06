@@ -12,7 +12,6 @@ using namespace Ogre;
 
 GameState::GameState()
 {
-	m_MoveSpeed                     = 0.1;
 }
 
 //|||||||||||||||||||||||||||||||||||||||||||||||
@@ -99,10 +98,84 @@ void GameState::exit()
 	m_pSceneMgr->destroyCamera(m_pCamera);
 	if(m_pSceneMgr)
 		OgreFramework::getSingletonPtr()->m_pRoot->destroySceneManager(m_pSceneMgr);
+	m_PhysicsWorld->destroyWorld();
+
 }
 
 //|||||||||||||||||||||||||||||||||||||||||||||||
-
+void GameState::createMotionBlurEffects()
+	{
+		Ogre::CompositorPtr comp3 = Ogre::CompositorManager::getSingleton().create(
+			"Motion Blur", Ogre::ResourceGroupManager::DEFAULT_RESOURCE_GROUP_NAME
+			);
+		{
+			Ogre::CompositionTechnique *t = comp3->createTechnique();
+			{
+				Ogre::CompositionTechnique::TextureDefinition *def = t->createTextureDefinition("scene");
+				def->width = 0;
+				def->height = 0;
+				def->formatList.push_back(Ogre::PF_R8G8B8);
+			}
+			{
+				Ogre::CompositionTechnique::TextureDefinition *def = t->createTextureDefinition("sum");
+				def->width = 0;
+				def->height = 0;
+				def->formatList.push_back(Ogre::PF_R8G8B8);
+			}
+			{
+				Ogre::CompositionTechnique::TextureDefinition *def = t->createTextureDefinition("temp");
+				def->width = 0;
+				def->height = 0;
+				def->formatList.push_back(Ogre::PF_R8G8B8);
+			}
+			/// Render scene
+			{
+				Ogre::CompositionTargetPass *tp = t->createTargetPass();
+				tp->setInputMode(Ogre::CompositionTargetPass::IM_PREVIOUS);
+				tp->setOutputName("scene");
+			}
+			/// Initialisation pass for sum texture
+			{
+				Ogre::CompositionTargetPass *tp = t->createTargetPass();
+				tp->setInputMode(Ogre::CompositionTargetPass::IM_PREVIOUS);
+				tp->setOutputName("sum");
+				tp->setOnlyInitial(true);
+			}
+			/// Do the motion blur
+			{
+				Ogre::CompositionTargetPass *tp = t->createTargetPass();
+				tp->setInputMode(Ogre::CompositionTargetPass::IM_NONE);
+				tp->setOutputName("temp");
+				{ Ogre::CompositionPass *pass = tp->createPass();
+				pass->setType(Ogre::CompositionPass::PT_RENDERQUAD);
+				pass->setMaterialName("Ogre/Compositor/Combine");
+				pass->setInput(0, "scene");
+				pass->setInput(1, "sum");
+				}
+			}
+			/// Copy back sum texture
+			{
+				Ogre::CompositionTargetPass *tp = t->createTargetPass();
+				tp->setInputMode(Ogre::CompositionTargetPass::IM_NONE);
+				tp->setOutputName("sum");
+				{ Ogre::CompositionPass *pass = tp->createPass();
+				pass->setType(Ogre::CompositionPass::PT_RENDERQUAD);
+				pass->setMaterialName("Ogre/Compositor/Copyback");
+				pass->setInput(0, "temp");
+				}
+			}
+			/// Display result
+			{
+				Ogre::CompositionTargetPass *tp = t->getOutputTargetPass();
+				tp->setInputMode(Ogre::CompositionTargetPass::IM_NONE);
+				{ Ogre::CompositionPass *pass = tp->createPass();
+				pass->setType(Ogre::CompositionPass::PT_RENDERQUAD);
+				pass->setMaterialName("Ogre/Compositor/MotionBlur");
+				pass->setInput(0, "sum");
+				}
+			}
+		}
+	}
 void GameState::createScene()
 {
 	// Create the NxOgre physics world
@@ -205,8 +278,11 @@ void GameState::createScene()
 
 	Ogre::SceneNode* mPlaneNode = m_pSceneMgr->getRootSceneNode()->createChildSceneNode();
 	mPlaneNode->attachObject(planeEnt);
-}
 
+	//Motion Blur
+	createMotionBlurEffects();
+	Ogre::CompositorManager::getSingleton().addCompositor(OgreFramework::getSingletonPtr()->m_pViewport, "Motion Blur");
+}
 //|||||||||||||||||||||||||||||||||||||||||||||||
 
 bool GameState::keyPressed(const OIS::KeyEvent &keyEventRef)
@@ -235,23 +311,26 @@ bool GameState::keyPressed(const OIS::KeyEvent &keyEventRef)
 		return true;
 	}
 
-	if(OgreFramework::getSingletonPtr()->m_pKeyboard->isKeyDown(OIS::KC_W))
+	switch (keyEventRef.key)		
 	{
-		m_Character->setMoveDirection(Character::Move_Forward);
+	case OIS::KC_1:
+		m_Character->setPowerUp(Character::PowerUp_None);
+		break;
+	case OIS::KC_2:
+		m_Character->setPowerUp(Character::PowerUp_SuperSpeed);
+		break;
+	case OIS::KC_3:
+		m_Character->setPowerUp(Character::PowerUp_SuperJump);
+		break;
+	case OIS::KC_Q:
+		m_Character->debugMode();
+		break;
+	case OIS::KC_F:
+		OGRE3DBody* mCube = m_PhysicsRenderSystem->createBody(new NxOgre::Box(1, 1, 1), NxOgre::Vec3(m_pSceneMgr->getSceneNode("CharNode")->_getDerivedPosition().x, 
+			m_pSceneMgr->getSceneNode("CharNode")->_getDerivedPosition().y+2, m_pSceneMgr->getSceneNode("CharNode")->_getDerivedPosition().z), "cube.1m.mesh"); 
+		Ogre::Vector3 dirCamToChar =  m_pSceneMgr->getSceneNode("CharNode")->_getDerivedPosition() - m_pSceneMgr->getSceneNode("CamCollisionNode")->_getDerivedPosition();
+		mCube->addForce(NxOgre::Vec3(dirCamToChar.x*1000,-400,dirCamToChar.z*1000), NxOgre::Enums::ForceMode_Force, true);
 	}
-	if(OgreFramework::getSingletonPtr()->m_pKeyboard->isKeyDown(OIS::KC_S))
-	{
-		m_Character->setMoveDirection(Character::Move_Backward);
-	}
-	if(OgreFramework::getSingletonPtr()->m_pKeyboard->isKeyDown(OIS::KC_A))
-	{
-		m_Character->setMoveDirection(Character::Move_StrafeLeft);
-	}
-	if(OgreFramework::getSingletonPtr()->m_pKeyboard->isKeyDown(OIS::KC_D))
-	{
-		m_Character->setMoveDirection(Character::Move_StrafeLeft);
-	}
-
 
 	if(m_bChatMode && OgreFramework::getSingletonPtr()->m_pKeyboard->isKeyDown(OIS::KC_RETURN) ||
 		OgreFramework::getSingletonPtr()->m_pKeyboard->isKeyDown(OIS::KC_NUMPADENTER))
@@ -279,6 +358,15 @@ bool GameState::keyReleased(const OIS::KeyEvent &keyEventRef)
 	{
 	case OIS::KC_UP:
 	case OIS::KC_W:
+		m_Character->setMoveDirection(Character::Move_None);
+		break;
+	case OIS::KC_A:
+		m_Character->setMoveDirection(Character::Move_None);
+		break;
+	case OIS::KC_D:
+		m_Character->setMoveDirection(Character::Move_None);
+		break;
+	case OIS::KC_S:
 		m_Character->setMoveDirection(Character::Move_None);
 		break;
 	}
@@ -357,35 +445,32 @@ bool GameState::onExitButtonGame(const CEGUI::EventArgs &args)
 
 //|||||||||||||||||||||||||||||||||||||||||||||||
 
-void GameState::moveCamera()
-{
-}
-
-//|||||||||||||||||||||||||||||||||||||||||||||||
-
 void GameState::getInput()
 {
 	if(m_bChatMode == false)
 	{
-		if(OgreFramework::getSingletonPtr()->m_pKeyboard->isKeyDown(OIS::KC_A))
-		{
-			m_TranslateVector.x = -m_MoveScale;
-		}
+	if(OgreFramework::getSingletonPtr()->m_pKeyboard->isKeyDown(OIS::KC_W))
+	{
+		m_Character->setMoveDirection(Character::Move_Forward);
+	}
+	if(OgreFramework::getSingletonPtr()->m_pKeyboard->isKeyDown(OIS::KC_S))
+	{
+		m_Character->setMoveDirection(Character::Move_Backward);
+	}
+	if(OgreFramework::getSingletonPtr()->m_pKeyboard->isKeyDown(OIS::KC_A))
+	{
+		m_Character->setMoveDirection(Character::Move_StrafeLeft);
+	}
+	if(OgreFramework::getSingletonPtr()->m_pKeyboard->isKeyDown(OIS::KC_D))
+	{
+		m_Character->setMoveDirection(Character::Move_StrafeLeft);
+	}
+	if(OgreFramework::getSingletonPtr()->m_pKeyboard->isKeyDown(OIS::KC_SPACE))
+	{
+		if ((m_Character->isJumping())==false)
+			m_Character->jump();
+	}
 
-		if(OgreFramework::getSingletonPtr()->m_pKeyboard->isKeyDown(OIS::KC_D))
-		{
-			m_TranslateVector.x = m_MoveScale;
-		}
-
-		if(OgreFramework::getSingletonPtr()->m_pKeyboard->isKeyDown(OIS::KC_W))
-		{
-			m_TranslateVector.z = -m_MoveScale;
-		}
-
-		if(OgreFramework::getSingletonPtr()->m_pKeyboard->isKeyDown(OIS::KC_S))
-		{
-			m_TranslateVector.z = m_MoveScale;
-		}
 	}
 }
 
@@ -398,11 +483,6 @@ void GameState::update(double timeSinceLastFrame)
 		this->popAppState();
 		return;
 	}
-
-	m_MoveScale = m_MoveSpeed   * timeSinceLastFrame;
-
-	m_TranslateVector = Vector3::ZERO;
-
 	getInput();
 	m_CameraHandler->AdjustCamera();
 	m_Character->move(timeSinceLastFrame);		 
@@ -416,7 +496,7 @@ void GameState::update(double timeSinceLastFrame)
 void GameState::setBufferedMode()
 {
 	CEGUI::Editbox* pModeCaption = (CEGUI::Editbox*)m_pMainWnd->getChild("ModeCaption");
-	pModeCaption->setText("Buffered Input Mode");
+	pModeCaption->setText("Chat Mode");
 
 	CEGUI::Editbox* pChatInputBox = (CEGUI::Editbox*)m_pChatWnd->getChild("ChatInputBox");
 	pChatInputBox->setText("");
@@ -424,7 +504,7 @@ void GameState::setBufferedMode()
 	pChatInputBox->captureInput();
 
 	CEGUI::MultiLineEditbox* pControlsPanel = (CEGUI::MultiLineEditbox*)m_pMainWnd->getChild("ControlsPanel");
-	pControlsPanel->setText("[Tab] - To switch between input modes\n\nAll keys to write in the chat box.\n\nPress [Enter] or [Return] to send message.\n\n[Print] - Take screenshot\n\n[Esc] - Quit to main menu");
+	pControlsPanel->setText("[Tab] - Toggle Chat Mode On/Off\n[Print] - Take screenshot\n\n[W][S] - Move\n[SPACE] - Jump\n\n[1] - PowerUp = None\n[2] - PowerUp = SuperSpeed\n[3] - PowerUp = SuperJump\n[F]Throw box\n\n[PRINT] - Screenshot\n[Q] - Toggle Debug\n[ESC] - Quit to main menu");
 }
 
 //|||||||||||||||||||||||||||||||||||||||||||||||
@@ -432,10 +512,10 @@ void GameState::setBufferedMode()
 void GameState::setUnbufferedMode()
 {
 	CEGUI::Editbox* pModeCaption = (CEGUI::Editbox*)m_pMainWnd->getChild("ModeCaption");
-	pModeCaption->setText("Unuffered Input Mode");
+	pModeCaption->setText("Game Mode");
 
 	CEGUI::MultiLineEditbox* pControlsPanel = (CEGUI::MultiLineEditbox*)m_pMainWnd->getChild("ControlsPanel");
-	pControlsPanel->setText("[Tab] - To switch between input modes\n\n[W] - Forward\n[S] - Backwards\n[A] - Left\n[D] - Right\n\nPress [Shift] to move faster\n\n[O] - Toggle Overlays\n[Print] - Take screenshot\n\n[Esc] - Quit to main menu");
+	pControlsPanel->setText("[Tab] - Toggle Chat Mode On/Off\n[Print] - Take screenshot\n\n[W][S] - Move\n[SPACE] - Jump\n\n[1] - PowerUp = None\n[2] - PowerUp = SuperSpeed\n[3] - PowerUp = SuperJump\n[F]Throw box\n\n[PRINT] - Screenshot\n[Q] - Toggle Debug\n[ESC] - Quit to main menu");
 }
 
 //|||||||||||||||||||||||||||||||||||||||||||||||
