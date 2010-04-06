@@ -67,7 +67,7 @@ void Character::changeAnimation(const Ogre::String& name,const double time)
 			animState = charEnt->getAnimationState("Jump");
 		else
 		{
-			animState = charEnt->getAnimationState("Walk");
+			animState = charEnt->getAnimationState(name);
 			animState->setLoop(true);
 		}
 
@@ -98,6 +98,19 @@ void Character::jump()
 bool Character::move(const double& timeSinceLastFrame)
 {
 	bool move;
+
+	//MoveBoxController
+	if (mPowerUp == PowerUp_MoveBox)
+	{
+		//Get 2D screen mouse position and create cam2vp ray
+		CEGUI::Point mousePos = CEGUI::MouseCursor::getSingleton().getPosition();
+		Ogre::Ray mouseRay = mCamera->getCameraToViewportRay(mousePos.d_x/float(OgreFramework::getSingletonPtr()->m_pRenderWnd->getWidth()), mousePos.d_y/float(OgreFramework::getSingletonPtr()->m_pRenderWnd->getHeight()));
+		//t = 10. The ray direction * t. Moves the box from camera to a distance.
+		//Since mMoveBoxController only is a reference, this will affect the moveBox().
+		NxOgre::Vec3 moveBoxControllerTranslate(mouseRay.getPoint(Ogre::Real (10)));		
+		mMoveBoxController->moveGlobalPosition(moveBoxControllerTranslate); 
+	}
+
 	//Get the direction from the camera to the charcter
 	Ogre::Vector3 dirCamToChar =  charNode->_getDerivedPosition() - camCollisionNode->_getDerivedPosition();
 	//Setting the y scalar to zero. No movement in y axis.
@@ -169,15 +182,7 @@ bool Character::move(const double& timeSinceLastFrame)
 	//Move the "RootNode". CHARACTER_ADJUST_Y , translate node if orgin is not in origo
 	charNode->getParentSceneNode()->setPosition(capsulePos.x ,capsulePos.y,capsulePos.z);
 
-	//MoveBoxController
-	if (mPowerUp == PowerUp_MoveBox)
-	{
-	CEGUI::Point mousePos = CEGUI::MouseCursor::getSingleton().getPosition();
-	Ogre::Ray mouseRay = mCamera->getCameraToViewportRay(mousePos.d_x/float(OgreFramework::getSingletonPtr()->m_pRenderWnd->getWidth()), mousePos.d_y/float(OgreFramework::getSingletonPtr()->m_pRenderWnd->getHeight()));
-	Ogre::Vector3 myOgreVector = mouseRay.getPoint(Ogre::Real (10));
-	NxOgre::Vec3 myNxOgreVector(myOgreVector);		
-	mMoveBoxController->moveGlobalPosition(myNxOgreVector); 
-	}
+
 	return move;
 
 }
@@ -197,28 +202,28 @@ void Character::debugMode()
 void Character::moveBox(const OIS::MouseEvent &e)
 {
 	//Get X and Y position of 2D CEGUI cursor
-		CEGUI::Point mousePos = CEGUI::MouseCursor::getSingleton().getPosition();
-		//Create a ray from camera trough the CEGUI 2D Screen X & Y
-		Ogre::Ray mouseRay = mCamera->getCameraToViewportRay(mousePos.d_x/float(e.state.width), mousePos.d_y/float(e.state.height));
-		//Get orgin and direction of ray
-		NxOgre::Vec3 rayDirection(mouseRay.getDirection());
-		NxOgre::Vec3 rayOrgin(mouseRay.getOrigin());
-		//NxOgre Raycast. Only hitting dynamic objects . No intersecting with collision group 1
-		//@todo fix collision groups
-		NxOgre::RaycastHit rayCastResult = mMoveBoxController->getScene()->raycastClosestShape(NxOgre::Ray(rayOrgin,rayDirection),NxOgre::Enums::ShapesType_Dynamic,1);
-		
-		//True if it hits a Rigid Body
-		if (rayCastResult.mRigidBody)
+	CEGUI::Point mousePos = CEGUI::MouseCursor::getSingleton().getPosition();
+	//Create a ray from camera trough the CEGUI 2D Screen X & Y
+	Ogre::Ray mouseRay = mCamera->getCameraToViewportRay(mousePos.d_x/float(e.state.width), mousePos.d_y/float(e.state.height));
+	//Get orgin and direction of ray
+	NxOgre::Vec3 rayDirection(mouseRay.getDirection());
+	NxOgre::Vec3 rayOrgin(mouseRay.getOrigin());
+	//NxOgre Raycast. Only hitting dynamic objects . No intersecting with collision group 1
+	//@todo fix collision groups
+	NxOgre::RaycastHit rayCastResult = mMoveBoxController->getScene()->raycastClosestShape(NxOgre::Ray(rayOrgin,rayDirection),NxOgre::Enums::ShapesType_Dynamic,1);
+
+	//True if it hits a Rigid Body
+	if (rayCastResult.mRigidBody)
+	{
+		NxOgre::FixedJointDescription desciptionJoint;
+		//Removes earlier joints (if there's any)
+		if (mMoveBoxJoint != NULL)
 		{
-			NxOgre::FixedJointDescription desciptionJoint;
-			//Removes earlier joints (if there's any)
-			if (mMoveBoxJoint != NULL)
-			{
-				mMoveBoxController->getScene()->destroyJoint(mMoveBoxJoint);
-			}
-			//Create Joint between the raycast hit and MoveBoxController
-			mMoveBoxJoint = mMoveBoxController->getScene()->createFixedJoint( mMoveBoxController, rayCastResult.mRigidBody, desciptionJoint );
+			mMoveBoxController->getScene()->destroyJoint(mMoveBoxJoint);
 		}
+		//Create Joint between the raycast hit and MoveBoxController
+		mMoveBoxJoint = mMoveBoxController->getScene()->createFixedJoint( mMoveBoxController, rayCastResult.mRigidBody, desciptionJoint );
+	}
 }
 void Character::releaseBox()
 {

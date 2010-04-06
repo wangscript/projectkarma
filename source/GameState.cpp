@@ -220,6 +220,31 @@ void GameState::createScene()
 	m_CameraHandler = new CameraHandler(m_pCamera,node,m_PhysicsRenderSystem, m_pSceneMgr);
 	m_Character = new Character ( m_pSceneMgr, m_PhysicsRenderSystem);
 
+	//Create PowerUp objects. Supposed to handled by dotscene later on
+	m_PowerUps = new PowerUp(m_PhysicsScene, m_pSceneMgr,m_Character->getCapsule(),m_Character);
+
+	Ogre::Vector3 pwrUpPosition(-5,0.2,-5);
+	Ogre::SceneNode* pwrUpEntNode = m_pSceneMgr->getRootSceneNode()->createChildSceneNode();
+	Ogre::Entity* pwrUpEnt = m_pSceneMgr->createEntity("pwrup1", "pwrup1.mesh");
+	pwrUpEntNode->attachObject(pwrUpEnt);
+	pwrUpEntNode->setPosition(pwrUpPosition);
+	m_PowerUps->addPowerUp(pwrUpPosition,pwrUpEnt->getName());
+
+	Ogre::Vector3 pwrUpPosition2 (-5,0.2,1);
+	pwrUpEntNode = m_pSceneMgr->getRootSceneNode()->createChildSceneNode();
+	pwrUpEnt = m_pSceneMgr->createEntity("pwrup2", "pwrup2.mesh");
+	pwrUpEntNode->attachObject(pwrUpEnt);
+	pwrUpEntNode->setPosition(pwrUpPosition2);
+	m_PowerUps->addPowerUp(pwrUpPosition2,pwrUpEnt->getName());
+
+	Ogre::Vector3 pwrUpPosition3(-5,0.2,5);
+	pwrUpEntNode = m_pSceneMgr->getRootSceneNode()->createChildSceneNode();
+	pwrUpEnt = m_pSceneMgr->createEntity("pwrup3", "pwrup3.mesh");
+	pwrUpEntNode->attachObject(pwrUpEnt);
+	pwrUpEntNode->setPosition(pwrUpPosition3);
+	m_PowerUps->addPowerUp(pwrUpPosition3,pwrUpEnt->getName());
+
+
 	//Create rest of the scene. Lots of craps inc, look out!
 
 	NxOgre::Mesh* triangleMesh = NxOgre::MeshManager::getSingleton()->load("media:stairs.xns");
