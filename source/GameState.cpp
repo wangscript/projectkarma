@@ -205,6 +205,22 @@ void GameState::createScene()
 
 	Ogre::SceneNode* mPlaneNode = m_pSceneMgr->getRootSceneNode()->createChildSceneNode();
 	mPlaneNode->attachObject(planeEnt);
+
+
+
+	////////////////////////////////////////////////////////////////////////PARTICLE
+
+	// Create smoke
+	ParticleSystem* pSys4 = m_pSceneMgr->createParticleSystem("smoke",
+		"Examples/Smoke");
+		
+	SceneNode* rNode = m_pSceneMgr->getRootSceneNode()->createChildSceneNode();
+	rNode->translate(0,30,0);	
+	rNode->attachObject(pSys4);
+	
+	
+
+	//////////////////////////////////////////////////////////////////////////
 }
 
 //|||||||||||||||||||||||||||||||||||||||||||||||
