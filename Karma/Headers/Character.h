@@ -7,17 +7,6 @@
 #include <NxScene.h>
 #include <NxUserContactReport.h>
 
-#define BOUNDING_CAPSULE_MASS	80
-#define SUPERSPEED				5
-#define FORWARD_SPEED			3
-#define BACKWARD_SPEED			-1
-#define STRAFE_LEFT_SPEED		1.5
-#define STRAFE_RIGHT_SPEED		1.5
-#define CHARACTER_ADJUST_Y		0.5
-#define CHARACTER_ADJUST_X		-0.2
-#define CHARACTER_ADJUST_Z		-0.1
-#define CHARACTER_SCALE			0.2 //For ogre.mesh 0.2 is good
-#define CHARACTER_ROTATION		180 //Turns the character 180 degrees
 
 class Character
 {
@@ -56,6 +45,18 @@ protected:
 	bool jumping;
 	int mPowerUp;
 	int mMoveDir;
+
+	Ogre::Real 	mtCharMassBoundCapsule;
+	Ogre::Real 	mtCharSpeedSuper;
+	Ogre::Real 	mtCharSpeedForward; 
+	Ogre::Real 	mtCharSpeedBackward; 
+	Ogre::Real 	mtCharSpeedStrafeLeft; 
+	Ogre::Real 	mtCharSpeedStrafeRight; 
+	Ogre::Real 	mtCharAdjustPosX;
+	Ogre::Real 	mtCharAdjustPosY; 
+	Ogre::Real 	mtCharAdjustPosZ; 
+	Ogre::Real 	mtCharScale; 
+	Ogre::Real 	mtCharRotation; 
 
 public:
 	Character(Ogre::SceneManager*,OGRE3DRenderSystem*);

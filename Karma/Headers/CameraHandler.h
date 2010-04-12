@@ -8,12 +8,6 @@
 #include <NxScene.h>
 #include <NxUserContactReport.h>
 #include <OISMouse.h>
-#define CAMERA_VELOCITY_Y 2
-#define CAMERA_VELOCITY_XZ 3
-#define CAMERA_MAX_Y 6
-#define CAMERA_MIN_Y 1.1
-#define CAMERA_MAX_DISTANCE 14
-#define CAMERA_MIN_DISTANCE 4
 
 class CameraHandler
 {
@@ -28,8 +22,15 @@ class CameraHandler
 		OGRE3DBody*		cameraSphere;
 		Ogre::Camera*	camera;
 		Ogre::SceneManager* sceneMgr;
-		Ogre::Real	 mRotate; 
-		Ogre::Real	mZoom;
+		Ogre::Real	 mtRotate; 
+		Ogre::Real	mtZoom;
+		Ogre::Real mtCamVelocityY; 
+		Ogre::Real mtCamVelocityXZ;
+		Ogre::Real mtCamHeightMaxY;
+		Ogre::Real mtCamHeightMinY;
+		Ogre::Real mtCamDistanceMax ;
+		Ogre::Real mtCamDistanceMin ;
+
 		Ogre::SceneNode* camNoCollisionNode;
 		Ogre::SceneNode* camCollisionNode;
 		Ogre::SceneNode* camHelperNode;
