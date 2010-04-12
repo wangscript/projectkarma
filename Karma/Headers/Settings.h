@@ -64,7 +64,6 @@ public:
 		}
 		else
 			mpLog->logMessage("Could load settings for mTemp1");
-		cout << s;
 
 		if (f >> s && s=="mTemp2")
 		{
@@ -73,7 +72,6 @@ public:
 		}
 		else
 			mpLog->logMessage("Could load settings for mTemp2");
-		cout << s;
 
 		if (f >> s && s=="mTemp3")
 		{
@@ -82,7 +80,6 @@ public:
 		}
 		else
 			mpLog->logMessage("Could load settings for mTemp3");
-		cout << s;
 
 		if (f >> s && s=="mTemp4")
 		{
@@ -91,7 +88,6 @@ public:
 		}
 		else
 			mpLog->logMessage("Could load settings for mTemp4");
-		cout << s;
 
 		if (f >> s && s=="mTemp5")
 		{
@@ -100,7 +96,6 @@ public:
 		}
 		else
 			mpLog->logMessage("Could load settings for mTemp5");
-		cout << s;
 
 		if (f >> s && s=="mTemp6")
 		{
@@ -109,7 +104,6 @@ public:
 		}
 		else
 			mpLog->logMessage("Could load settings for mTemp6");
-		cout << s;
 
 		if (f >> s && s=="mCamZoom")
 		{
@@ -118,7 +112,6 @@ public:
 		}
 		else
 			mpLog->logMessage("Could load settings for mCamZoom");
-		cout << s;
 
 		if (f >> s && s=="mCamRotate")
 		{
@@ -127,7 +120,6 @@ public:
 		}
 		else
 			mpLog->logMessage("Could load settings for mCamRotate");
-		cout << s;
 
 		if (f >> s && s=="mCamVelocityY")
 		{
