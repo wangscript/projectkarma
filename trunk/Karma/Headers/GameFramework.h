@@ -24,6 +24,7 @@
 
 #include "SoundManager.h"
 #include "GuiHandler.h"
+#include "Settings.h"
 
 //|||||||||||||||||||||||||||||||||||||||||||||||
 //|||||||||||||||||||||||||||||||||||||||||||||||
@@ -56,6 +57,7 @@ public:
 	OIS::Mouse*					mpMouse;
 	SoundManager*				mpSound;
 	GuiHandler*					mpGui;
+	Settings*					mpSettings;
 
 private:
 	GameFramework(const GameFramework&);

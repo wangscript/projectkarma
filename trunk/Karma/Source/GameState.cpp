@@ -152,7 +152,7 @@ void GameState::createMotionBlurEffects()
 			}
 		}
 	}
-//|||||||||||||||||||||||||||||||||||||||||||||||
+
 void GameState::createScene()
 {
 	// Create the NxOgre physics world
@@ -179,11 +179,11 @@ void GameState::createScene()
 	NxOgre::ResourceSystem::getSingleton()->openArchive("nxogre", "file:nxogre");
 
 	//Creaete SkyDome, set Ambient Light, add Light source and set shadows
-	mtpSceneMgr->setSkyDome(true, "Examples/CloudySky", 5, 8);
-	mtpSceneMgr->setAmbientLight(ColourValue(0.5f, 0.5f, 0.5f));
-	mtpSceneMgr->setShadowTechnique(SHADOWTYPE_STENCIL_ADDITIVE);
-	Light* l = mtpSceneMgr->createLight("MainLight");
-	l->setPosition(20, 80, 50);
+	//mtpSceneMgr->setSkyDome(true, "Examples/CloudySky", 5, 8);
+	//mtpSceneMgr->setAmbientLight(ColourValue(0.5f, 0.5f, 0.5f));
+	//mtpSceneMgr->setShadowTechnique(SHADOWTYPE_STENCIL_ADDITIVE);
+	//Light* l = mtpSceneMgr->createLight("MainLight");
+	//l->setPosition(20, 80, 50);
 
 	//Create Nodes for character and camera
 	SceneNode *node = mtpSceneMgr->getRootSceneNode()->createChildSceneNode("RootNode", Vector3(0,0,0));
@@ -248,7 +248,7 @@ void GameState::createScene()
 	}
 
 	// Create floor plane (BloodyMess)
-	m_PhysicsScene->createSceneGeometry(new NxOgre::PlaneGeometry(0, NxOgre::Vec3(0, 1, 0)), Matrix44_Identity);
+	//m_PhysicsScene->createSceneGeometry(new NxOgre::PlaneGeometry(0, NxOgre::Vec3(0, 1, 0)), Matrix44_Identity);
 	m_PhysicsScene->createSceneGeometry(triangleGeometry, NxOgre::Matrix44(NxOgre::Vec3(0, 0, 5)));
 	m_PhysicsScene->createSceneGeometry(triangleGeometry2, NxOgre::Matrix44(NxOgre::Vec3(0, 0, 15)));
 	m_PhysicsScene->createSceneGeometry(triangleGeometry3, NxOgre::Matrix44(NxOgre::Vec3(0, 0, 25)));
@@ -268,6 +268,7 @@ void GameState::createScene()
 	triangleNode->attachObject(triangleEntity);
 	triangleNode->setPosition(Vector3(0, 0, 25));
 
+
 	// Create floor plane (Ogre)
 	MovablePlane *plane = new MovablePlane("Plane");
 	plane->d = 0;
@@ -279,10 +280,33 @@ void GameState::createScene()
 	planeEnt->setMaterialName("Examples/GrassFloor");
 
 	Ogre::SceneNode* mPlaneNode = mtpSceneMgr->getRootSceneNode()->createChildSceneNode();
-	mPlaneNode->attachObject(planeEnt);
+	//mPlaneNode->attachObject(planeEnt);
 
-	createMotionBlurEffects();
-	Ogre::CompositorManager::getSingleton().addCompositor(GameFramework::getSingletonPtr()->mpViewport, "Motion Blur");
+	
+			//Fog @todo
+		mtpSceneMgr->setFog(FOG_LINEAR, ColourValue(0.7, 0.7, 0.8), 0, 10000, 25000);
+
+		Ogre::Vector3 lightdir(0.55, -0.3, 0.75);
+		lightdir.normalise();
+
+		Ogre::Light* l = mtpSceneMgr->createLight("tstLight");
+		l->setType(Light::LT_DIRECTIONAL);
+		l->setDirection(lightdir);
+		l->setDiffuseColour(ColourValue::White);
+		l->setSpecularColour(ColourValue(0.4, 0.4, 0.4));
+
+
+		mtpSceneMgr->setAmbientLight(ColourValue(0.2, 0.2, 0.2));
+		mtpSceneMgr->setSkyBox(true, "Examples/CloudyNoonSkyBox");
+		mtpSceneMgr->setShadowTechnique(Ogre::SHADOWTYPE_TEXTURE_ADDITIVE_INTEGRATED);
+
+		mvpWorld = new WorldManager(mtpSceneMgr, mtpCamera,m_PhysicsScene);
+		mvpWorld->initTerrain(l);
+		mvpWorld->buildNxOgreTerrain();
+
+		createMotionBlurEffects();
+		Ogre::CompositorManager::getSingleton().addCompositor(GameFramework::getSingletonPtr()->mpViewport, "Motion Blur");
+		
 }
 //|||||||||||||||||||||||||||||||||||||||||||||||
 

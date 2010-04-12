@@ -5,8 +5,16 @@ CameraHandler::CameraHandler(Ogre::Camera* cam, Ogre::SceneNode* node, OGRE3DRen
 	camera = cam;
 	node->attachObject(camera);
 	sceneMgr = mSceneMgr;
-	mRotate = 0.10;
-	mZoom = 0.005;
+
+	mtRotate = GameFramework::getSingletonPtr()->mpSettings->mCamRotate;
+	mtZoom = GameFramework::getSingletonPtr()->mpSettings->mCamZoom;
+	mtCamVelocityY = GameFramework::getSingletonPtr()->mpSettings->mCamVelocityY;
+	mtCamVelocityXZ = GameFramework::getSingletonPtr()->mpSettings->mCamVelocityXZ;
+	mtCamHeightMaxY = GameFramework::getSingletonPtr()->mpSettings->mCamHeightMaxY;
+	mtCamHeightMinY = GameFramework::getSingletonPtr()->mpSettings->mCamHeightMinY;
+	mtCamDistanceMax = GameFramework::getSingletonPtr()->mpSettings->mCamDistanceMax;
+	mtCamDistanceMin = GameFramework::getSingletonPtr()->mpSettings->mCamDistanceMin;
+
 	camNoCollisionNode = sceneMgr->getSceneNode("CamNoCollisionNode");
 	camCollisionNode = sceneMgr->getSceneNode("CamCollisionNode");
 	camHelperNode = sceneMgr->getSceneNode("CamHelperNode");
@@ -49,12 +57,12 @@ void CameraHandler::Zoom(const OIS::MouseEvent &arg)
 	Ogre::Real lengthToCharacter = directionToCharacter.length();
 
 	//If zoom is positive, we only have to worry about going too close
-	if (lengthToCharacter > CAMERA_MIN_DISTANCE && arg.state.Z.rel > 0)
+	if (lengthToCharacter > mtCamDistanceMin && arg.state.Z.rel > 0)
 	{
 		okToZoom = true;
 	}
 	//If zoom is negative, we only have to worry about going too far
-	else if (lengthToCharacter < CAMERA_MAX_DISTANCE && arg.state.Z.rel < 0)
+	else if (lengthToCharacter < mtCamDistanceMax && arg.state.Z.rel < 0)
 	{
 		okToZoom = true;
 	}
@@ -64,7 +72,7 @@ void CameraHandler::Zoom(const OIS::MouseEvent &arg)
 	//Always the same speed, not dependent of the distance
 	directionToCharacter.normalise();
 	//At the startup, the camera was translated @ Z axis.
-	camNoCollisionNode->translate(Ogre::Vector3::NEGATIVE_UNIT_Z * mZoom * arg.state.Z.rel, Ogre::Node::TS_LOCAL);
+	camNoCollisionNode->translate(Ogre::Vector3::NEGATIVE_UNIT_Z * mtZoom * arg.state.Z.rel, Ogre::Node::TS_LOCAL);
 	}
 
 }
@@ -73,7 +81,7 @@ void CameraHandler::Rotate(const OIS::MouseEvent &arg)
 {
     //Yaw the camera. Rotate around the Y axis
     //@todo add raycast so the camera cant get stuck behind stuff
-    camOrginNode->yaw(Ogre::Degree(-mRotate * arg.state.X.rel), Ogre::Node::TS_LOCAL);
+    camOrginNode->yaw(Ogre::Degree(-mtRotate * arg.state.X.rel), Ogre::Node::TS_LOCAL);
 
     /*It is not allowed to pitch the camera (rotate around Z axis) if it
     A. Rotates more than 90 degrees, making the world "flip"
@@ -81,19 +89,19 @@ void CameraHandler::Rotate(const OIS::MouseEvent &arg)
     bool okToPitch = false;
 
     //If the relative mouse movement is negative, we only have to worry about Case B.
-    if ( arg.state.Y.rel < 0 &&camNoCollisionNode->_getDerivedPosition().y > CAMERA_MIN_Y)
+    if ( arg.state.Y.rel < 0 &&camNoCollisionNode->_getDerivedPosition().y > mtCamHeightMinY)
     {
         okToPitch = true;
     }
     //To get here the mouse movement must be positive. Case A.
-    else if (camNoCollisionNode->_getDerivedPosition().y < CAMERA_MAX_Y)
+    else if (camNoCollisionNode->_getDerivedPosition().y < mtCamHeightMaxY)
     {
         okToPitch = true;
     }
 
     if (okToPitch)
     {
-        camHelperNode->pitch(Ogre::Degree(-mRotate * arg.state.Y.rel), Ogre::Node::TS_LOCAL);
+        camHelperNode->pitch(Ogre::Degree(-mtRotate * arg.state.Y.rel), Ogre::Node::TS_LOCAL);
     }
 }
 
@@ -106,9 +114,9 @@ void CameraHandler::AdjustCamera()
 
     //Get direction from bounding sphere to imaginary camera and set it as linear velocity
     NxOgre::Vec3 linearVelocityDirection;
-    linearVelocityDirection.x = (noCollisionPos.x - collisionSpherePos.x) * CAMERA_VELOCITY_XZ;
-    linearVelocityDirection.y = (noCollisionPos.y - collisionSpherePos.y) * CAMERA_VELOCITY_Y;
-    linearVelocityDirection.z = (noCollisionPos.z - collisionSpherePos.z) * CAMERA_VELOCITY_XZ  ;
+    linearVelocityDirection.x = (noCollisionPos.x - collisionSpherePos.x) * mtCamVelocityXZ;
+    linearVelocityDirection.y = (noCollisionPos.y - collisionSpherePos.y) * mtCamVelocityY;
+    linearVelocityDirection.z = (noCollisionPos.z - collisionSpherePos.z) * mtCamVelocityXZ  ;
     cameraSphere->setLinearVelocity(linearVelocityDirection);
 }
 

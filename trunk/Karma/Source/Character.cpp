@@ -2,14 +2,26 @@
 
 Character::Character(Ogre::SceneManager* sceneMgr, OGRE3DRenderSystem* renderSystem)
 {
+	mtCharMassBoundCapsule = GameFramework::getSingletonPtr()->mpSettings->mCharMassBoundCapsule;
+	mtCharSpeedSuper = GameFramework::getSingletonPtr()->mpSettings->mCharSpeedSuper;
+	mtCharSpeedForward = GameFramework::getSingletonPtr()->mpSettings->mCharSpeedForward; 
+	mtCharSpeedBackward = GameFramework::getSingletonPtr()->mpSettings->mCharSpeedBackward; 
+	mtCharSpeedStrafeLeft = GameFramework::getSingletonPtr()->mpSettings->mCharSpeedStrafeLeft; 
+	mtCharSpeedStrafeRight = GameFramework::getSingletonPtr()->mpSettings->mCharSpeedStrafeRight; 
+	mtCharAdjustPosX = GameFramework::getSingletonPtr()->mpSettings->mCharAdjustPosX;
+	mtCharAdjustPosY = GameFramework::getSingletonPtr()->mpSettings->mCharAdjustPosY; 
+	mtCharAdjustPosZ = GameFramework::getSingletonPtr()->mpSettings->mCharAdjustPosZ; 
+	mtCharScale = GameFramework::getSingletonPtr()->mpSettings->mCharScale; 
+	mtCharRotation = GameFramework::getSingletonPtr()->mpSettings->mCharRotation; 
+	
 	//Create Character and attach it 
 	charEnt = sceneMgr->createEntity("Char", "Ogre.mesh");
 	charEnt->setCastShadows(true);
 	charNode = sceneMgr->getSceneNode("CharNode");
-	charNode->translate(Ogre::Vector3(CHARACTER_ADJUST_X,CHARACTER_ADJUST_Y,CHARACTER_ADJUST_Z));
-	charNode->yaw( Ogre::Degree( CHARACTER_ROTATION ) );//Ogre.mesh "felvänd"
+	charNode->translate(Ogre::Vector3(mtCharAdjustPosX,mtCharAdjustPosY,mtCharAdjustPosZ));
+	charNode->yaw( Ogre::Degree( mtCharRotation ) );//Ogre.mesh "felvänd"
 	charNode->attachObject(charEnt);
-	charNode->setScale(CHARACTER_SCALE,CHARACTER_SCALE,CHARACTER_SCALE);
+	charNode->setScale(mtCharScale,mtCharScale,mtCharScale);
 
 	//Initiate stuff
 	m_AnimationState= NULL;
@@ -27,7 +39,7 @@ Character::Character(Ogre::SceneManager* sceneMgr, OGRE3DRenderSystem* renderSys
 
 	//Properties for bounding capsule
 	NxOgre::RigidBodyDescription description;
-	description.mMass = BOUNDING_CAPSULE_MASS;
+	description.mMass = mtCharMassBoundCapsule;
 	description.mBodyFlags |= NxOgre::Enums::BodyFlags_FreezeRotation; 
 
 	//Add capsule to physics world and set Collision Flag to group 1
@@ -151,7 +163,7 @@ bool Character::move(const double& timeSinceLastFrame)
 		//Check if the PowerUp SuperSpeed is enabled or not
 		if (mPowerUp == PowerUp_SuperSpeed)
 		{
-			walkSpeed = SUPERSPEED;
+			walkSpeed = mtCharSpeedSuper;
 			Ogre::CompositorManager::getSingleton().setCompositorEnabled(GameFramework::getSingletonPtr()->mpViewport, "Motion Blur", true);
 		}
 		else
@@ -165,25 +177,25 @@ bool Character::move(const double& timeSinceLastFrame)
 		if  (mMoveDir == Move_Forward )
 		{
 			changeAnimation("Walk", timeSinceLastFrame);
-			walkSpeed *= FORWARD_SPEED;
+			walkSpeed *= mtCharSpeedForward;
 		}
 		if  (mMoveDir == Move_Backward )
 		{
 			//changeAnimation("WalkBackwards", timeSinceLastFrame);
 			changeAnimation("Walk", timeSinceLastFrame);
-			walkSpeed *= BACKWARD_SPEED;
+			walkSpeed *= mtCharSpeedBackward;
 		}
 		if  (mMoveDir == Move_StrafeLeft )
 		{
 			//changeAnimation("StrafeLeft", timeSinceLastFrame);
 			changeAnimation("Walk", timeSinceLastFrame);
-			walkSpeed *= STRAFE_LEFT_SPEED;
+			walkSpeed *= mtCharSpeedStrafeLeft;
 		}
 		if  (mMoveDir == Move_StrafeRight )
 		{
 			//changeAnimation("StrafeRight", timeSinceLastFrame);
 			changeAnimation("Walk", timeSinceLastFrame);
-			walkSpeed *= STRAFE_RIGHT_SPEED;
+			walkSpeed *= mtCharSpeedStrafeRight;
 		}
 
 		//Character has moved! move = true

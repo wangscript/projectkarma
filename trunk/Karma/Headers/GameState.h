@@ -10,9 +10,12 @@
 #include "PowerUp.h"
 #include <NxOgre.h>
 #include <NxOgreOGRE3D.h>
+#include <Ogre.h>
+#include "WorldManager.h"
 
 #define CAMERA_HEIGHT			1.2
 #define CAMERA_DISTANCE			3
+
 
 //|||||||||||||||||||||||||||||||||||||||||||||||
 
@@ -25,6 +28,7 @@ public:
 
         void enter();
         void createScene();
+		//void createTerrain(Ogre::Light*);
 		void createMotionBlurEffects();
         void exit();
         bool pause();
@@ -47,8 +51,6 @@ public:
 
 private:
 
-    //NxOgre instances
-	
 	NxOgre::World*							m_PhysicsWorld;
 	NxOgre::Scene*							m_PhysicsScene;
 	NxOgre::TimeController*					m_PhysicsTimeController;
@@ -58,6 +60,7 @@ private:
 	CameraHandler*							m_CameraHandler;
 	Character*								m_Character;
 	PowerUp*								m_PowerUps;
+	WorldManager*							mvpWorld;
 
 	bool                                    mvLMouseDown, mvRMouseDown;
 	bool                                    mvChatMode;

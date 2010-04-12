@@ -124,6 +124,9 @@ void GameFramework::initOgre(Ogre::String wndTitle, OIS::KeyListener *pKeyListen
 	mpGui->initDebugGui();
 	mpGui->initIngameUI();
 	mpGui->initCastingBar();
+
+	mpSettings = new Settings(mpLog);
+	mpSettings->loadSettingsFromFile();
 }
 
 //|||||||||||||||||||||||||||||||||||||||||||||||
