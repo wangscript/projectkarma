@@ -1,101 +1,93 @@
 #include "WorldManager.h"
 
-WorldManager::WorldManager(Ogre::SceneManager* s, Ogre::Camera* c, NxOgre::Scene* p)
+WorldManager::WorldManager(Ogre::SceneManager* s, Ogre::Camera* c, NxOgre::Scene* p, Ogre::Light* dirLight)
 {
 	//Init Stuff. @todo singleton bla bla maybe
 	mtpSceneMgr	= s;	
 	mtpCamera = c;
 	mtpPhysicsScene = p;
-}
 
-WorldManager::~WorldManager()
-{
-}
-
-void WorldManager::initTerrain(Ogre::Light* light )
-{
-	bool blankTerrain = false;
-
+	//Global terrain options here
 	mtpTerrainGlobals = OGRE_NEW Ogre::TerrainGlobalOptions();
-	// Configure global
-	// FIX VARIABLES. ska kunna ändra ifrån createScene i GameState
-	mtpTerrainGlobals->setMaxPixelError(1);
+	mtpTerrainGlobals->setMaxPixelError(GameFramework::getSingletonPtr()->mpSettings->mTerrainMaxPixelError);
 
-	//From mimi.hu:
-	//Composite map
-	//A single map created by joining together two or more maps that have been digitised seperately. 2
-	//connectivity ...
-
-	// FIX VARIABLES. ska kunna ändra ifrån createScene i GameState
-	// Important to set these so that the terrain knows what to use for derived (non-realtime) data
-	mtpTerrainGlobals->setLightMapDirection(light->getDerivedDirection());
+	//Important information when calculating lightmaps
+	mtpTerrainGlobals->setLightMapDirection(dirLight->getDerivedDirection());
 	mtpTerrainGlobals->setCompositeMapAmbient(mtpSceneMgr->getAmbientLight());
-	mtpTerrainGlobals->setCompositeMapDiffuse(light->getDiffuseColour());
-	mtpTerrainGlobals->setCompositeMapDistance(30);
-
-	// Testing stuff included in terrain.h in Sample
-
-	//mtpTerrainGlobals->setUseRayBoxDistanceCalculation(true);
-	//mtpTerrainGlobals->getDefaultMaterialGenerator()->setDebugLevel(1);
-	//mtpTerrainGlobals->setLightMapSize(256);
-	//matProfile->setLightmapEnabled(false);
-	//mtpTerrainGlobals->setCompositeMapAmbient(ColourValue::Red);
-
+	mtpTerrainGlobals->setCompositeMapDiffuse(dirLight->getDiffuseColour());
+	// Set the distance at which to start using a composite map if present
+	mtpTerrainGlobals->setCompositeMapDistance(GameFramework::getSingletonPtr()->mpSettings->mTerrainCompositeMapDistance);
 
 	//From wikipedia:
 	//Anisotropic filtering (AF) is a method of enhancing the image quality of textures on surfaces 
 	//that are far away and steeply angled with respect to the point of view. Older techniques,
 	//such as bilinear and trilinear filtering don't take account of the angle a surface is viewed from,
 	//which can result in aliasing or blurring of textures. By reducing detail in one direction more than another,
-	//these effects can be reduced.
-
+	//these effects can be reduced.	
 	Ogre::MaterialManager::getSingleton().setDefaultTextureFiltering(Ogre::TFO_ANISOTROPIC);
-	// FIX VARIABLES. ska kunna ändra ifrån createScene i GameState
-	Ogre::MaterialManager::getSingleton().setDefaultAnisotropy(7);
+	Ogre::MaterialManager::getSingleton().setDefaultAnisotropy(GameFramework::getSingletonPtr()->mpSettings->mTerrainDefaultAnisotropy);
 
 	// FIX VARIABLES. ska kunna ändra ifrån createScene i GameState
 	//Since we want the ability to load not only one terrain, we define a terrain group.
-	mtpTerrainGroup = OGRE_NEW Ogre::TerrainGroup(mtpSceneMgr, Ogre::Terrain::ALIGN_X_Z, TERRAIN_SIZE, 120);
+	mtpTerrainGroup = OGRE_NEW Ogre::TerrainGroup(mtpSceneMgr, Ogre::Terrain::ALIGN_X_Z,
+		GameFramework::getSingletonPtr()->mpSettings->mTerrainSize, 
+		GameFramework::getSingletonPtr()->mpSettings->mTerrainWorldSize);
 	mtpTerrainGroup->setFilenameConvention(TERRAIN_FILE_PREFIX, TERRAIN_FILE_SUFFIX);//whats this/Per
-	mtpTerrainGroup->setOrigin(Ogre::Vector3(0,-3,0));
+	mtpTerrainGroup->setResourceGroup("Karma");
+}
 
-	// FIX VARIABLES. ska kunna ändra ifrån createScene i GameState
-	// Configure default import settings for if we use imported image
+WorldManager::~WorldManager()
+{
+}
+
+void WorldManager::addTextureLayer(Ogre::String& diffuseAndSpecMap, Ogre::String& normalAndHeightMap, Ogre::Real worldSize)
+{
 	Ogre::Terrain::ImportData& defaultimp = mtpTerrainGroup->getDefaultImportSettings();
-	defaultimp.terrainSize = TERRAIN_SIZE;
-	defaultimp.worldSize = 120;
-	defaultimp.inputScale = 6;
-	defaultimp.minBatchSize = 33;
-	defaultimp.maxBatchSize = 65;
-	// textures
-	defaultimp.layerList.resize(3);
-	defaultimp.layerList[0].worldSize = 100/100;
-	defaultimp.layerList[0].textureNames.push_back("dirt_grayrocky_diffusespecular.dds");
-	defaultimp.layerList[0].textureNames.push_back("dirt_grayrocky_normalheight.dds");
-	defaultimp.layerList[1].worldSize = 30/100;
-	defaultimp.layerList[1].textureNames.push_back("grass_green-01_diffusespecular.dds");
-	defaultimp.layerList[1].textureNames.push_back("grass_green-01_normalheight.dds");
-	defaultimp.layerList[2].worldSize = 200/100;
-	defaultimp.layerList[2].textureNames.push_back("growth_weirdfungus-03_diffusespecular.dds");
-	defaultimp.layerList[2].textureNames.push_back("growth_weirdfungus-03_normalheight.dds");
+	int size = defaultimp.layerList.size();
+	defaultimp.layerList.resize(size + 1);
+	defaultimp.layerList[size].worldSize = worldSize;
+	defaultimp.layerList[size].textureNames.push_back(diffuseAndSpecMap);
+	defaultimp.layerList[size].textureNames.push_back(normalAndHeightMap);
+}
 
+void WorldManager::initTerrain()
+{
+	mtpTerrainGroup->setOrigin(Ogre::Vector3(0,GameFramework::getSingletonPtr()->mpSettings->mTerrainAdjustY,0));
 
-	Ogre::String filename = mtpTerrainGroup->generateFilename(0, 0);
+	//@todo fixa paging? Fixa loopar här så x y varierar
+	int x = 0; int y = 0;
+
+	//Check if there is a terrain file available in the resource, otherwhise it will be created from an image.
+	Ogre::String filename = mtpTerrainGroup->generateFilename(x, y);
 	if (Ogre::ResourceGroupManager::getSingleton().resourceExists(mtpTerrainGroup->getResourceGroup(), filename))
 	{
+		GameFramework::getSingletonPtr()->mpLog->logMessage("Terrain " + filename + " was found! No need to load terrain from image");
 		mtpTerrainGroup->defineTerrain(0, 0);
 	}
 	else
 	{
+		GameFramework::getSingletonPtr()->mpLog->logMessage("Terrain file was not found. Generating terrain from image...");
+
+		//@todo borde kanske kunna sätta dessa värden som parametrar i initTerrain. olika värden för olika banor
+		// Configure default import settings
+		Ogre::Terrain::ImportData& defaultimp = mtpTerrainGroup->getDefaultImportSettings();	
+		defaultimp.terrainSize = GameFramework::getSingletonPtr()->mpSettings->mTerrainSize;
+		defaultimp.worldSize = GameFramework::getSingletonPtr()->mpSettings->mTerrainWorldSize;
+		defaultimp.inputScale = GameFramework::getSingletonPtr()->mpSettings->mTerrainInputScale;
+		defaultimp.minBatchSize = GameFramework::getSingletonPtr()->mpSettings->mTerrainMinBatchSize;
+		defaultimp.maxBatchSize = GameFramework::getSingletonPtr()->mpSettings->mTerrainMaxBatchSize;
+
+		//@todo fixa så den inte behöver heta just terrain.png
 		Ogre::Image img;
-		img.load("terrain.png", Ogre::ResourceGroupManager::DEFAULT_RESOURCE_GROUP_NAME);
-		mtpTerrainGroup->defineTerrain(0, 0, &img);
+		img.load("terrain.png", "Karma");
+		mtpTerrainGroup->defineTerrain(x, y, &img);
 		mtTerrainsImported = true;
 	}	
 
 	// sync load since we want everything in place when we start
 	mtpTerrainGroup->loadAllTerrains(true);
 
+	//If new terrains were imported, we have to define how the texture layers are blending
 	if (mtTerrainsImported)
 	{
 		Ogre::TerrainGroup::TerrainIterator ti = mtpTerrainGroup->getTerrainIterator();
@@ -104,9 +96,13 @@ void WorldManager::initTerrain(Ogre::Light* light )
 			Ogre::Terrain* t = ti.getNext()->instance;
 			initBlendMaps(t);
 		}
+		//Saves the terrains for further use.
+		mtpTerrainGroup->saveAllTerrains(true);
 	}
 
 	mtpTerrainGroup->freeTemporaryResources();
+
+	//@todo fixa texture skuggor. mjuk kant
 	//configureShadows(true,true);
 }
 
@@ -133,8 +129,8 @@ void WorldManager::configureShadows(bool enabled, bool depthShadows)
 	matProfile->setReceiveDynamicShadowsLowLod(false);
 
 	// General scene setup
-	mtpSceneMgr->setShadowTechnique(Ogre::SHADOWTYPE_TEXTURE_ADDITIVE_INTEGRATED);
-	mtpSceneMgr->setShadowFarDistance(3000);
+	//mtpSceneMgr->setShadowTechnique(Ogre::SHADOWTYPE_TEXTURE_ADDITIVE_INTEGRATED);
+
 
 	// 3 textures per directional light (PSSM)
 	mtpSceneMgr->setShadowTextureCountPerLightType(Ogre::Light::LT_DIRECTIONAL, 3);
@@ -155,7 +151,7 @@ void WorldManager::configureShadows(bool enabled, bool depthShadows)
 	mtpSceneMgr->setShadowCameraSetup(mtPSSMSetup);
 
 
-	mtpSceneMgr->setShadowTextureCount(3);
+	/*mtpSceneMgr->setShadowTextureCount(3);
 	mtpSceneMgr->setShadowTextureConfig(0, 2048, 2048, Ogre::PF_FLOAT32_R);
 	mtpSceneMgr->setShadowTextureConfig(1, 1024, 1024, Ogre::PF_FLOAT32_R);
 	mtpSceneMgr->setShadowTextureConfig(2, 1024, 1024, Ogre::PF_FLOAT32_R);
@@ -163,15 +159,19 @@ void WorldManager::configureShadows(bool enabled, bool depthShadows)
 	mtpSceneMgr->setShadowCasterRenderBackFaces(true);
 	mtpSceneMgr->setShadowTextureCasterMaterial("PSSM/shadow_caster");
 
+	std::cout << "SUBENT!!\n\n\n";
+	Ogre::MaterialPtr houseMat1 = buildDepthShadowMaterial("ogre.tex.jpg");
+	Ogre::MaterialPtr houseMat2 = buildDepthShadowMaterial("ogreahead.tex.jpg");
+	Ogre::SubEntity* sub1 = mtpSceneMgr->getEntity("Char")->getSubEntity(0);
+	Ogre::SubEntity* sub2 = mtpSceneMgr->getEntity("Char")->getSubEntity(2);
+	sub1->setMaterial(houseMat1);
+	sub2->setMaterial(houseMat2);*/
+
 
 	matProfile->setReceiveDynamicShadowsDepth(depthShadows);
 	matProfile->setReceiveDynamicShadowsPSSM(static_cast<Ogre::PSSMShadowCameraSetup*>(mtPSSMSetup.get()));
 
 	//addTextureShadowDebugOverlay(TL_RIGHT, 3);
-
-
-
-
 
 }
 
@@ -222,45 +222,93 @@ void WorldManager::loadTerrainGeometry(const Ogre::String& name, float* data, Og
 //---------------------------------------------------------------------------------
 void WorldManager::initBlendMaps(Ogre::Terrain* terrain)
 {
-	Ogre::TerrainLayerBlendMap* blendMap0 = terrain->getLayerBlendMap(1);
-	Ogre::TerrainLayerBlendMap* blendMap1 = terrain->getLayerBlendMap(2);
-	Ogre::Real minHeight0 = 70;
-	Ogre::Real fadeDist0 = 40;
-	Ogre::Real minHeight1 = 70;
-	Ogre::Real fadeDist1 = 15;
-	float* pBlend1 = blendMap1->getBlendPointer();
-	for (Ogre::uint16 y = 0; y < terrain->getLayerBlendMapSize(); ++y)
+	//Start with checking how many texture layers that were added.
+	//Since we can't blend the bottom texture, the needed amount of blend maps is nr of layers -1
+	int numberOfBlendMaps = mtpTerrainGroup->getDefaultImportSettings().layerList.size();
+
+	//Creating a vector of pointers to the blendLayerMaps
+	std::vector<Ogre::TerrainLayerBlendMap*> blendMaps;
+
+	//Blend pointers point to coordinates at the blendLayerMaps.
+	std::vector<float*> blendPointers;
+
+	//The images we're going to get the blend data from
+	std::vector<Ogre::Image> blendMapImages;
+
+	//@todo (0,0)
+	int blendMapSize = mtpTerrainGroup->getTerrain(0, 0)->getLayerBlendMapSize();
+
+	//i starts at 1 since blendlayer map for the second texture has the index 1.
+	for (int i= 1; i<numberOfBlendMaps; i++)
 	{
-		for (Ogre::uint16 x = 0; x < terrain->getLayerBlendMapSize(); ++x)
+		//@todo. fixa 0,0 kanske om terrain paging
+		Ogre::TerrainLayerBlendMap* blendMap = mtpTerrainGroup->getTerrain(0, 0)->getLayerBlendMap(i);
+		blendMaps.push_back(blendMap);
+		blendPointers.push_back(blendMap->getBlendPointer());
+
+		//Loading image named blendMap"i".png from the Resource Group "Karma".
+		Ogre::Image img;
+		img.load("blendMap" +  Ogre::StringConverter::toString(i) + ".png","Karma");
+		//If the size isn't right, resize.
+		if(img.getWidth() != blendMapSize)
 		{
-			Ogre::Real tx, ty;
+			img.resize(blendMapSize, blendMapSize);
+		}
+		blendMapImages.push_back(img);
+	}
 
-			blendMap0->convertImageToTerrainSpace(x, y, &tx, &ty);
-			Ogre::Real height = terrain->getHeightAtTerrainPosition(tx, ty);
-			Ogre::Real val = (height - minHeight0) / fadeDist0;
-			val = Ogre::Math::Clamp(val, (Ogre::Real)0, (Ogre::Real)1);
-			//*pBlend0++ = val;
-
-			val = (height - minHeight1) / fadeDist1;
-			val = Ogre::Math::Clamp(val, (Ogre::Real)0, (Ogre::Real)1);
-			*pBlend1++ = val;
+	//Work one pixel at a time. The Blend Pointers are pointing to a one dimensionall array
+	//even though the picture is 2D. Looping this way (y first, x second) works.
+	for (Ogre::uint16 y = 0; y < blendMapSize; ++y)
+	{
+		for (Ogre::uint16 x = 0; x < blendMapSize; ++x)
+		{       
+			for (int i= 0; i < blendMaps.size(); i++)
+			{
+				Ogre::Real value;
+				//The color value in the blendMapImage.
+				Ogre::ColourValue colourValue = blendMapImages[i].getColourAt(x,y,0);
+				//The image is black and white, yet getting information from the red channel works.
+				value = colourValue.r;
+				//The pixel value that the blendPointer is pointing to is getting the colour value.
+				// ++ to get to next pixel for next loop.
+				*blendPointers[i]++ = value;
+			}
 		}
 	}
-	blendMap0->dirty();
-	blendMap1->dirty();
-	//blendMap0->loadImage("blendmap1.png", ResourceGroupManager::DEFAULT_RESOURCE_GROUP_NAME);
-	blendMap0->update();
-	blendMap1->update();
 
-	// set up a colour map
-	/*
-	if (!terrain->getGlobalColourMapEnabled())
+	//The final blending.
+	for (int i= 0;i < blendMaps.size(); i++)
 	{
-	terrain->setGlobalColourMapEnabled(true);
-	Image colourMap;
-	colourMap.load("testcolourmap.jpg", ResourceGroupManager::DEFAULT_RESOURCE_GROUP_NAME);
-	terrain->getGlobalColourMap()->loadImage(colourMap);
+		blendMaps[i]->dirty();
+		blendMaps[i]->update();
 	}
-	*/
 
+}
+
+Ogre::MaterialPtr WorldManager::buildDepthShadowMaterial(const Ogre::String& textureName)
+{
+	Ogre::String matName = "DepthShadows/" + textureName;
+
+	Ogre::MaterialPtr ret = Ogre::MaterialManager::getSingleton().getByName(matName);
+	if (ret.isNull())
+	{
+		Ogre::MaterialPtr baseMat = Ogre::MaterialManager::getSingleton().getByName("Ogre/shadow/depth/integrated/pssm");
+		ret = baseMat->clone(matName);
+		Ogre::Pass* p = ret->getTechnique(0)->getPass(0);
+		p->getTextureUnitState("diffuse")->setTextureName(textureName);
+
+		Ogre::Vector4 splitPoints;
+		const Ogre::PSSMShadowCameraSetup::SplitPointList& splitPointList = 
+			static_cast<Ogre::PSSMShadowCameraSetup*>(mtPSSMSetup.get())->getSplitPoints();
+		for (int i = 0; i < 3; ++i)
+		{
+			splitPoints[i] = splitPointList[i];
+		}
+		p->getFragmentProgramParameters()->setNamedConstant("pssmSplitPoints", splitPoints);
+
+
+	}
+
+	return ret;
 }

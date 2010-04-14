@@ -128,7 +128,6 @@ void CameraHandler::MoveCamera()
 	//Update to debugger << DEBUG >>
 	GameFramework::getSingletonPtr()->mpGui->updateDebugCamXYZ(collisionSpherePos.as<Ogre::Vector3>());
 
-
     //So the camera always will look at the character  
     Ogre::Vector3 directionToCharacter =  charNode->_getDerivedPosition() - camCollisionNode->_getDerivedPosition();
     camera->setDirection(directionToCharacter);

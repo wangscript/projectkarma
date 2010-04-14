@@ -181,10 +181,11 @@ void GameState::createScene()
 	//Creaete SkyDome, set Ambient Light, add Light source and set shadows
 	//mtpSceneMgr->setSkyDome(true, "Examples/CloudySky", 5, 8);
 	//mtpSceneMgr->setAmbientLight(ColourValue(0.5f, 0.5f, 0.5f));
+	mtpSceneMgr->setShadowTechnique(Ogre::SHADOWTYPE_STENCIL_MODULATIVE);
 	//mtpSceneMgr->setShadowTechnique(SHADOWTYPE_STENCIL_ADDITIVE);
 	//Light* l = mtpSceneMgr->createLight("MainLight");
 	//l->setPosition(20, 80, 50);
-
+	
 	//Create Nodes for character and camera
 	SceneNode *node = mtpSceneMgr->getRootSceneNode()->createChildSceneNode("RootNode", Vector3(0,0,0));
 	node->createChildSceneNode("CharNode", Vector3(0, 0, 0));
@@ -288,6 +289,7 @@ void GameState::createScene()
 
 		Ogre::Vector3 lightdir(0.55, -0.3, 0.75);
 		lightdir.normalise();
+		mtpSceneMgr->setShadowFarDistance(15);
 
 		Ogre::Light* l = mtpSceneMgr->createLight("tstLight");
 		l->setType(Light::LT_DIRECTIONAL);
@@ -298,10 +300,22 @@ void GameState::createScene()
 
 		mtpSceneMgr->setAmbientLight(ColourValue(0.2, 0.2, 0.2));
 		mtpSceneMgr->setSkyBox(true, "Examples/CloudyNoonSkyBox");
-		mtpSceneMgr->setShadowTechnique(Ogre::SHADOWTYPE_TEXTURE_ADDITIVE_INTEGRATED);
+	
 
-		mvpWorld = new WorldManager(mtpSceneMgr, mtpCamera,m_PhysicsScene);
-		mvpWorld->initTerrain(l);
+		mvpWorld = new WorldManager(mtpSceneMgr, mtpCamera,m_PhysicsScene,l);
+		
+		//Behöver bara laddas en gång. Om man har en .dat fil är detta onödigt @ todo fixa kanske
+		Ogre::String difSpecMap = "dirt_grayrocky_diffusespecular.dds";
+		Ogre::String normHeightMap = "dirt_grayrocky_normalheight.dds";
+		mvpWorld->addTextureLayer(difSpecMap, normHeightMap , 5);
+		difSpecMap = "grass_green-01_diffusespecular.dds";
+		normHeightMap = "grass_green-01_normalheight.dds";
+		mvpWorld->addTextureLayer(difSpecMap,normHeightMap , 5);
+		difSpecMap = "growth_weirdfungus-03_diffusespecular.dds";
+		normHeightMap = "growth_weirdfungus-03_normalheight.dds";
+		mvpWorld->addTextureLayer(difSpecMap, normHeightMap, 5);
+
+		mvpWorld->initTerrain();
 		mvpWorld->buildNxOgreTerrain();
 
 		createMotionBlurEffects();
