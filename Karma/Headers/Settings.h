@@ -42,7 +42,15 @@ public:
 	float mCharScale;
 	float mCharRotation;
 
-
+	float mTerrainSize;
+	float mTerrainWorldSize;
+	float mTerrainInputScale;
+	float mTerrainMinBatchSize;
+	float mTerrainMaxBatchSize;
+	float mTerrainMaxPixelError;
+	float mTerrainCompositeMapDistance;
+	float mTerrainDefaultAnisotropy;
+	float mTerrainAdjustY;
 
 	void loadSettingsFromFile()
 	{
@@ -256,6 +264,78 @@ public:
 		}
 		else
 			mpLog->logMessage("Could load settings for mCharRotation");
+
+				if (f >> s && s=="mTerrainSize")
+		{
+			f >> mTerrainSize ;
+			mpLog->logMessage("mTerrainSize  = " + Ogre::StringConverter::toString(mTerrainSize ));
+		}
+		else
+			mpLog->logMessage("Could load settings for mTerrainSize ");
+
+		if (f >> s && s=="mTerrainWorldSize")
+		{
+			f >> mTerrainWorldSize;
+			mpLog->logMessage("mTerrainWorldSize = " + Ogre::StringConverter::toString(mTerrainWorldSize));
+		}
+		else
+			mpLog->logMessage("Could load settings for mTerrainWorldSize");
+
+		if (f >> s && s=="mTerrainInputScale")
+		{
+			f >> mTerrainInputScale;
+			mpLog->logMessage("mTerrainInputScale = " + Ogre::StringConverter::toString(mTerrainInputScale));
+		}
+		else
+			mpLog->logMessage("Could load settings for mTerrainInputScale");
+
+		if (f >> s && s=="mTerrainMinBatchSize")
+		{
+			f >> mTerrainMinBatchSize;
+			mpLog->logMessage("mTerrainMinBatchSize = " + Ogre::StringConverter::toString(mTerrainMinBatchSize));
+		}
+		else
+			mpLog->logMessage("Could load settings for mTerrainMinBatchSize");
+
+		if (f >> s && s=="mTerrainMaxBatchSize")
+		{
+			f >> mTerrainMaxBatchSize;
+			mpLog->logMessage("mTerrainMaxBatchSize = " + Ogre::StringConverter::toString(mTerrainMaxBatchSize));
+		}
+		else
+			mpLog->logMessage("Could load settings for mTerrainMaxBatchSize");
+
+		if (f >> s && s=="mTerrainMaxPixelError")
+		{
+			f >> mTerrainMaxPixelError;
+			mpLog->logMessage("mTerrainMaxPixelError = " + Ogre::StringConverter::toString(mTerrainMaxPixelError));
+		}
+		else
+			mpLog->logMessage("Could load settings for mTerrainMaxPixelError");
+
+		if (f >> s && s=="mTerrainCompositeMapDistance")
+		{
+			f >> mTerrainCompositeMapDistance;
+			mpLog->logMessage("mTerrainCompositeMapDistance = " + Ogre::StringConverter::toString(mTerrainCompositeMapDistance));
+		}
+		else
+			mpLog->logMessage("Could load settings for mTerrainCompositeMapDistance");
+
+		if (f >> s && s=="mTerrainDefaultAnisotropy")
+		{
+			f >> mTerrainDefaultAnisotropy;
+			mpLog->logMessage("mTerrainDefaultAnisotropy = " + Ogre::StringConverter::toString(mTerrainDefaultAnisotropy));
+		}
+		else
+			mpLog->logMessage("Could load settings for mTerrainDefaultAnisotropy");
+
+		if (f >> s && s=="mTerrainAdjustY")
+		{
+			f >> mTerrainAdjustY;
+			mpLog->logMessage("mTerrainAdjustY = " + Ogre::StringConverter::toString(mTerrainAdjustY));
+		}
+		else
+			mpLog->logMessage("Could load settings for mTerrainAdjustY");
 
 		mpLog->logMessage("Settings loaded from settings.txt!");
 	}

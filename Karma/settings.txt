@@ -25,3 +25,13 @@ mCharAdjustPosY 0.5
 mCharAdjustPosZ -0.1
 mCharScale 0.2
 mCharRotation 180
+
+mTerrainSize 513
+mTerrainWorldSize 120
+mTerrainInputScale 6
+mTerrainMinBatchSize 33
+mTerrainMaxBatchSize 65
+mTerrainMaxPixelError 1
+mTerrainCompositeMapDistance 30
+mTerrainDefaultAnisotropy 7
+mTerrainAdjustY 0
