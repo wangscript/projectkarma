@@ -6,6 +6,7 @@
 //|||||||||||||||||||||||||||||||||||||||||||||||
 
 #include "AppState.h"
+#include "GUI.h"
 
 //|||||||||||||||||||||||||||||||||||||||||||||||
 
@@ -27,10 +28,16 @@ public:
 	bool mousePressed(const OIS::MouseEvent &evt, OIS::MouseButtonID id); 
 	bool mouseReleased(const OIS::MouseEvent &evt, OIS::MouseButtonID id);
 
+	void resumeToGameState();
+	void createNewGameState();
+	void disconnect();
+	void quit();
+
 	void update(double timeSinceLastFrame);
 
 private:
-	bool						mvQuit;
+	bool								mvQuit;
+	GUI<MenuState>*						mvGUI;
 };
 
 //|||||||||||||||||||||||||||||||||||||||||||||||

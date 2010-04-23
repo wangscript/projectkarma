@@ -45,6 +45,8 @@ Character::Character(Ogre::SceneManager* sceneMgr, OGRE3DRenderSystem* renderSys
 	//Add capsule to physics world and set Collision Flag to group 1
 	mCapsule = renderSystem->createBody(convex, NxOgre::Vec3(0, 0, 0), "capsule.mesh", description);
 	mCapsule->getEntity()->setVisible(false);
+	//So it doesn't change position of kinematic objects
+	mCapsule->getNxActor()->setDominanceGroup(1);
 	NxShape* const* s = mCapsule->getNxActor()->getShapes();
 	//@todo fix enums for groups. bit operations useful maybe :)
 	(*s)->setGroup(1);
@@ -200,28 +202,29 @@ bool Character::move(const double& timeSinceLastFrame)
 
 		//Character has moved! move = true
 		move = true;
+		//Adds linear velocity to the capsule. Linear Velocity on Y axis, same as previous(Only gravity can change it)
+		mCapsule->setLinearVelocity(NxOgre::Vec3(dirCamToChar.x*walkSpeed ,mCapsule->getLinearVelocity().y,dirCamToChar.z*walkSpeed ));
 	}
 	else
 	{    
 		//No movement, set character animation to idle
 		changeAnimation("Idle2", timeSinceLastFrame);
-		walkSpeed = 0;
 		//move = false
 		move = false;
 	}
-	//Adds linear velocity to the capsule. Linear Velocity on Y axis, same as previous(Only gravity can change it)
-	mCapsule->setLinearVelocity(NxOgre::Vec3(dirCamToChar.x*walkSpeed ,mCapsule->getLinearVelocity().y,dirCamToChar.z*walkSpeed ));
 
+	return move;
+
+}
+
+void Character::updatePosition()
+{
 	//Get position of capsule and set the characters position to the capsule's position.
 	NxOgre::Vec3 capsulePos = mCapsule->getGlobalPosition();
 	//Move the "RootNode". CHARACTER_ADJUST_Y , translate node if orgin is not in origo
 	charNode->getParentSceneNode()->setPosition(capsulePos.x ,capsulePos.y,capsulePos.z);
 	//Update to debugger << DEBUG >>
 	GameFramework::getSingletonPtr()->mpGui->updateDebugCharXYZ(capsulePos.as<Ogre::Vector3>());
-
-
-	return move;
-
 }
 
 void Character::debugMode()

@@ -60,22 +60,23 @@ protected:
 
 public:
 	Character(Ogre::SceneManager*,OGRE3DRenderSystem*);
-	virtual ~Character();
-	virtual void setPowerUp(const int& p,float time = 0.0f);
-	virtual void updateCastingBar(const double& timeSinceLastFrame);
-	virtual float getCastingBarTimer(){return mCastingBarTimer;};
-	virtual void removePowerUp(){mPowerUp = PowerUp_None;};
-	virtual NxOgre::RigidBody* getCapsule(){return mCapsule;};
-	virtual int getPowerUp(){return mPowerUp;};
-	virtual bool move(const double& timeSinceLastFrame);
-	virtual void setMoveDirection (const int& d){mMoveDir = d;};
-	virtual void jump();
-	virtual void changeAnimation(const Ogre::String& name,const double time);
-	virtual bool isJumping() {return jumping;};
-	virtual void debugMode();
-	virtual void moveBoxMoved(const OIS::MouseEvent &e);
-	virtual void moveBoxPressed(const OIS::MouseEvent &e);
-	virtual void releaseBox();
+	~Character();
+	void setPowerUp(const int& p,float time = 0.0f);
+	void updateCastingBar(const double& timeSinceLastFrame);
+	float getCastingBarTimer(){return mCastingBarTimer;};
+	void removePowerUp(){mPowerUp = PowerUp_None;};
+	OGRE3DBody* getCapsule(){return mCapsule;};
+	int getPowerUp(){return mPowerUp;};
+	bool move(const double& timeSinceLastFrame);
+	void setMoveDirection (const int& d){mMoveDir = d;};
+	void jump();
+	void changeAnimation(const Ogre::String& name,const double time);
+	bool isJumping() {return jumping;};
+	void debugMode();
+	void moveBoxMoved(const OIS::MouseEvent &e);
+	void moveBoxPressed(const OIS::MouseEvent &e);
+	void releaseBox();
+	void updatePosition();
 };
 #endif
 

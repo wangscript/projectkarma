@@ -30,7 +30,7 @@ GameFramework::GameFramework()
 
 GameFramework::~GameFramework()
 {
-	//BUG FIXA SENARE
+	//@todo BUG FIXA SENARE
 	/*if(m_pInputMgr)
 		
 		OIS::InputManager::destroyInputSystem(m_pInputMgr);

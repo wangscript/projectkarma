@@ -12,17 +12,16 @@
 
 #define TERRAIN_FILE_PREFIX Ogre::String("testTerrain")
 #define TERRAIN_FILE_SUFFIX Ogre::String("dat")
-#define TERRAIN_WORLD_SIZE 12000.0f
 
 class WorldManager
 {
 public:
 	WorldManager(Ogre::SceneManager* s, Ogre::Camera* c, NxOgre::Scene* p, Ogre::Light* dirLight);
-	virtual ~WorldManager();
-	virtual void initTerrain();
-	virtual void addTextureLayer(Ogre::String& diffuseAndSpecMap, Ogre::String& normalAndHeightMap, Ogre::Real worldSize);
-	virtual void buildNxOgreTerrain();
-	virtual void configureShadows(bool enabled, bool depthShadows);
+	~WorldManager();
+	void initTerrain();
+	void addTextureLayer(Ogre::String& diffuseAndSpecMap, Ogre::String& normalAndHeightMap, Ogre::Real worldSize);
+	void buildNxOgreTerrain();
+	void configureShadows(bool enabled, bool depthShadows);
 
 protected:
 

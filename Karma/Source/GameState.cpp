@@ -54,7 +54,8 @@ void GameState::enter()
 bool GameState::pause()
 {
 	GameFramework::getSingletonPtr()->mpLog->logMessage("Pausing GameState...");
-
+	mvpPhysicsMgr->pause();
+	GameFramework::getSingletonPtr()->mpGui->hideInGameUI();
 	return true;
 }
 
@@ -65,7 +66,8 @@ void GameState::resume()
 	GameFramework::getSingletonPtr()->mpLog->logMessage("Resuming GameState...");
 
 	GameFramework::getSingletonPtr()->mpViewport->setCamera(mtpCamera);
-
+	mvpPhysicsMgr->resume();
+	GameFramework::getSingletonPtr()->mpGui->showInGameUI();
 	mvQuit = false;
 }
 
@@ -74,118 +76,111 @@ void GameState::resume()
 void GameState::exit()
 {
 	GameFramework::getSingletonPtr()->mpLog->logMessage("Leaving GameState...");
+	
+	mvpPhysicsMgr->destroyPhysicsWorld();
 
 	mtpSceneMgr->destroyCamera(mtpCamera);
 	if(mtpSceneMgr)
 		GameFramework::getSingletonPtr()->mpRoot->destroySceneManager(mtpSceneMgr);
 }
 void GameState::createMotionBlurEffects()
+{
+	Ogre::CompositorPtr comp3 = Ogre::CompositorManager::getSingleton().create(
+		"Motion Blur", Ogre::ResourceGroupManager::DEFAULT_RESOURCE_GROUP_NAME
+		);
 	{
-		Ogre::CompositorPtr comp3 = Ogre::CompositorManager::getSingleton().create(
-			"Motion Blur", Ogre::ResourceGroupManager::DEFAULT_RESOURCE_GROUP_NAME
-			);
+		Ogre::CompositionTechnique *t = comp3->createTechnique();
 		{
-			Ogre::CompositionTechnique *t = comp3->createTechnique();
-			{
-				Ogre::CompositionTechnique::TextureDefinition *def = t->createTextureDefinition("scene");
-				def->width = 0;
-				def->height = 0;
-				def->formatList.push_back(Ogre::PF_R8G8B8);
+			Ogre::CompositionTechnique::TextureDefinition *def = t->createTextureDefinition("scene");
+			def->width = 0;
+			def->height = 0;
+			def->formatList.push_back(Ogre::PF_R8G8B8);
+		}
+		{
+			Ogre::CompositionTechnique::TextureDefinition *def = t->createTextureDefinition("sum");
+			def->width = 0;
+			def->height = 0;
+			def->formatList.push_back(Ogre::PF_R8G8B8);
+		}
+		{
+			Ogre::CompositionTechnique::TextureDefinition *def = t->createTextureDefinition("temp");
+			def->width = 0;
+			def->height = 0;
+			def->formatList.push_back(Ogre::PF_R8G8B8);
+		}
+		/// Render scene
+		{
+			Ogre::CompositionTargetPass *tp = t->createTargetPass();
+			tp->setInputMode(Ogre::CompositionTargetPass::IM_PREVIOUS);
+			tp->setOutputName("scene");
+		}
+		/// Initialisation pass for sum texture
+		{
+			Ogre::CompositionTargetPass *tp = t->createTargetPass();
+			tp->setInputMode(Ogre::CompositionTargetPass::IM_PREVIOUS);
+			tp->setOutputName("sum");
+			tp->setOnlyInitial(true);
+		}
+		/// Do the motion blur
+		{
+			Ogre::CompositionTargetPass *tp = t->createTargetPass();
+			tp->setInputMode(Ogre::CompositionTargetPass::IM_NONE);
+			tp->setOutputName("temp");
+			{ Ogre::CompositionPass *pass = tp->createPass();
+			pass->setType(Ogre::CompositionPass::PT_RENDERQUAD);
+			pass->setMaterialName("Ogre/Compositor/Combine");
+			pass->setInput(0, "scene");
+			pass->setInput(1, "sum");
 			}
-			{
-				Ogre::CompositionTechnique::TextureDefinition *def = t->createTextureDefinition("sum");
-				def->width = 0;
-				def->height = 0;
-				def->formatList.push_back(Ogre::PF_R8G8B8);
+		}
+		/// Copy back sum texture
+		{
+			Ogre::CompositionTargetPass *tp = t->createTargetPass();
+			tp->setInputMode(Ogre::CompositionTargetPass::IM_NONE);
+			tp->setOutputName("sum");
+			{ Ogre::CompositionPass *pass = tp->createPass();
+			pass->setType(Ogre::CompositionPass::PT_RENDERQUAD);
+			pass->setMaterialName("Ogre/Compositor/Copyback");
+			pass->setInput(0, "temp");
 			}
-			{
-				Ogre::CompositionTechnique::TextureDefinition *def = t->createTextureDefinition("temp");
-				def->width = 0;
-				def->height = 0;
-				def->formatList.push_back(Ogre::PF_R8G8B8);
-			}
-			/// Render scene
-			{
-				Ogre::CompositionTargetPass *tp = t->createTargetPass();
-				tp->setInputMode(Ogre::CompositionTargetPass::IM_PREVIOUS);
-				tp->setOutputName("scene");
-			}
-			/// Initialisation pass for sum texture
-			{
-				Ogre::CompositionTargetPass *tp = t->createTargetPass();
-				tp->setInputMode(Ogre::CompositionTargetPass::IM_PREVIOUS);
-				tp->setOutputName("sum");
-				tp->setOnlyInitial(true);
-			}
-			/// Do the motion blur
-			{
-				Ogre::CompositionTargetPass *tp = t->createTargetPass();
-				tp->setInputMode(Ogre::CompositionTargetPass::IM_NONE);
-				tp->setOutputName("temp");
-				{ Ogre::CompositionPass *pass = tp->createPass();
-				pass->setType(Ogre::CompositionPass::PT_RENDERQUAD);
-				pass->setMaterialName("Ogre/Compositor/Combine");
-				pass->setInput(0, "scene");
-				pass->setInput(1, "sum");
-				}
-			}
-			/// Copy back sum texture
-			{
-				Ogre::CompositionTargetPass *tp = t->createTargetPass();
-				tp->setInputMode(Ogre::CompositionTargetPass::IM_NONE);
-				tp->setOutputName("sum");
-				{ Ogre::CompositionPass *pass = tp->createPass();
-				pass->setType(Ogre::CompositionPass::PT_RENDERQUAD);
-				pass->setMaterialName("Ogre/Compositor/Copyback");
-				pass->setInput(0, "temp");
-				}
-			}
-			/// Display result
-			{
-				Ogre::CompositionTargetPass *tp = t->getOutputTargetPass();
-				tp->setInputMode(Ogre::CompositionTargetPass::IM_NONE);
-				{ Ogre::CompositionPass *pass = tp->createPass();
-				pass->setType(Ogre::CompositionPass::PT_RENDERQUAD);
-				pass->setMaterialName("Ogre/Compositor/MotionBlur");
-				pass->setInput(0, "sum");
-				}
+		}
+		/// Display result
+		{
+			Ogre::CompositionTargetPass *tp = t->getOutputTargetPass();
+			tp->setInputMode(Ogre::CompositionTargetPass::IM_NONE);
+			{ Ogre::CompositionPass *pass = tp->createPass();
+			pass->setType(Ogre::CompositionPass::PT_RENDERQUAD);
+			pass->setMaterialName("Ogre/Compositor/MotionBlur");
+			pass->setInput(0, "sum");
 			}
 		}
 	}
+}
 
 void GameState::createScene()
 {
-	// Create the NxOgre physics world
-	m_PhysicsWorld = NxOgre::World::createWorld();
+	//Create physics
+	mvpPhysicsMgr = new PhysicsManager(mtpSceneMgr);
 
-	// Create NxOgre physics scene
-	NxOgre::SceneDescription sceneDesc;
-	sceneDesc.mGravity = NxOgre::Vec3(0, -9.8f, 0);
-	sceneDesc.mName = "GameScene";
-	m_PhysicsScene = m_PhysicsWorld->createScene(sceneDesc);
-
-	// Set some physical scene values
-	m_PhysicsScene->getMaterial(0)->setStaticFriction(0.5);
-	m_PhysicsScene->getMaterial(0)->setDynamicFriction(0.5);
-	m_PhysicsScene->getMaterial(0)->setRestitution(0);
-
-	// Create NxOgre render system
-	m_PhysicsRenderSystem = new OGRE3DRenderSystem(m_PhysicsScene);
-
-	//Create NxOgre time controller
-	m_PhysicsTimeController = NxOgre::TimeController::getSingleton();
-
-	//Load own resources for NxOgre
-	NxOgre::ResourceSystem::getSingleton()->openArchive("nxogre", "file:nxogre");
-
-	//Creaete SkyDome, set Ambient Light, add Light source and set shadows
-	//mtpSceneMgr->setSkyDome(true, "Examples/CloudySky", 5, 8);
-	//mtpSceneMgr->setAmbientLight(ColourValue(0.5f, 0.5f, 0.5f));
+	//Shadow Technique. Stencil shadows.  @todo texture shadows
 	mtpSceneMgr->setShadowTechnique(Ogre::SHADOWTYPE_STENCIL_MODULATIVE);
-	//mtpSceneMgr->setShadowTechnique(SHADOWTYPE_STENCIL_ADDITIVE);
-	//Light* l = mtpSceneMgr->createLight("MainLight");
-	//l->setPosition(20, 80, 50);
+	//Fog @todo
+	mtpSceneMgr->setFog(FOG_LINEAR, ColourValue(0.7, 0.7, 0.8), 0, 10000, 25000);
+
+	//Directional light
+	Ogre::Vector3 lightdir(0.55, -0.3, 0.75);
+	lightdir.normalise();
+	mtpSceneMgr->setShadowFarDistance(15);
+	Ogre::Light* l = mtpSceneMgr->createLight("dirLight");
+	l->setType(Light::LT_DIRECTIONAL);
+	l->setDirection(lightdir);
+	l->setDiffuseColour(ColourValue::White);
+	l->setSpecularColour(ColourValue(0.4, 0.4, 0.4));
 	
+	//Ambient light and skybox
+	mtpSceneMgr->setAmbientLight(ColourValue(0.2, 0.2, 0.2));
+	mtpSceneMgr->setSkyBox(true, "Examples/CloudyNoonSkyBox");	
+
 	//Create Nodes for character and camera
 	SceneNode *node = mtpSceneMgr->getRootSceneNode()->createChildSceneNode("RootNode", Vector3(0,0,0));
 	node->createChildSceneNode("CharNode", Vector3(0, 0, 0));
@@ -194,13 +189,18 @@ void GameState::createScene()
 	node = mtpSceneMgr->getSceneNode("CamHelperNode")->createChildSceneNode("CamNoCollisionNode", Vector3(0, 0, CAMERA_DISTANCE));
 	node = mtpSceneMgr->getRootSceneNode()->createChildSceneNode("CamCollisionNode",Vector3(0, 0, CAMERA_DISTANCE));
 
+
 	//Create camera
-	m_CameraHandler = new CameraHandler(mtpCamera,node,m_PhysicsRenderSystem, mtpSceneMgr);
-	m_Character = new Character ( mtpSceneMgr, m_PhysicsRenderSystem);
+	m_CameraHandler = new CameraHandler(mtpCamera,node,mvpPhysicsMgr->getPhysicsRenderSystem(), mtpSceneMgr);
+	//Create Character
+	m_Character = new Character ( mtpSceneMgr, mvpPhysicsMgr->getPhysicsRenderSystem());
 
-	//Create PowerUp objects. Supposed to handled by dotscene later on
-	m_PowerUps = new PowerUp(m_PhysicsScene, mtpSceneMgr,m_Character->getCapsule(),m_Character);
+	//Create PowerUp class. 
+	m_PowerUps = new PowerUp(mvpPhysicsMgr->getPhysicsScene(), mtpSceneMgr,m_Character->getCapsule(),m_Character);
 
+
+	//------------- WILL BE REMOVED ONCE DOTSCENE IS WORKING ---------------
+	
 	Ogre::Vector3 pwrUpPosition(-5,0.2,-5);
 	Ogre::SceneNode* pwrUpEntNode = mtpSceneMgr->getRootSceneNode()->createChildSceneNode();
 	Ogre::Entity* pwrUpEnt = mtpSceneMgr->createEntity("pwrup1", "pwrup1.mesh");
@@ -222,105 +222,48 @@ void GameState::createScene()
 	pwrUpEntNode->setPosition(pwrUpPosition3);
 	m_PowerUps->addPowerUp(pwrUpPosition3,pwrUpEnt->getName());
 
-
-	//Create rest of the scene. Lots of craps inc, look out!
-
-	NxOgre::Mesh* triangleMesh = NxOgre::MeshManager::getSingleton()->load("nxogre:stairs.xns");
-	NxOgre::Mesh* triangleMesh2 = NxOgre::MeshManager::getSingleton()->load("nxogre:spiralstairs.xns");
-	NxOgre::Mesh* triangleMesh3 = NxOgre::MeshManager::getSingleton()->load("nxogre:ifk.xns");
-	NxOgre::TriangleGeometry* triangleGeometry = new NxOgre::TriangleGeometry(triangleMesh);
-	NxOgre::TriangleGeometry* triangleGeometry2 = new NxOgre::TriangleGeometry(triangleMesh2);
-	NxOgre::TriangleGeometry* triangleGeometry3 = new NxOgre::TriangleGeometry(triangleMesh3);
-
-	// Add objects
-	OGRE3DBody* mCube = m_PhysicsRenderSystem->createBody(new NxOgre::Box(1, 1, 1), NxOgre::Vec3(0, 40, 0), "cube.1m.mesh");
-	OGRE3DBody* mCubeTwo = m_PhysicsRenderSystem->createBody(new NxOgre::Box(1, 1, 1), NxOgre::Vec3(20, 45, 0), "cube.1m.mesh");
-	mCubeTwo->addForce(NxOgre::Vec3(-800, -200, 0), NxOgre::Enums::ForceMode_Force);
-
 	for (int i=0; i<3; i++)
 	{
 		for (int j=0; j<3; j++)
 		{
 			for (int k=0; k<3; k++)
 			{
-				OGRE3DBody*	cube = m_PhysicsRenderSystem->createBody(new NxOgre::Box(1, 1, 1), NxOgre::Vec3(-15 + (k+0.1), 0.5+i, -15 +(j+0.1)), "cube.1m.mesh");
+				OGRE3DBody*	cube = mvpPhysicsMgr->getPhysicsRenderSystem()->createBody(new NxOgre::Box(1, 1, 1), NxOgre::Vec3(-15 + (k+0.1), 0.5+i, -15 +(j+0.1)), "cube.1m.mesh");
 			}
 		}
 	}
 
-	// Create floor plane (BloodyMess)
-	//m_PhysicsScene->createSceneGeometry(new NxOgre::PlaneGeometry(0, NxOgre::Vec3(0, 1, 0)), Matrix44_Identity);
-	m_PhysicsScene->createSceneGeometry(triangleGeometry, NxOgre::Matrix44(NxOgre::Vec3(0, 0, 5)));
-	m_PhysicsScene->createSceneGeometry(triangleGeometry2, NxOgre::Matrix44(NxOgre::Vec3(0, 0, 15)));
-	m_PhysicsScene->createSceneGeometry(triangleGeometry3, NxOgre::Matrix44(NxOgre::Vec3(0, 0, 25)));
+	mvpPhysicsMgr->addStaticTriangleMesh(Ogre::Vector3(0, 0, 5), "stairs");
+	mvpPhysicsMgr->addStaticTriangleMesh(Ogre::Vector3(0, 0, 15), "spiralstairs");
+	mvpPhysicsMgr->addStaticTriangleMesh(Ogre::Vector3(0, 0, 25), "ifk");
+	std::vector<Ogre::Vector3> v;
+	v.push_back(Ogre::Vector3(0,3,0));
+	v.push_back(Ogre::Vector3(10,0,0));
+	v.push_back(Ogre::Vector3(10,0,10));
+	mvpPhysicsMgr->addKinematicTriangleMesh( v, 0.5 , "stairs");
+	mvpPhysicsMgr->addKinematicCircle(0.1,Ogre::Vector3(5, 1, -15),4, "stairs");
 
-	//Static meshes
-	Ogre::Entity* triangleEntity = mtpSceneMgr->createEntity("triangleEntity", "stairs.mesh");
-	Ogre::SceneNode* triangleNode = mtpSceneMgr->getRootSceneNode()->createChildSceneNode();
-	triangleNode->attachObject(triangleEntity);
-	triangleNode->setPosition(Vector3(0, 0, 5));
-	triangleEntity = mtpSceneMgr->createEntity("triangleEntity2", "spiralstairs.mesh");
-	triangleNode = mtpSceneMgr->getRootSceneNode()->createChildSceneNode();
-	triangleNode->attachObject(triangleEntity);
-	triangleNode->setPosition(Vector3(0, 0, 15));
-	triangleEntity = mtpSceneMgr->createEntity("triangleEntity3", "ifk.mesh");
-	triangleEntity->setMaterialName("01-Default");
-	triangleNode = mtpSceneMgr->getRootSceneNode()->createChildSceneNode();
-	triangleNode->attachObject(triangleEntity);
-	triangleNode->setPosition(Vector3(0, 0, 25));
+	//------------- END ---------------
 
+	mvpWorld = new WorldManager(mtpSceneMgr, mtpCamera,mvpPhysicsMgr->getPhysicsScene(),l);
 
-	// Create floor plane (Ogre)
-	MovablePlane *plane = new MovablePlane("Plane");
-	plane->d = 0;
-	plane->normal = Vector3::UNIT_Y;
-	Ogre::MeshManager::getSingleton().createPlane("PlaneMesh", 
-		ResourceGroupManager::DEFAULT_RESOURCE_GROUP_NAME, 
-		*plane, 120, 120, 1, 1, true, 1, 3, 3, Vector3::UNIT_Z);
-	Entity *planeEnt = mtpSceneMgr->createEntity("PlaneEntity", "PlaneMesh");
-	planeEnt->setMaterialName("Examples/GrassFloor");
+	//Behöver bara laddas en gång. Om man har en .dat fil är detta onödigt @ todo fixa kanske
+	Ogre::String difSpecMap = "dirt_grayrocky_diffusespecular.dds";
+	Ogre::String normHeightMap = "dirt_grayrocky_normalheight.dds";
+	mvpWorld->addTextureLayer(difSpecMap, normHeightMap , 5);
+	difSpecMap = "grass_green-01_diffusespecular.dds";
+	normHeightMap = "grass_green-01_normalheight.dds";
+	mvpWorld->addTextureLayer(difSpecMap,normHeightMap , 5);
+	difSpecMap = "growth_weirdfungus-03_diffusespecular.dds";
+	normHeightMap = "growth_weirdfungus-03_normalheight.dds";
+	mvpWorld->addTextureLayer(difSpecMap, normHeightMap, 5);
 
-	Ogre::SceneNode* mPlaneNode = mtpSceneMgr->getRootSceneNode()->createChildSceneNode();
-	//mPlaneNode->attachObject(planeEnt);
+	mvpWorld->initTerrain();
+	mvpWorld->buildNxOgreTerrain();
 
-	
-			//Fog @todo
-		mtpSceneMgr->setFog(FOG_LINEAR, ColourValue(0.7, 0.7, 0.8), 0, 10000, 25000);
+	createMotionBlurEffects();
+	Ogre::CompositorManager::getSingleton().addCompositor(GameFramework::getSingletonPtr()->mpViewport, "Motion Blur");
 
-		Ogre::Vector3 lightdir(0.55, -0.3, 0.75);
-		lightdir.normalise();
-		mtpSceneMgr->setShadowFarDistance(15);
-
-		Ogre::Light* l = mtpSceneMgr->createLight("tstLight");
-		l->setType(Light::LT_DIRECTIONAL);
-		l->setDirection(lightdir);
-		l->setDiffuseColour(ColourValue::White);
-		l->setSpecularColour(ColourValue(0.4, 0.4, 0.4));
-
-
-		mtpSceneMgr->setAmbientLight(ColourValue(0.2, 0.2, 0.2));
-		mtpSceneMgr->setSkyBox(true, "Examples/CloudyNoonSkyBox");
-	
-
-		mvpWorld = new WorldManager(mtpSceneMgr, mtpCamera,m_PhysicsScene,l);
-		
-		//Behöver bara laddas en gång. Om man har en .dat fil är detta onödigt @ todo fixa kanske
-		Ogre::String difSpecMap = "dirt_grayrocky_diffusespecular.dds";
-		Ogre::String normHeightMap = "dirt_grayrocky_normalheight.dds";
-		mvpWorld->addTextureLayer(difSpecMap, normHeightMap , 5);
-		difSpecMap = "grass_green-01_diffusespecular.dds";
-		normHeightMap = "grass_green-01_normalheight.dds";
-		mvpWorld->addTextureLayer(difSpecMap,normHeightMap , 5);
-		difSpecMap = "growth_weirdfungus-03_diffusespecular.dds";
-		normHeightMap = "growth_weirdfungus-03_normalheight.dds";
-		mvpWorld->addTextureLayer(difSpecMap, normHeightMap, 5);
-
-		mvpWorld->initTerrain();
-		mvpWorld->buildNxOgreTerrain();
-
-		createMotionBlurEffects();
-		Ogre::CompositorManager::getSingleton().addCompositor(GameFramework::getSingletonPtr()->mpViewport, "Motion Blur");
-		
 }
 //|||||||||||||||||||||||||||||||||||||||||||||||
 
@@ -360,7 +303,7 @@ bool GameState::keyPressed(const OIS::KeyEvent &keyEventRef)
 		m_Character->debugMode();
 		break;
 	case OIS::KC_F:
-		OGRE3DBody* mCube = m_PhysicsRenderSystem->createBody(new NxOgre::Box(1, 1, 1), NxOgre::Vec3(mtpSceneMgr->getSceneNode("CharNode")->_getDerivedPosition().x, 
+		OGRE3DBody* mCube = mvpPhysicsMgr->getPhysicsRenderSystem()->createBody(new NxOgre::Box(1, 1, 1), NxOgre::Vec3(mtpSceneMgr->getSceneNode("CharNode")->_getDerivedPosition().x, 
 			mtpSceneMgr->getSceneNode("CharNode")->_getDerivedPosition().y+2, mtpSceneMgr->getSceneNode("CharNode")->_getDerivedPosition().z), "cube.1m.mesh"); 
 		Ogre::Vector3 dirCamToChar =  mtpSceneMgr->getSceneNode("CharNode")->_getDerivedPosition() - mtpSceneMgr->getSceneNode("CamCollisionNode")->_getDerivedPosition();
 		mCube->addForce(NxOgre::Vec3(dirCamToChar.x*1000,-400,dirCamToChar.z*1000), NxOgre::Enums::ForceMode_Force, true);
@@ -393,7 +336,6 @@ bool GameState::keyReleased(const OIS::KeyEvent &keyEventRef)
 	}
 
 
-	return true;
 	return true;
 }
 
@@ -502,7 +444,7 @@ void GameState::update(double timeSinceLastFrame)
 {
 	if(mvQuit == true)
 	{
-		this->popAppState();
+		this->pushAppState(findByName("MenuState"));
 		return;
 	}
 	getInput();
@@ -512,7 +454,8 @@ void GameState::update(double timeSinceLastFrame)
 	{
 		m_Character->updateCastingBar(timeSinceLastFrame);
 	}
-	m_PhysicsTimeController->advance(timeSinceLastFrame);
+	mvpPhysicsMgr->update(timeSinceLastFrame);
+	m_Character->updatePosition();
 	m_CameraHandler->MoveCamera();
 
 }

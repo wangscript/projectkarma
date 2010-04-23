@@ -14,10 +14,10 @@ class CameraHandler
 	public:
 		CameraHandler(Ogre::Camera* cam, Ogre::SceneNode* node, OGRE3DRenderSystem* renderSystem,Ogre::SceneManager* mSceneMgr);
 		virtual ~CameraHandler();
-		virtual void Zoom(const OIS::MouseEvent &arg);
-		virtual void Rotate(const OIS::MouseEvent &arg);
-		virtual void AdjustCamera();
-		virtual void MoveCamera();
+		void Zoom(const OIS::MouseEvent &arg);
+		void Rotate(const OIS::MouseEvent &arg);
+		void AdjustCamera();
+		void MoveCamera();
 	protected:
 		OGRE3DBody*		cameraSphere;
 		Ogre::Camera*	camera;

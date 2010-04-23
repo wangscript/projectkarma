@@ -24,9 +24,9 @@ public:
 	};
 
 	PowerUp(NxOgre::Scene*,Ogre::SceneManager*,NxOgre::RigidBody*, Character*);
-	virtual ~PowerUp();
-	virtual void addPowerUp(Ogre::Vector3&,Ogre::String);
-	virtual void onVolumeEvent(NxOgre::Volume* volume, NxOgre::Shape* volumeShape, NxOgre::RigidBody* rigidBody,
+	~PowerUp();
+	void addPowerUp(Ogre::Vector3&,Ogre::String);
+	void onVolumeEvent(NxOgre::Volume* volume, NxOgre::Shape* volumeShape, NxOgre::RigidBody* rigidBody,
 		NxOgre::Shape* rigidBodyShape, unsigned int collisionEvent);
 
 protected:

@@ -23,6 +23,8 @@ public:
 	virtual void		changeAppState(AppState *state) = 0;
 	virtual bool		pushAppState(AppState* state) = 0;
 	virtual void		popAppState() = 0;
+	virtual void		popGameState() = 0;
+	virtual void		popAllAppStates() = 0;
 	virtual void		shutdown() = 0;
 };
 
@@ -48,6 +50,8 @@ protected:
 	void		changeAppState(AppState* state){mtpParent->changeAppState(state);}
 	bool		pushAppState(AppState* state){return mtpParent->pushAppState(state);}
 	void		popAppState(void){mtpParent->popAppState();}
+	void		popGameState(){mtpParent->popGameState();}
+	void 		popAllAppStates(){mtpParent->popAllAppStates();}
 	void		shutdown(void){mtpParent->shutdown();}
 	
 	AppStateListener*		mtpParent;

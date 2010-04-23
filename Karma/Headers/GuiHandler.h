@@ -11,6 +11,7 @@ protected:
 	Ogre::Overlay* mtpCursorLayer;
 	Ogre::Overlay* mtpDebugLayer;
 	Ogre::Overlay* mtpIngameUILayer;
+	Ogre::Overlay* mtpMenuGUILayer;
 	
 	Ogre::Overlay* mtpCastingBarLayer;
 	Ogre::OverlayElement* mtpCastingBar;
@@ -36,29 +37,33 @@ protected:
 public:
 
 	GuiHandler();
-	virtual ~GuiHandler();
+	~GuiHandler();
 
-	virtual void initGui();
+	void initGui();
 
-	virtual void initDebugGui();
-	virtual void updateDebugFPS(Ogre::String&);
-	virtual void updateDebugCharXYZ(Ogre::Vector3&);
-	virtual void updateDebugCamXYZ(Ogre::Vector3&);
-	virtual void updateDebugDirXYZ(Ogre::Vector3&);
-	virtual void updateDebugTriangles(Ogre::String& s);
-	virtual void updateDebugCursorPos(const int x,const int y);
+	void initDebugGui();
+	void updateDebugFPS(Ogre::String&);
+	void updateDebugCharXYZ(Ogre::Vector3&);
+	void updateDebugCamXYZ(Ogre::Vector3&);
+	void updateDebugDirXYZ(Ogre::Vector3&);
+	void updateDebugTriangles(Ogre::String& s);
+	void updateDebugCursorPos(const int x,const int y);
 
-	virtual void initIngameUI();
-	virtual void changeIngameUIIcon(int pwrup);
+	void initIngameUI();
+	void changeIngameUIIcon(int pwrup);
+	void showInGameUI();
+	void hideInGameUI();
+	void initCastingBar();
+	void loadCastingBar(Ogre::String name, float totalTime);
+	void updateCastingBar(float curTime);
+	void hideCastingBar();
 
-	virtual void initCastingBar();
-	virtual void loadCastingBar(Ogre::String name, float totalTime);
-	virtual void updateCastingBar(float curTime);
-	virtual void hideCastingBar();
+	void initMenuGUI();
+	void removeMenuGUI();
 
-	virtual void showCursor();
-	virtual void hideCursor();
-	virtual void updateCursorPos(const int x,const int y);
+	void showCursor();
+	void hideCursor();
+	void updateCursorPos(const int x,const int y);
 };
 
 #endif

@@ -119,7 +119,7 @@ void WorldManager::buildNxOgreTerrain()
 	}
 	GameFramework::getSingletonPtr()->mpLog->logMessage("NxOgre Terrain files was created!");
 }
-//---------------------------------------------------------------------------------
+/*---------------------------------------------------------------------------------*/
 void WorldManager::configureShadows(bool enabled, bool depthShadows)
 {
 	Ogre::TerrainMaterialGeneratorA::SM2Profile* matProfile = 
@@ -263,7 +263,7 @@ void WorldManager::initBlendMaps(Ogre::Terrain* terrain)
 	{
 		for (Ogre::uint16 x = 0; x < blendMapSize; ++x)
 		{       
-			for (int i= 0; i < blendMaps.size(); i++)
+			for (unsigned int i= 0; i < blendMaps.size(); i++)
 			{
 				Ogre::Real value;
 				//The color value in the blendMapImage.
@@ -278,7 +278,7 @@ void WorldManager::initBlendMaps(Ogre::Terrain* terrain)
 	}
 
 	//The final blending.
-	for (int i= 0;i < blendMaps.size(); i++)
+	for (unsigned int i= 0;i < blendMaps.size(); i++)
 	{
 		blendMaps[i]->dirty();
 		blendMaps[i]->update();

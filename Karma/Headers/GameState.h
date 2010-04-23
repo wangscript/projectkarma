@@ -8,10 +8,9 @@
 #include "CameraHandler.h"
 #include "Character.h"
 #include "PowerUp.h"
-#include <NxOgre.h>
-#include <NxOgreOGRE3D.h>
 #include <Ogre.h>
 #include "WorldManager.h"
+#include "PhysicsManager.h"
 
 #define CAMERA_HEIGHT			1.2
 #define CAMERA_DISTANCE			3
@@ -28,7 +27,6 @@ public:
 
         void enter();
         void createScene();
-		//void createTerrain(Ogre::Light*);
 		void createMotionBlurEffects();
         void exit();
         bool pause();
@@ -51,10 +49,7 @@ public:
 
 private:
 
-	NxOgre::World*							m_PhysicsWorld;
-	NxOgre::Scene*							m_PhysicsScene;
-	NxOgre::TimeController*					m_PhysicsTimeController;
-	OGRE3DRenderSystem*						m_PhysicsRenderSystem;
+	PhysicsManager*							mvpPhysicsMgr;
 	bool                                    mvQuit;
 
 	CameraHandler*							m_CameraHandler;
