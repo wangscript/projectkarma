@@ -171,7 +171,7 @@ container Panel(GuiKarma/CastingbarPanel)
 element Panel(GuiKarma/CastingbarPanel/Texture)
 {
 metrics_mode pixels
-material Examples/DarkMaterial
+material Gui/BackgroundImage
 width 300
 height 30
 }
@@ -187,6 +187,90 @@ element TextArea(GuiKarma/CastingbarPanel/Text)
 }
 }
 }
+
+template element Panel(GuiKarma/Templates/Button)
+		{
+			metrics_mode pixels
+			width 128
+			height 43
+			vert_align top
+			horz_align center	
+		}
+		
+GuiKarma/Menu
+{	
+zorder 5
+		container Panel(GuiKarma/Menu/Panel)
+		{	
+			element Panel(GuiKarma/Menu/Resume) : GuiKarma/Templates/Button
+			{
+			top 50
+			material Gui/Resume
+			}
+			
+			element Panel(GuiKarma/Menu/ResumeMouseOver) : GuiKarma/Templates/Button
+			{
+			top 50
+			material Gui/ResumeMOE
+			}
+			element Panel(GuiKarma/Menu/ResumeLocked) : GuiKarma/Templates/Button
+			{
+			top 50
+			material Gui/ResumeLocked
+			}			
+
+			element Panel(GuiKarma/Menu/Quit) : GuiKarma/Templates/Button
+			{
+			top 100		
+			material Gui/Quit	
+			}			
+		
+			element Panel(GuiKarma/Menu/QuitMouseOver) : GuiKarma/Templates/Button
+			{
+			top 100			
+			material Gui/QuitMOE	
+			}
+			
+			element Panel(GuiKarma/Menu/Disconnect) : GuiKarma/Templates/Button
+			{
+			top 150		
+			material Gui/Disconnect	
+			}			
+		
+			element Panel(GuiKarma/Menu/DisconnectMouseOver) : GuiKarma/Templates/Button
+			{
+			top 150	
+			material Gui/DisconnectMOE	
+			}	
+	
+			element Panel(GuiKarma/Menu/DisconnectLocked) : GuiKarma/Templates/Button
+			{
+			top 150	
+			material Gui/DisconnectLocked
+			}					
+			
+			element Panel(GuiKarma/Menu/NewGame) : GuiKarma/Templates/Button
+			{
+			top 200		
+			material Gui/NewGame
+			}			
+		
+			element Panel(GuiKarma/Menu/NewGameMouseOver) : GuiKarma/Templates/Button
+			{
+			top 200		
+			material Gui/NewGameMOE	
+			}	
+			element Panel(GuiKarma/Menu/NewGameLocked) : GuiKarma/Templates/Button
+			{
+			top 200		
+			material Gui/NewGameLocked
+			}						
+																
+		}			
+}
+
+
+
 
 // A silly example of how you would do a 3D cockpit
 //Examples/KnotCockpit

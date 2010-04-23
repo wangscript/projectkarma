@@ -29,7 +29,7 @@ CameraHandler::CameraHandler(Ogre::Camera* cam, Ogre::SceneNode* node, OGRE3DRen
 	descriptionSphere.mBodyFlags |= NxOgre::Enums::BodyFlags_FreezeRotation; 
 	descriptionSphere.mMass = 100;
 	descriptionSphere.mDensity = 0;
-	descriptionSphere.mLinearDamping = 10;
+	descriptionSphere.mLinearDamping = GameFramework::getSingletonPtr()->mpSettings->mTemp3;
 	descriptionSphere.mAngularDamping = 10;
 
 	/*Create it.

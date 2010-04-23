@@ -78,6 +78,8 @@ void GuiHandler::updateDebugTriangles(Ogre::String& s)
 	static Ogre::String currFps = "Triangle count: "; 
 	debugTriangles->setCaption(currFps + s);
 }
+
+
 void GuiHandler::updateDebugCursorPos(const int x,const int y)
 {
 	static Ogre::String mousePosX = "Mouse X: "; 		
@@ -92,9 +94,21 @@ void GuiHandler::initIngameUI()
 	mtpIngameUILayer->show();
 }
 
+void GuiHandler::showInGameUI()
+{
+	mtpIngameUILayer->show();
+}
+
+void GuiHandler::hideInGameUI()
+{
+	mtpIngameUILayer->hide();
+}
+
 void GuiHandler::changeIngameUIIcon(int pwrup)
 {
-	//@todo enums bättre
+	//@todo enums bättre 
+
+	//Denna metoden laggar
 	switch (pwrup)		
 	{
 	case 0: 
@@ -154,4 +168,15 @@ void GuiHandler::updateCursorPos(const int x,const int y)
 {
 	mtpCursor->setPosition(x,y);
 	updateDebugCursorPos(x,y);
+}
+
+void GuiHandler::initMenuGUI()
+{
+	mtpMenuGUILayer = Ogre::OverlayManager::getSingleton().getByName("GuiKarma/Menu");
+	mtpMenuGUILayer->show();
+}
+
+void GuiHandler::removeMenuGUI()
+{
+	mtpMenuGUILayer->hide();
 }

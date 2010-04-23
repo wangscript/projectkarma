@@ -27,10 +27,39 @@ void MenuState::enter()
 
 	GameFramework::getSingletonPtr()->mpKeyboard->setEventCallback(this);
 	GameFramework::getSingletonPtr()->mpMouse->setEventCallback(this);
+	//GameFramework::getSingletonPtr()->mpGui->initMenuGUI();
 
 	mvQuit = false;
-	
+	Ogre::String s = "GuiKarma/Menu";
+	mvGUI = new GUI<MenuState>(this, s);
+
+	Ogre::String resume = "GuiKarma/Menu/Resume";
+	void (MenuState::*resumeFunction)() = &MenuState::resumeToGameState;
+	int resumeButtoN = mvGUI->addMouseOver(resume,resumeFunction,true,false);
+
+	Ogre::String quit = "GuiKarma/Menu/Quit";
+	void (MenuState::*quitFunction)() = &MenuState::quit;
+	int quitButtoN = mvGUI->addMouseOver(quit,quitFunction);
+
+	Ogre::String disc = "GuiKarma/Menu/Disconnect";
+	void (MenuState::*discFunction)() = &MenuState::disconnect;
+	int disconnectButtoN = mvGUI->addMouseOver(disc,discFunction,true,false);
+
+	Ogre::String newgame = "GuiKarma/Menu/NewGame";
+	void (MenuState::*newGameFunction)() = &MenuState::createNewGameState;
+	int newGameButtoN = mvGUI->addMouseOver(newgame,newGameFunction,true,true);
+
+	std::vector<int> test;
+	test.push_back(disconnectButtoN);
+	test.push_back(resumeButtoN);
+	mvGUI->addLockedRelation(disconnectButtoN,test);
+
+	std::vector<int> test2;
+	test2.push_back(newGameButtoN);
+	mvGUI->addUnlockedRelation(disconnectButtoN,test2);
+
 	createScene();
+
 }
 
 //|||||||||||||||||||||||||||||||||||||||||||||||
@@ -64,8 +93,8 @@ void MenuState::createScene()
 void MenuState::exit()
 {
 	GameFramework::getSingletonPtr()->mpLog->logMessage("Leaving MenuState...");
-		
 	mtpSceneMgr->destroyCamera(mtpCamera);
+	delete mvGUI;
 	if(mtpSceneMgr)
 		GameFramework::getSingletonPtr()->mpRoot->destroySceneManager(mtpSceneMgr);
 }
@@ -74,7 +103,26 @@ void MenuState::exit()
 
 //|||||||||||||||||||||||||||||||||||||||||||||||
 
+void MenuState::createNewGameState()
+{
+	this->changeAppState(findByName("GameState"));
+}
 
+void MenuState::resumeToGameState()
+{
+	this->popAppState();
+}
+
+void MenuState::disconnect()
+{
+	this->popGameState();
+}
+
+void MenuState::quit()
+{
+	
+	this->popAllAppStates();
+}
 
 //|||||||||||||||||||||||||||||||||||||||||||||||
 
@@ -84,6 +132,11 @@ bool MenuState::keyPressed(const OIS::KeyEvent &keyEventRef)
 	{
 		mvQuit = true;
 		return true;
+	}
+
+	if(GameFramework::getSingletonPtr()->mpKeyboard->isKeyDown(OIS::KC_Q))
+	{
+		resumeToGameState();
 	}
 
 	GameFramework::getSingletonPtr()->keyPressed(keyEventRef);
@@ -104,7 +157,9 @@ bool MenuState::keyReleased(const OIS::KeyEvent &keyEventRef)
 
 bool MenuState::mouseMoved(const OIS::MouseEvent &evt)
 {
-
+	GameFramework::getSingletonPtr()->mpGui->updateCursorPos(evt.state.X.abs,evt.state.Y.abs );
+	mvGUI->checkMouseOver(evt.state.X.abs, evt.state.Y.abs);
+		
 	return true;
 }
 
@@ -112,8 +167,8 @@ bool MenuState::mouseMoved(const OIS::MouseEvent &evt)
 
 bool MenuState::mousePressed(const OIS::MouseEvent &evt, OIS::MouseButtonID id)
 {
-
-
+	if(mvGUI->mousePressed())
+		mvGUI->resetMouseOver();
 	return true;
 }
 
@@ -132,7 +187,7 @@ void MenuState::update(double timeSinceLastFrame)
 {
 	if(mvQuit == true)
 	{
-		this->popAppState();
+		quit();
 		return;
 	}
 }

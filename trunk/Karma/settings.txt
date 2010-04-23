@@ -1,6 +1,6 @@
 mTemp1 0
-mTemp2 0
-mTemp3 0
+mTemp2 5
+mTemp3 5
 mTemp4 0
 mTemp5 0
 mTemp6 0

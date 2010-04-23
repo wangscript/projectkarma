@@ -29,6 +29,8 @@ public:
 	void changeAppState(AppState* state);
 	bool pushAppState(AppState* state);
 	void popAppState(void);
+	void popGameState();
+	void popAllAppStates();
 	void shutdown(void);
 
 protected:

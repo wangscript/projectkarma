@@ -80,6 +80,10 @@ void AppStateManager::start(AppState* state)
 			startTime = GameFramework::getSingletonPtr()->mpTimer->getMillisecondsCPU();			
 			GameFramework::getSingletonPtr()->mpKeyboard->capture();
 			GameFramework::getSingletonPtr()->mpMouse->capture();
+			
+			//@todo kanske inte bästa lösningen men gör så att om man genom keyboard eller mus vill breaka allt, så skiter dne i update
+			if (mtbShutdown)
+				break;
 
 			mtActiveStateStack.back()->update(timeSinceLastFrame);
 			
@@ -148,6 +152,23 @@ void AppStateManager::popAppState(void)
 	}
     else
 		shutdown();
+}
+
+void AppStateManager::popGameState()
+{
+	mtActiveStateStack.front()->exit();
+	std::vector<AppState*>::iterator i = mtActiveStateStack.begin();
+	mtActiveStateStack.erase(i);
+}
+
+void AppStateManager::popAllAppStates()
+{
+	while (!mtActiveStateStack.empty())
+	{
+	mtActiveStateStack.back()->exit();
+	mtActiveStateStack.pop_back();
+	}
+	shutdown();
 }
 
 //|||||||||||||||||||||||||||||||||||||||||||||||

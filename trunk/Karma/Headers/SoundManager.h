@@ -14,17 +14,17 @@ protected:
 public:
 
     SoundManager();
-    virtual ~SoundManager();
+    ~SoundManager();
 
-    virtual void initSound();
-	virtual void deleteSound();
+    void initSound();
+	void deleteSound();
 
-	virtual void setBackgroundMusic(const char*);
-	virtual void setBackgroundMusicVolume(const float);
-	virtual void removeBackroundMusic();
+	void setBackgroundMusic(const char*);
+	void setBackgroundMusicVolume(const float);
+	void removeBackroundMusic();
 
-	virtual void playSound(const char* , Ogre::Vector3 );
-	virtual void updateListenerPos(Ogre::Vector3 );
+	void playSound(const char* , Ogre::Vector3 );
+	void updateListenerPos(Ogre::Vector3 );
 };
 
 #endif
