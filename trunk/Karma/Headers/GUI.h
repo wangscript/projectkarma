@@ -106,6 +106,8 @@ template <class T> void GUI<T>::addUnlockedRelation(int currentMOE, std::vector<
 template <class T> int GUI<T>::addMouseOver(Ogre::String &s,void (T::*onStatePressFunction)(),bool lockedAvailable, bool locked)
 {
 	mouseOverElement mOE;
+	mOE.locked = locked;
+
 	//NULL since we might not add any relationships. Easy to check to later on
 	mOE.lockRelationships = NULL;
 	mOE.unlockRelationships = NULL;
@@ -115,6 +117,7 @@ template <class T> int GUI<T>::addMouseOver(Ogre::String &s,void (T::*onStatePre
 	mOE.overlay->show();
 	mOE.overlayMOE =Ogre::OverlayManager::getSingleton().getOverlayElement(s + "MouseOver");
 	mOE.overlayMOE->hide();
+				
 	//Loads the locked overlay element(if available)
 	if (lockedAvailable)
 	{
@@ -124,12 +127,10 @@ template <class T> int GUI<T>::addMouseOver(Ogre::String &s,void (T::*onStatePre
 		{
 			mOE.overlayLocked->show();
 			mOE.overlay->hide();
-			mOE.locked = true;
 		}
 		else
 		{
 			mOE.overlayLocked->hide();
-			mOE.locked = false;
 		}
 	}
 
