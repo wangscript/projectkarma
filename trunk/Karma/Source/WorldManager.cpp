@@ -38,6 +38,17 @@ WorldManager::WorldManager(Ogre::SceneManager* s, Ogre::Camera* c, NxOgre::Scene
 
 WorldManager::~WorldManager()
 {
+		#ifdef PAGING
+		
+			OGRE_DELETE mtpTerrainPaging;
+			OGRE_DELETE mtpPageManager;
+		
+		#else
+			OGRE_DELETE mtpTerrainGroup;
+		#endif
+
+		OGRE_DELETE mtpTerrainGlobals;
+
 }
 
 void WorldManager::addTextureLayer(Ogre::String& diffuseAndSpecMap, Ogre::String& normalAndHeightMap, Ogre::Real worldSize)
@@ -52,40 +63,40 @@ void WorldManager::addTextureLayer(Ogre::String& diffuseAndSpecMap, Ogre::String
 
 void WorldManager::initTerrain()
 {
+
+#ifdef PAGING
+	// Paging setup
+	mtpPageManager = OGRE_NEW Ogre::PageManager();
+	// Since we're not loading any pages from .page files, we need a way just 
+	// to say we've loaded them without them actually being loaded
+	mtpPageManager->setPageProvider(&mtDummyPageProvider);
+	mtpPageManager->addCamera(mtpCamera);
+	mtpTerrainPaging = OGRE_NEW Ogre::TerrainPaging(mtpPageManager);
+	Ogre::PagedWorld* world = mtpPageManager->createWorld();
+	mtpTerrainPaging->createWorldSection(world, mtpTerrainGroup, 120, 240,  
+		TERRAIN_PAGE_MIN_X, TERRAIN_PAGE_MIN_Y, 
+		TERRAIN_PAGE_MAX_X, TERRAIN_PAGE_MAX_Y);
+
+#else
 	mtpTerrainGroup->setOrigin(Ogre::Vector3(0,GameFramework::getSingletonPtr()->mpSettings->mTerrainAdjustY,0));
 
-	//@todo fixa paging? Fixa loopar här så x y varierar
-	int x = 0; int y = 0;
+	//@todo borde kanske kunna sätta dessa värden som parametrar i initTerrain. olika värden för olika banor
+	// Configure default import settings
+	Ogre::Terrain::ImportData& defaultimp = mtpTerrainGroup->getDefaultImportSettings();	
+	defaultimp.terrainSize = GameFramework::getSingletonPtr()->mpSettings->mTerrainSize;
+	defaultimp.worldSize = GameFramework::getSingletonPtr()->mpSettings->mTerrainWorldSize;
+	defaultimp.inputScale = GameFramework::getSingletonPtr()->mpSettings->mTerrainInputScale;
+	defaultimp.minBatchSize = GameFramework::getSingletonPtr()->mpSettings->mTerrainMinBatchSize;
+	defaultimp.maxBatchSize = GameFramework::getSingletonPtr()->mpSettings->mTerrainMaxBatchSize;
 
-	//Check if there is a terrain file available in the resource, otherwhise it will be created from an image.
-	Ogre::String filename = mtpTerrainGroup->generateFilename(x, y);
-	if (Ogre::ResourceGroupManager::getSingleton().resourceExists(mtpTerrainGroup->getResourceGroup(), filename))
-	{
-		GameFramework::getSingletonPtr()->mpLog->logMessage("Terrain " + filename + " was found! No need to load terrain from image");
-		mtpTerrainGroup->defineTerrain(0, 0);
-	}
-	else
-	{
-		GameFramework::getSingletonPtr()->mpLog->logMessage("Terrain file was not found. Generating terrain from image...");
-
-		//@todo borde kanske kunna sätta dessa värden som parametrar i initTerrain. olika värden för olika banor
-		// Configure default import settings
-		Ogre::Terrain::ImportData& defaultimp = mtpTerrainGroup->getDefaultImportSettings();	
-		defaultimp.terrainSize = GameFramework::getSingletonPtr()->mpSettings->mTerrainSize;
-		defaultimp.worldSize = GameFramework::getSingletonPtr()->mpSettings->mTerrainWorldSize;
-		defaultimp.inputScale = GameFramework::getSingletonPtr()->mpSettings->mTerrainInputScale;
-		defaultimp.minBatchSize = GameFramework::getSingletonPtr()->mpSettings->mTerrainMinBatchSize;
-		defaultimp.maxBatchSize = GameFramework::getSingletonPtr()->mpSettings->mTerrainMaxBatchSize;
-
-		//@todo fixa så den inte behöver heta just terrain.png
-		Ogre::Image img;
-		img.load("terrain.png", "Karma");
-		mtpTerrainGroup->defineTerrain(x, y, &img);
-		mtTerrainsImported = true;
-	}	
-
+	for (long x = TERRAIN_PAGE_MIN_X; x <= TERRAIN_PAGE_MAX_X; ++x)
+		for (long y = TERRAIN_PAGE_MIN_Y; y <= TERRAIN_PAGE_MAX_Y; ++y)
+			defineTerrain(x, y);
 	// sync load since we want everything in place when we start
 	mtpTerrainGroup->loadAllTerrains(true);
+	mtpCamera->setPolygonMode(Ogre::PM_WIREFRAME);
+#endif
+
 
 	//If new terrains were imported, we have to define how the texture layers are blending
 	if (mtTerrainsImported)
@@ -95,6 +106,7 @@ void WorldManager::initTerrain()
 		{
 			Ogre::Terrain* t = ti.getNext()->instance;
 			initBlendMaps(t);
+			std::cout << "HEJ NY INITBLEND\n";
 		}
 		//Saves the terrains for further use.
 		mtpTerrainGroup->saveAllTerrains(true);
@@ -106,17 +118,66 @@ void WorldManager::initTerrain()
 	//configureShadows(true,true);
 }
 
+
+void WorldManager::defineTerrain(long x, long y)
+{
+	Ogre::String filename = mtpTerrainGroup->generateFilename(x, y);
+	if (Ogre::ResourceGroupManager::getSingleton().resourceExists(mtpTerrainGroup->getResourceGroup(), filename))
+	{
+		mtpTerrainGroup->defineTerrain(x, y);
+	}
+	else
+	{
+		Ogre::Image img;
+		img.load("terrain.png", "Karma");
+		mtpTerrainGroup->defineTerrain(x, y, &img);
+		//getTerrainImage(x % 2 != 0, y % 2 != 0, img);
+		//mtpTerrainGroup->defineTerrain(x, y, &img);
+		mtTerrainsImported = true;
+	}
+}
 //---------------------------------------------------------------------------------
 void WorldManager::buildNxOgreTerrain()
 {
 	GameFramework::getSingletonPtr()->mpLog->logMessage("Building NxOgre Terrain files...");
-	Ogre::TerrainGroup::TerrainIterator ti = mtpTerrainGroup->getTerrainIterator();
+
+	Ogre::TerrainGroup*	mTempTerrainGroup;
+
+	mTempTerrainGroup = OGRE_NEW Ogre::TerrainGroup(mtpSceneMgr, Ogre::Terrain::ALIGN_X_Z,
+		GameFramework::getSingletonPtr()->mpSettings->mTerrainSize, 
+		GameFramework::getSingletonPtr()->mpSettings->mTerrainWorldSize);
+	mTempTerrainGroup->setFilenameConvention(TERRAIN_FILE_PREFIX, TERRAIN_FILE_SUFFIX);//whats this/Per
+	mTempTerrainGroup->setResourceGroup("Karma");
+
+	Ogre::Terrain::ImportData& defaultimp = mTempTerrainGroup->getDefaultImportSettings();	
+	defaultimp.terrainSize = GameFramework::getSingletonPtr()->mpSettings->mTerrainSize;
+	defaultimp.worldSize = GameFramework::getSingletonPtr()->mpSettings->mTerrainWorldSize;
+	defaultimp.inputScale = GameFramework::getSingletonPtr()->mpSettings->mTerrainInputScale;
+	defaultimp.minBatchSize = GameFramework::getSingletonPtr()->mpSettings->mTerrainMinBatchSize;
+	defaultimp.maxBatchSize = GameFramework::getSingletonPtr()->mpSettings->mTerrainMaxBatchSize;
+		
+	for (long x = TERRAIN_PAGE_MIN_X; x <= TERRAIN_PAGE_MAX_X; ++x)
+	{
+		for (long y = TERRAIN_PAGE_MIN_Y; y <= TERRAIN_PAGE_MAX_Y; ++y)
+		{
+			Ogre::String filename = mTempTerrainGroup->generateFilename(x, y);
+			if (Ogre::ResourceGroupManager::getSingleton().resourceExists(mTempTerrainGroup->getResourceGroup(), filename))
+			{
+				mTempTerrainGroup->defineTerrain(x, y);
+			}
+		}
+	}
+mTempTerrainGroup->loadAllTerrains(true);
+
+	Ogre::TerrainGroup::TerrainIterator ti = mTempTerrainGroup->getTerrainIterator();
 	while(ti.hasMoreElements())
 	{
 		Ogre::Terrain* t = ti.getNext()->instance;
 		loadTerrainGeometry(t->getMaterialName(), t->getHeightData(), t->getSize(),
 			t->getWorldSize(), t->getMinHeight(), t->getMaxHeight(), t->getPosition());
 	}
+	mTempTerrainGroup->freeTemporaryResources();
+	OGRE_DELETE mTempTerrainGroup;
 	GameFramework::getSingletonPtr()->mpLog->logMessage("NxOgre Terrain files was created!");
 }
 /*---------------------------------------------------------------------------------*/
@@ -236,13 +297,13 @@ void WorldManager::initBlendMaps(Ogre::Terrain* terrain)
 	std::vector<Ogre::Image> blendMapImages;
 
 	//@todo (0,0)
-	int blendMapSize = mtpTerrainGroup->getTerrain(0, 0)->getLayerBlendMapSize();
+	int blendMapSize = terrain->getLayerBlendMapSize();
 
 	//i starts at 1 since blendlayer map for the second texture has the index 1.
 	for (int i= 1; i<numberOfBlendMaps; i++)
 	{
 		//@todo. fixa 0,0 kanske om terrain paging
-		Ogre::TerrainLayerBlendMap* blendMap = mtpTerrainGroup->getTerrain(0, 0)->getLayerBlendMap(i);
+		Ogre::TerrainLayerBlendMap* blendMap = terrain->getLayerBlendMap(i);
 		blendMaps.push_back(blendMap);
 		blendPointers.push_back(blendMap->getBlendPointer());
 
