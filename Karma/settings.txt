@@ -15,7 +15,7 @@ mCamDistanceMax 14
 mCamDistanceMin 4
 
 mCharMassBoundCapsule 80
-mCharSpeedSuper 5
+mCharSpeedSuper 15
 mCharSpeedForward 3
 mCharSpeedBackward -1
 mCharSpeedStrafeLeft 1.5
@@ -26,12 +26,12 @@ mCharAdjustPosZ -0.1
 mCharScale 0.2
 mCharRotation 180
 
-mTerrainSize 513
+mTerrainSize 65
 mTerrainWorldSize 120
 mTerrainInputScale 6
-mTerrainMinBatchSize 33
+mTerrainMinBatchSize 3
 mTerrainMaxBatchSize 65
 mTerrainMaxPixelError 1
-mTerrainCompositeMapDistance 30
+mTerrainCompositeMapDistance 120
 mTerrainDefaultAnisotropy 7
 mTerrainAdjustY 0

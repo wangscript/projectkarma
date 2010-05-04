@@ -47,6 +47,8 @@ void GameState::enter()
 	setUnbufferedMode();
 
 	createScene();
+
+
 }
 
 //|||||||||||||||||||||||||||||||||||||||||||||||
@@ -78,7 +80,7 @@ void GameState::exit()
 	GameFramework::getSingletonPtr()->mpLog->logMessage("Leaving GameState...");
 	
 	mvpPhysicsMgr->destroyPhysicsWorld();
-
+	delete mvpWorld;
 	mtpSceneMgr->destroyCamera(mtpCamera);
 	if(mtpSceneMgr)
 		GameFramework::getSingletonPtr()->mpRoot->destroySceneManager(mtpSceneMgr);
@@ -211,9 +213,11 @@ void GameState::createScene()
 	Ogre::Vector3 pwrUpPosition2 (-5,0.2,1);
 	pwrUpEntNode = mtpSceneMgr->getRootSceneNode()->createChildSceneNode();
 	pwrUpEnt = mtpSceneMgr->createEntity("pwrup2", "pwrup2.mesh");
+	pwrUpEnt->setCastShadows(true);
 	pwrUpEntNode->attachObject(pwrUpEnt);
 	pwrUpEntNode->setPosition(pwrUpPosition2);
 	m_PowerUps->addPowerUp(pwrUpPosition2,pwrUpEnt->getName());
+	pwrUpEnt->setCastShadows(true);
 
 	Ogre::Vector3 pwrUpPosition3(-5,0.2,5);
 	pwrUpEntNode = mtpSceneMgr->getRootSceneNode()->createChildSceneNode();
@@ -302,13 +306,18 @@ bool GameState::keyPressed(const OIS::KeyEvent &keyEventRef)
 	case OIS::KC_Q:
 		m_Character->debugMode();
 		break;
+	case OIS::KC_C:
+		mtpCamera->setPolygonMode(Ogre::PM_WIREFRAME);
+		break;
+	case OIS::KC_V:
+		mtpCamera->setPolygonMode(Ogre::PM_SOLID);
+		break;
 	case OIS::KC_F:
 		OGRE3DBody* mCube = mvpPhysicsMgr->getPhysicsRenderSystem()->createBody(new NxOgre::Box(1, 1, 1), NxOgre::Vec3(mtpSceneMgr->getSceneNode("CharNode")->_getDerivedPosition().x, 
 			mtpSceneMgr->getSceneNode("CharNode")->_getDerivedPosition().y+2, mtpSceneMgr->getSceneNode("CharNode")->_getDerivedPosition().z), "cube.1m.mesh"); 
 		Ogre::Vector3 dirCamToChar =  mtpSceneMgr->getSceneNode("CharNode")->_getDerivedPosition() - mtpSceneMgr->getSceneNode("CamCollisionNode")->_getDerivedPosition();
 		mCube->addForce(NxOgre::Vec3(dirCamToChar.x*1000,-400,dirCamToChar.z*1000), NxOgre::Enums::ForceMode_Force, true);
-	}
-
+	}		
 
 	return true;
 }
@@ -317,6 +326,8 @@ bool GameState::keyPressed(const OIS::KeyEvent &keyEventRef)
 
 bool GameState::keyReleased(const OIS::KeyEvent &keyEventRef)
 {
+
+
 	GameFramework::getSingletonPtr()->keyReleased(keyEventRef);
 	switch (keyEventRef.key)		
 	{
