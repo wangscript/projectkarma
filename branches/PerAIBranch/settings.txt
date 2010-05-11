@@ -1,0 +1,42 @@
+mTemp1 0
+mTemp2 5
+mTemp3 5
+mTemp4 0
+mTemp5 0
+mTemp6 0
+
+mCamZoom 0.005
+mCamRotate 0.10
+mCamVelocityY 2
+mCamVelocityXZ 3
+mCamHeightMaxY 6
+mCamHeightMinY 1.1
+mCamDistanceMax 14
+mCamDistanceMin 4
+mCamCharYAdjust 1.6
+mCamGunTrackerDistanceZ -3.0
+mCamGunTrackerOffsetX 2.5 
+mCamGunTrackerOffsetY 2.5
+mCamGunTrackerOffsetZ -3.0
+
+mCharMassBoundCapsule 80
+mCharSpeedSuper 5
+mCharSpeedForward 3
+mCharSpeedBackward -1
+mCharSpeedStrafeLeft 1.5
+mCharSpeedStrafeRight 1.5
+mCharAdjustPosX 0
+mCharAdjustPosY 0
+mCharAdjustPosZ 0
+mCharScale 0.2
+mCharRotation 0
+
+mTerrainSize 257
+mTerrainWorldSize 600
+mTerrainInputScale 77.6
+mTerrainMinBatchSize 33
+mTerrainMaxBatchSize 65
+mTerrainMaxPixelError 1
+mTerrainCompositeMapDistance 30
+mTerrainDefaultAnisotropy 7
+mTerrainAdjustY 0

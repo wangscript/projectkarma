@@ -1,0 +1,334 @@
+template element TextArea(GuiKarma/Templates/DebugText)
+		{
+			metrics_mode pixels
+			left 5
+			width 90
+			height 30
+			font_name BlueHighway
+			char_height 16
+			colour_top 0.5 0.7 0.5
+			colour_bottom 0.3 0.5 0.3
+		}
+
+GuiKarma/CursorMain
+{
+container Panel(GuiKarma/Cursor)
+{
+	metrics_mode pixels
+	transparent true
+	
+	
+	element Panel(GuiKarma/CursorImage)
+	{
+        metrics_mode pixels
+        material AimCursor
+        width 32
+        height 32
+	}
+}
+}
+
+GuiKarma/FirstPerson
+{
+container Panel(GuiKarma/FirstPersonContainer)
+{
+	element Panel(GuiKarma/FirstPersonImage)
+	{
+        metrics_mode pixels
+		width 800
+		height 480
+        material FirstPersonShooter
+        uv_coords 0.0 0.0 1.0 1.0
+	}
+}
+}
+
+GuiKarma/MiniMap
+{
+container Panel(GuiKarma/MiniMapImage)
+{
+        metrics_mode pixels
+		width 117
+		height 117
+		vert_align top
+		horz_align right
+		left -150
+		top 10
+		uv_coords 0.6 0.35 1.0 0.75
+        material MiniMapImage	
+	element Panel(GuiKarma/MiniMapBorder)
+	{
+        metrics_mode pixels
+		width 117
+		height 117
+        material   MiniMapBorder 
+	}
+}	
+}
+
+// Ogre overlay scripts
+GuiKarma/DebugOverlay
+{
+	zorder 300
+	// Stats block
+	container BorderPanel(GuiKarma/DebugOverlay/StatPanel)
+	{
+		metrics_mode pixels
+		vert_align top
+		left 5 
+		top 10
+		width 150
+		height 252
+		material Core/StatsBlockCenter
+        	border_size 1 1 1 1
+        	border_material Core/StatsBlockBorder
+        	border_topleft_uv     0.0000 1.0000 0.0039 0.9961
+	    	border_top_uv         0.0039 1.0000 0.9961 0.9961
+	    	border_topright_uv    0.9961 1.0000 1.0000 0.9961
+	    	border_left_uv        0.0000 0.9961 0.0039 0.0039
+	    	border_right_uv       0.9961 0.9961 1.0000 0.0039
+	    	border_bottomleft_uv  0.0000 0.0039 0.0039 0.0000
+        	border_bottom_uv      0.0039 0.0039 0.9961 0.0000
+	    	border_bottomright_uv 0.9961 0.0039 1.0000 0.0000
+
+		    
+		element TextArea(GuiKarma/DebugOverlay/TextFPS) : GuiKarma/Templates/DebugText
+		{
+			top 5
+			caption Current FPS:
+		}
+		element TextArea(GuiKarma/DebugOverlay/TextCharX): GuiKarma/Templates/DebugText
+		{
+			top 20
+			caption Current Char:
+		}
+		element TextArea(GuiKarma/DebugOverlay/TextCharY): GuiKarma/Templates/DebugText
+		{
+			top 35
+			caption Current Char:
+		}
+		element TextArea(GuiKarma/DebugOverlay/TextCharZ): GuiKarma/Templates/DebugText
+		{
+			top 50
+			caption Current Char:
+		}
+
+		element TextArea(GuiKarma/DebugOverlay/TextCamX): GuiKarma/Templates/DebugText
+		{
+			top 65
+			caption Current Cam:
+		}
+		element TextArea(GuiKarma/DebugOverlay/TextCamY): GuiKarma/Templates/DebugText
+		{
+			top 80
+			caption Current Cam:
+		}
+		element TextArea(GuiKarma/DebugOverlay/TextCamZ): GuiKarma/Templates/DebugText
+		{
+			top 95
+			caption Current Cam:
+		}
+		element TextArea(GuiKarma/DebugOverlay/TextDirX): GuiKarma/Templates/DebugText
+		{
+			top 110
+			caption Current Dir:
+		}
+		element TextArea(GuiKarma/DebugOverlay/TextDirY): GuiKarma/Templates/DebugText
+		{
+			top 125
+			caption Current Dir:
+		}
+		element TextArea(GuiKarma/DebugOverlay/TextDirZ): GuiKarma/Templates/DebugText
+		{
+			top 140
+			caption Current Dir:
+		}
+		element TextArea(GuiKarma/DebugOverlay/TextMousePosX): GuiKarma/Templates/DebugText
+		{
+			top 155
+			caption Current MousePos
+		}
+		element TextArea(GuiKarma/DebugOverlay/TextMousePosY): GuiKarma/Templates/DebugText
+		{
+			top 170
+			caption Current MousePos
+		}
+		element TextArea(GuiKarma/DebugOverlay/TextTriangles): GuiKarma/Templates/DebugText
+		{
+			top 185
+			caption Current #Triangles:
+		}
+
+		element TextArea(GuiKarma/DebugOverlay/TextPlaceholder1): GuiKarma/Templates/DebugText
+		{
+			top 200
+			caption Current Placeholder1
+		}
+		element TextArea(GuiKarma/DebugOverlay/TextPlaceholder2): GuiKarma/Templates/DebugText
+		{
+			top 215
+			caption Current Placeholder2
+		}
+		element TextArea(GuiKarma/DebugOverlay/TextPlaceholder3): GuiKarma/Templates/DebugText
+		{
+			top 230
+			caption Current Placeholder3
+		}
+}
+}
+
+GuiKarma/IngameUIOverlay
+{	
+	zorder 400
+	container BorderPanel(GuiKarma/IngameUI/Icon)
+	{
+		metrics_mode pixels
+		vert_align bottom
+		horz_align center
+		top -150
+		left -64
+		width 128
+		height 128
+		material PowerUp/None
+        	border_size 1 1 1 1
+        	border_material Core/StatsBlockBorder
+        	border_topleft_uv     0.0000 1.0000 0.0039 0.9961
+	    	border_top_uv         0.0039 1.0000 0.9961 0.9961
+	    	border_topright_uv    0.9961 1.0000 1.0000 0.9961
+	    	border_left_uv        0.0000 0.9961 0.0039 0.0039
+	    	border_right_uv       0.9961 0.9961 1.0000 0.0039
+	    	border_bottomleft_uv  0.0000 0.0039 0.0039 0.0000
+        	border_bottom_uv      0.0039 0.0039 0.9961 0.0000
+	    	border_bottomright_uv 0.9961 0.0039 1.0000 0.0000
+	}
+}
+
+GuiKarma/CastingBar
+{
+zorder 400
+container Panel(GuiKarma/CastingbarPanel)
+{
+		metrics_mode pixels
+		vert_align bottom
+		horz_align center
+		top -50
+		left -150
+
+element Panel(GuiKarma/CastingbarPanel/Texture)
+{
+metrics_mode pixels
+material GuiCastingBar
+width 300
+height 30
+}
+element TextArea(GuiKarma/CastingbarPanel/Text)
+{
+			top 5
+			caption TimeLeft
+			metrics_mode pixels
+			font_name BlueHighway
+			char_height 24
+			colour_top 1 1 1
+			colour_bottom 1 1 1
+}
+}
+}
+
+template element Panel(GuiKarma/Templates/Button)
+		{
+			metrics_mode pixels
+			width 128
+			height 43
+			vert_align top
+			horz_align center	
+		}
+		
+GuiKarma/Menu
+{	
+zorder 5
+		container Panel(GuiKarma/Menu/Panel)
+		{	
+			element Panel(GuiKarma/Menu/Resume) : GuiKarma/Templates/Button
+			{
+			top 50
+			material Gui/Resume
+			}
+			
+			element Panel(GuiKarma/Menu/ResumeMouseOver) : GuiKarma/Templates/Button
+			{
+			top 50
+			material Gui/ResumeMOE
+			}
+			element Panel(GuiKarma/Menu/ResumeLocked) : GuiKarma/Templates/Button
+			{
+			top 50
+			material Gui/ResumeLocked
+			}			
+
+			element Panel(GuiKarma/Menu/Quit) : GuiKarma/Templates/Button
+			{
+			top 100		
+			material Gui/Quit	
+			}			
+		
+			element Panel(GuiKarma/Menu/QuitMouseOver) : GuiKarma/Templates/Button
+			{
+			top 100			
+			material Gui/QuitMOE	
+			}
+			
+			element Panel(GuiKarma/Menu/Disconnect) : GuiKarma/Templates/Button
+			{
+			top 150		
+			material Gui/Disconnect	
+			}			
+		
+			element Panel(GuiKarma/Menu/DisconnectMouseOver) : GuiKarma/Templates/Button
+			{
+			top 150	
+			material Gui/DisconnectMOE	
+			}	
+	
+			element Panel(GuiKarma/Menu/DisconnectLocked) : GuiKarma/Templates/Button
+			{
+			top 150	
+			material Gui/DisconnectLocked
+			}					
+			
+			element Panel(GuiKarma/Menu/NewGame) : GuiKarma/Templates/Button
+			{
+			top 200		
+			material Gui/NewGame
+			}			
+		
+			element Panel(GuiKarma/Menu/NewGameMouseOver) : GuiKarma/Templates/Button
+			{
+			top 200		
+			material Gui/NewGameMOE	
+			}	
+			element Panel(GuiKarma/Menu/NewGameLocked) : GuiKarma/Templates/Button
+			{
+			top 200		
+			material Gui/NewGameLocked
+			}						
+																
+		}			
+}
+
+
+
+
+// A silly example of how you would do a 3D cockpit
+//Examples/KnotCockpit
+//{
+//	zorder 100
+//	entity knot.mesh(hudKnot)
+//	{
+//		position 0 0 -50
+//		rotation 0 0 0 0
+//	}
+//
+//}
+
+
+
