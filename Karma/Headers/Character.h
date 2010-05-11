@@ -7,8 +7,7 @@
 #include <NxScene.h>
 #include <NxUserContactReport.h>
 
-//Test
-//WTF!?!?!?aaaaa
+//Är jag i branchen nu?
 
 class Character
 {
