@@ -1,0 +1,37 @@
+mTemp1 0
+mTemp2 5
+mTemp3 5
+mTemp4 0
+mTemp5 0
+mTemp6 0
+
+mCamZoom 0.005
+mCamRotate 0.10
+mCamVelocityY 2
+mCamVelocityXZ 3
+mCamHeightMaxY 6
+mCamHeightMinY 1.1
+mCamDistanceMax 14
+mCamDistanceMin 4
+
+mCharMassBoundCapsule 80
+mCharSpeedSuper 15
+mCharSpeedForward 3
+mCharSpeedBackward -1
+mCharSpeedStrafeLeft 1.5
+mCharSpeedStrafeRight 1.5
+mCharAdjustPosX -0.2
+mCharAdjustPosY 0.5
+mCharAdjustPosZ -0.1
+mCharScale 0.2
+mCharRotation 180
+
+mTerrainSize 65
+mTerrainWorldSize 120
+mTerrainInputScale 6
+mTerrainMinBatchSize 3
+mTerrainMaxBatchSize 65
+mTerrainMaxPixelError 1
+mTerrainCompositeMapDistance 120
+mTerrainDefaultAnisotropy 7
+mTerrainAdjustY 0
