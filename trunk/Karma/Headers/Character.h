@@ -8,6 +8,7 @@
 #include <NxUserContactReport.h>
 
 //Test
+//WTF!?!?!?
 
 class Character
 {
