@@ -10,15 +10,10 @@ GuiHandler::~GuiHandler()
 
 void GuiHandler::initGui()
 {
-	Ogre::OverlayManager& om = Ogre::OverlayManager::getSingleton();
-
-	mtpCursorLayer = om.create("CursorLayer");
-	//Cursor långt bak
-	mtpCursorLayer->setZOrder(400);
-
-	//adda cursor
-	mtpCursor = (Ogre::OverlayContainer*)om.createOverlayElementFromTemplate("SdkTrays/Cursor", "Panel", "Cursor");
-	mtpCursorLayer->add2D(mtpCursor);
+	mtpCursorLayer = Ogre::OverlayManager::getSingleton().getByName("GuiKarma/CursorMain");
+	//mtpCursorLayer->setZOrder(400);
+	mtpCursor = Ogre::OverlayManager::getSingleton().getOverlayElement("GuiKarma/CursorImage"); 
+	showCursor();
 	showCursor();
 }
 
@@ -166,7 +161,7 @@ void GuiHandler::hideCursor()
 
 void GuiHandler::updateCursorPos(const int x,const int y)
 {
-	mtpCursor->setPosition(x,y);
+	mtpCursor->setPosition(x-16,y-16);
 	updateDebugCursorPos(x,y);
 }
 
@@ -180,3 +175,45 @@ void GuiHandler::removeMenuGUI()
 {
 	mtpMenuGUILayer->hide();
 }
+
+void GuiHandler::showMiniMap()
+{
+	mtpMiniMapLayer = Ogre::OverlayManager::getSingleton().getByName("GuiKarma/MiniMap");
+	mtpMiniMapLayer->show();
+	//mtpCursorLayer->setZOrder(400);
+	mtpMiniMap = Ogre::OverlayManager::getSingleton().getOverlayElement("GuiKarma/MiniMapImage"); 
+}
+void GuiHandler::updateMiniMap(double globalX, double globalZ)
+{
+	//#define TERRAIN_OFFSET_X -115
+	//#define TERRAIN_OFFSET_Z 12
+	//#define WORLDSIZE 400
+
+	#define TERRAIN_OFFSET_X 0
+	#define TERRAIN_OFFSET_Z 0
+	#define WORLDSIZE 600
+
+	//Nytt koordinatsystem där x och z kan gå från (-1) till (1);
+	double x = (globalX - TERRAIN_OFFSET_X) / (WORLDSIZE / 2);
+	double z = (globalZ - TERRAIN_OFFSET_Z) / (WORLDSIZE / 2);
+
+	#define MINIMAPWIDTH 0.24 // 24%
+	//Skalar ner koordinatsystem så x och z kan gå från (0) till (1-MINIMAPWIDTH);
+	x = (x + 1) / (2/(1-MINIMAPWIDTH));
+	z = (z + 1) / (2/(1-MINIMAPWIDTH));
+
+	Ogre::Real uvXstart = 0.76 - z;
+	Ogre::Real uvXend = uvXstart + 0.24;
+
+	Ogre::Real uvYstart = x;
+	Ogre::Real uvYend = uvYstart + 0.24;
+	Ogre::String value = Ogre::StringConverter::toString(uvXstart);
+	value += " ";
+	value += Ogre::StringConverter::toString(uvYstart);
+	value += " ";
+	value += Ogre::StringConverter::toString(uvXend);
+	value += " ";
+	value += Ogre::StringConverter::toString(uvYend);
+	mtpMiniMap->setParameter("uv_coords" ,value );
+}
+

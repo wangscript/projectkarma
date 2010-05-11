@@ -40,10 +40,13 @@ void GameState::enter()
 
 	const OIS::MouseState state = GameFramework::getSingletonPtr()->mpMouse->getMouseState();
 
+
+	GameFramework::getSingletonPtr()->mpGui->showMiniMap();
+	
 	mvLMouseDown = mvRMouseDown = false;
 	mvQuit = false;
 	mvChatMode = false;
-
+	
 	setUnbufferedMode();
 
 	createScene();
@@ -168,34 +171,55 @@ void GameState::createScene()
 	mtpSceneMgr->setShadowTechnique(Ogre::SHADOWTYPE_STENCIL_MODULATIVE);
 	//Fog @todo
 	mtpSceneMgr->setFog(FOG_LINEAR, ColourValue(0.7, 0.7, 0.8), 0, 10000, 25000);
-
+	
 	//Directional light
-	Ogre::Vector3 lightdir(0.55, -0.3, 0.75);
+	Ogre::Vector3 lightdir(0.5, -0.9, 0.5);
 	lightdir.normalise();
 	mtpSceneMgr->setShadowFarDistance(15);
 	Ogre::Light* l = mtpSceneMgr->createLight("dirLight");
 	l->setType(Light::LT_DIRECTIONAL);
 	l->setDirection(lightdir);
 	l->setDiffuseColour(ColourValue::White);
-	l->setSpecularColour(ColourValue(0.4, 0.4, 0.4));
+	l->setSpecularColour(ColourValue(0.2, 0.2, 0.2));
 	
 	//Ambient light and skybox
 	mtpSceneMgr->setAmbientLight(ColourValue(0.2, 0.2, 0.2));
 	mtpSceneMgr->setSkyBox(true, "Examples/CloudyNoonSkyBox");	
 
+		
+	//For screenshotting minimap
+	mtpSceneMgr->getRootSceneNode()->createChildSceneNode("CamFree");
+
 	//Create Nodes for character and camera
 	SceneNode *node = mtpSceneMgr->getRootSceneNode()->createChildSceneNode("RootNode", Vector3(0,0,0));
 	node->createChildSceneNode("CharNode", Vector3(0, 0, 0));
+	
+	// "Root node" for a lot of the yaw operations
 	node = mtpSceneMgr->getSceneNode("RootNode")->createChildSceneNode("CamOrginNode", Vector3(0, CAMERA_HEIGHT, 0));
+
+	//First person nodes
+	node = mtpSceneMgr->getSceneNode("CamOrginNode")->createChildSceneNode("CamFirstPersonNode", Vector3(0, 0, 0));
+	float mCamGunTrackerDistanceZ = GameFramework::getSingletonPtr()->mpSettings->mCamGunTrackerDistanceZ;
+	node = mtpSceneMgr->getSceneNode("CamFirstPersonNode")->createChildSceneNode("FirstPersonGunTrackerNode", Vector3(0, 0, mCamGunTrackerDistanceZ));
+
+	//Third person nodes
 	node = mtpSceneMgr->getSceneNode("CamOrginNode")->createChildSceneNode("CamHelperNode", Vector3(0, 0, 0));
 	node = mtpSceneMgr->getSceneNode("CamHelperNode")->createChildSceneNode("CamNoCollisionNode", Vector3(0, 0, CAMERA_DISTANCE));
-	node = mtpSceneMgr->getRootSceneNode()->createChildSceneNode("CamCollisionNode",Vector3(0, 0, CAMERA_DISTANCE));
+	
+	// Semi-third person nodes
+	node = mtpSceneMgr->getSceneNode("CamOrginNode")->createChildSceneNode("CursorMovableGunTrackerNode", Vector3(0.0f, 0.0f, mCamGunTrackerDistanceZ));
+	node = mtpSceneMgr->getSceneNode("CamOrginNode")->createChildSceneNode("CamMixNode", Vector3(0, 0, 0));
+	node = mtpSceneMgr->getSceneNode("CamMixNode")->createChildSceneNode("CursorCenterGunTrackerNode", Vector3(0.0f, 0.0f, mCamGunTrackerDistanceZ));
+	node = mtpSceneMgr->getSceneNode("CamMixNode")->createChildSceneNode("CamMixHelperNode", Vector3(0.0f, 0.0f, 2.5f));
 
+	node = mtpSceneMgr->getRootSceneNode()->createChildSceneNode("CamCollisionNode",Vector3(0, 0, CAMERA_DISTANCE));
 
 	//Create camera
 	m_CameraHandler = new CameraHandler(mtpCamera,node,mvpPhysicsMgr->getPhysicsRenderSystem(), mtpSceneMgr);
+
 	//Create Character
 	m_Character = new Character ( mtpSceneMgr, mvpPhysicsMgr->getPhysicsRenderSystem());
+	m_CameraHandler->setCharPtr(m_Character);
 
 	//Create PowerUp class. 
 	m_PowerUps = new PowerUp(mvpPhysicsMgr->getPhysicsScene(), mtpSceneMgr,m_Character->getCapsule(),m_Character);
@@ -268,6 +292,9 @@ void GameState::createScene()
 	createMotionBlurEffects();
 	Ogre::CompositorManager::getSingleton().addCompositor(GameFramework::getSingletonPtr()->mpViewport, "Motion Blur");
 
+
+	SceneLoader* sceneLoad = new SceneLoader(); 
+	sceneLoad->parseLevel("scen.scene","Karma",mtpSceneMgr,mtpSceneMgr->getRootSceneNode(),mvpPhysicsMgr);
 }
 //|||||||||||||||||||||||||||||||||||||||||||||||
 
@@ -290,6 +317,7 @@ bool GameState::keyPressed(const OIS::KeyEvent &keyEventRef)
 	case OIS::KC_1:
 		m_Character->setPowerUp(Character::PowerUp_None);
 		GameFramework::getSingletonPtr()->mpGui->changeIngameUIIcon(Character::PowerUp_None);
+		m_CameraHandler->setCamMode(CameraHandler::Cam_ThirdPerson);
 		break;
 	case OIS::KC_2:
 		m_Character->setPowerUp(Character::PowerUp_SuperSpeed,3.0f);
@@ -302,6 +330,22 @@ bool GameState::keyPressed(const OIS::KeyEvent &keyEventRef)
 	case OIS::KC_4:
 		m_Character->setPowerUp(Character::PowerUp_MoveBox);
 		GameFramework::getSingletonPtr()->mpGui->changeIngameUIIcon(Character::PowerUp_MoveBox);
+		m_CameraHandler->setCamMode(CameraHandler::Cam_MixCursorMovable);
+		break;
+	case OIS::KC_5:
+		m_Character->setPowerUp(Character::PowerUp_GunMode);
+		GameFramework::getSingletonPtr()->mpGui->hideInGameUI();
+		m_CameraHandler->setCamMode(CameraHandler::Cam_MixCursorMovable);
+		break;
+	case OIS::KC_6:
+		m_Character->setPowerUp(Character::PowerUp_GunMode);
+		GameFramework::getSingletonPtr()->mpGui->hideInGameUI();
+		m_CameraHandler->setCamMode(CameraHandler::Cam_MixCursorCenter);
+		break;
+	case OIS::KC_7:
+		m_Character->setPowerUp(Character::PowerUp_GunMode);
+		GameFramework::getSingletonPtr()->mpGui->hideInGameUI();
+		m_CameraHandler->setCamMode(CameraHandler::Cam_FirstPerson);
 		break;
 	case OIS::KC_Q:
 		m_Character->debugMode();
@@ -311,6 +355,9 @@ bool GameState::keyPressed(const OIS::KeyEvent &keyEventRef)
 		break;
 	case OIS::KC_V:
 		mtpCamera->setPolygonMode(Ogre::PM_SOLID);
+		break;
+	case OIS::KC_P:
+		m_CameraHandler->setCamMode(CameraHandler::Cam_FreeMode);
 		break;
 	case OIS::KC_F:
 		OGRE3DBody* mCube = mvpPhysicsMgr->getPhysicsRenderSystem()->createBody(new NxOgre::Box(1, 1, 1), NxOgre::Vec3(mtpSceneMgr->getSceneNode("CharNode")->_getDerivedPosition().x, 
@@ -362,14 +409,15 @@ bool GameState::mouseMoved(const OIS::MouseEvent &evt)
 	{
 		m_Character->moveBoxMoved(evt);
 	}
-
+	
+	m_CameraHandler->Rotate(evt);
 	if(mvRMouseDown)
 	{
-		m_CameraHandler->Rotate(evt);
+		
 
 	}
 
-	GameFramework::getSingletonPtr()->mpGui->updateCursorPos(evt.state.X.abs,evt.state.Y.abs );
+	//GameFramework::getSingletonPtr()->mpGui->updateCursorPos(evt.state.X.abs,evt.state.Y.abs );
 	return true;
 }
 
@@ -384,6 +432,13 @@ bool GameState::mousePressed(const OIS::MouseEvent &evt, OIS::MouseButtonID id)
 		if (m_Character->getPowerUp()==Character::PowerUp_MoveBox)
 		{
 			m_Character->moveBoxPressed(evt);
+		}
+		if (m_Character->getPowerUp()==Character::PowerUp_GunMode)
+		{
+			if (m_CameraHandler->getCamMode() == CameraHandler::Cam_MixCursorMovable)
+				m_Character->toggleMuzzleFlash(evt,false);
+			else
+				m_Character->toggleMuzzleFlash(evt,true);
 		}
 
 	} 
@@ -467,7 +522,11 @@ void GameState::update(double timeSinceLastFrame)
 	}
 	mvpPhysicsMgr->update(timeSinceLastFrame);
 	m_Character->updatePosition();
-	m_CameraHandler->MoveCamera();
+
+	if (m_CameraHandler->getCamMode() == CameraHandler::Cam_ThirdPerson)
+		m_CameraHandler->MoveCamera();
+	else
+		m_Character->updateMuzzleFlash(timeSinceLastFrame);
 
 }
 

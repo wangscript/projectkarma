@@ -7,13 +7,16 @@ class GuiHandler
 {
 protected:
 
-	Ogre::OverlayContainer* mtpCursor;
+	Ogre::OverlayElement* mtpCursor;
 	Ogre::Overlay* mtpCursorLayer;
 	Ogre::Overlay* mtpDebugLayer;
 	Ogre::Overlay* mtpIngameUILayer;
 	Ogre::Overlay* mtpMenuGUILayer;
+	Ogre::Overlay*	mtpMiniMapLayer;
+	//mtpCursorLayer->setZOrder(400);
 	
 	Ogre::Overlay* mtpCastingBarLayer;
+	Ogre::OverlayElement* mtpMiniMap;
 	Ogre::OverlayElement* mtpCastingBar;
 	Ogre::OverlayElement* mtpCastingBarText;
 	Ogre::String mtCastingBarString;
@@ -60,6 +63,9 @@ public:
 
 	void initMenuGUI();
 	void removeMenuGUI();
+
+	void showMiniMap();
+	void updateMiniMap(double globalX, double globalZ);
 
 	void showCursor();
 	void hideCursor();

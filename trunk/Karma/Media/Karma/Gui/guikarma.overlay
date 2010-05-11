@@ -12,14 +12,60 @@ template element TextArea(GuiKarma/Templates/DebugText)
 
 GuiKarma/CursorMain
 {
-	container Panel(GuiKarma/Cursor)
+container Panel(GuiKarma/Cursor)
+{
+	metrics_mode pixels
+	transparent true
+	
+	
+	element Panel(GuiKarma/CursorImage)
 	{
-	    metrics_mode pixels
-        material SdkTrays/Cursor
+        metrics_mode pixels
+        material AimCursor
         width 32
         height 32
 	}
 }
+}
+
+GuiKarma/FirstPerson
+{
+container Panel(GuiKarma/FirstPersonContainer)
+{
+	element Panel(GuiKarma/FirstPersonImage)
+	{
+        metrics_mode pixels
+		width 800
+		height 480
+        material FirstPersonShooter
+        uv_coords 0.0 0.0 1.0 1.0
+	}
+}
+}
+
+GuiKarma/MiniMap
+{
+container Panel(GuiKarma/MiniMapImage)
+{
+        metrics_mode pixels
+		width 117
+		height 117
+		vert_align top
+		horz_align right
+		left -150
+		top 10
+		uv_coords 0.6 0.35 1.0 0.75
+        material MiniMapImage	
+	element Panel(GuiKarma/MiniMapBorder)
+	{
+        metrics_mode pixels
+		width 117
+		height 117
+        material   MiniMapBorder 
+	}
+}	
+}
+
 // Ogre overlay scripts
 GuiKarma/DebugOverlay
 {
@@ -165,13 +211,13 @@ container Panel(GuiKarma/CastingbarPanel)
 		metrics_mode pixels
 		vert_align bottom
 		horz_align center
-		top -250
+		top -50
 		left -150
 
 element Panel(GuiKarma/CastingbarPanel/Texture)
 {
 metrics_mode pixels
-material Gui/BackgroundImage
+material GuiCastingBar
 width 300
 height 30
 }
@@ -182,8 +228,8 @@ element TextArea(GuiKarma/CastingbarPanel/Text)
 			metrics_mode pixels
 			font_name BlueHighway
 			char_height 24
-			colour_top 1 0 0
-			colour_bottom 1 0 0
+			colour_top 1 1 1
+			colour_bottom 1 1 1
 }
 }
 }
