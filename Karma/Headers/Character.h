@@ -7,6 +7,8 @@
 #include <NxScene.h>
 #include <NxUserContactReport.h>
 
+//Då kör vi!
+
 class Character
 {
 public:
