@@ -35,7 +35,8 @@ void SoundManager::removeBackroundMusic()
 
 void SoundManager::playSound(const char* soundFileName, Ogre::Vector3 pos)
 {
-	m_engine->play3D(soundFileName, irrklang::vec3df(pos.x, pos.y, pos.z));
+	irrklang::ISound *sound = m_engine->play3D(soundFileName, irrklang::vec3df(pos.x, pos.y, pos.z),false,false,true);
+	sound->setMinDistance(10.0);
 }
 
 void SoundManager::updateListenerPos(Ogre::Vector3 pos)

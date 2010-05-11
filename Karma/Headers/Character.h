@@ -7,7 +7,6 @@
 #include <NxScene.h>
 #include <NxUserContactReport.h>
 
-
 class Character
 {
 public:
@@ -17,7 +16,8 @@ public:
 		PowerUp_None = 0, 
 		PowerUp_SuperJump = 1,
 		PowerUp_SuperSpeed = 2,
-		PowerUp_MoveBox = 3
+		PowerUp_MoveBox = 3,
+		PowerUp_GunMode = 4
 	};
 
 	enum MoveDirection
@@ -35,6 +35,10 @@ protected:
 	Ogre::Entity* charEnt;           
 	Ogre::SceneNode* charNode; 
 	Ogre::SceneNode* camCollisionNode;
+	Ogre::SceneNode* camGunModeNode;
+	Ogre::SceneNode* firstPersonGunTrackerNode;
+	Ogre::SceneNode* mixGunTrackerNode;
+
 	OGRE3DBody* mCapsule;
 	OGRE3DKinematicBody* mMoveBoxController;
 	NxOgre::FixedJoint* mMoveBoxJoint;
@@ -45,6 +49,21 @@ protected:
 	bool jumping;
 	int mPowerUp;
 	int mMoveDir;
+
+	Ogre::BillboardSet* muzzle1;
+	Ogre::BillboardSet* explosion;
+	Ogre::BillboardSet* muzzle2;
+	Ogre::SceneNode* expoNode;
+	double muzzleTimer,expoTimer,particleTimer;
+	int bulleHoles;
+	void RotateBone(Ogre::Bone* bone);
+	Ogre::SceneManager* mSceneMgr;
+	void createBulletHole(const Ogre::Vector3 &normal,const Ogre::Vector3 &pos);
+	
+	Ogre::Bone * rightArmBone;
+	Ogre::Bone * leftArmBone;
+	Ogre::Bone * headBone;
+	Ogre::Bone * hipBone;
 
 	Ogre::Real 	mtCharMassBoundCapsule;
 	Ogre::Real 	mtCharSpeedSuper;
@@ -67,6 +86,7 @@ public:
 	void removePowerUp(){mPowerUp = PowerUp_None;};
 	OGRE3DBody* getCapsule(){return mCapsule;};
 	int getPowerUp(){return mPowerUp;};
+	Ogre::Entity* getEntity(){return charEnt;};
 	bool move(const double& timeSinceLastFrame);
 	void setMoveDirection (const int& d){mMoveDir = d;};
 	void jump();
@@ -77,6 +97,10 @@ public:
 	void moveBoxPressed(const OIS::MouseEvent &e);
 	void releaseBox();
 	void updatePosition();
+
+	void updateMuzzleFlash(const double& timeSinceLastFrame);
+	void toggleMuzzleFlash(const OIS::MouseEvent &arg, bool center = false);
+	void updateBones(const OIS::MouseEvent &arg);
 };
 #endif
 

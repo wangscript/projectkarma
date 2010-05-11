@@ -20,7 +20,7 @@ public:
 	float mTemp4;
 	float mTemp5;
 	float mTemp6;
-	
+
 	float mCamZoom;
 	float mCamRotate;
 	float mCamVelocityY;
@@ -29,6 +29,11 @@ public:
 	float mCamHeightMinY;
 	float mCamDistanceMax;
 	float mCamDistanceMin;
+	float mCamCharYAdjust;
+	float mCamGunTrackerDistanceZ;
+	float mCamGunTrackerOffsetX;
+	float mCamGunTrackerOffsetY;
+	float mCamGunTrackerOffsetZ;
 
 	float mCharMassBoundCapsule;
 	float mCharSpeedSuper;
@@ -60,7 +65,7 @@ public:
 
 		if ( !f )
 			mpLog->logMessage("Could not open settings.txt!");
-		
+
 		string s;
 		stringstream ss;
 		mpLog->logMessage("\n=======================\n=       SETTINGS       =\n=======================\n");
@@ -144,7 +149,7 @@ public:
 		}
 		else
 			mpLog->logMessage("Could load settings for mCamVelocityXZ");
-		
+
 		if (f >> s && s=="mCamHeightMaxY")
 		{
 			f >> mCamHeightMaxY;
@@ -169,13 +174,54 @@ public:
 		else
 			mpLog->logMessage("Could load settings for mCamDistanceMax");
 
-				if (f >> s && s=="mCamDistanceMin")
+		if (f >> s && s=="mCamDistanceMin")
 		{
 			f >> mCamDistanceMin;
 			mpLog->logMessage("mCamDistanceMin = " + Ogre::StringConverter::toString(mCamDistanceMin));
 		}
 		else
 			mpLog->logMessage("Could load settings for mCamDistanceMin");
+
+		if (f >> s && s=="mCamCharYAdjust")
+		{
+			f >> mCamCharYAdjust;
+			mpLog->logMessage("mCamCharYAdjust = " + Ogre::StringConverter::toString(mCamCharYAdjust));
+		}
+		else
+			mpLog->logMessage("Could load settings for mCamCharYAdjust");
+
+		if (f >> s && s=="mCamGunTrackerDistanceZ")
+		{
+			f >> mCamGunTrackerDistanceZ;
+			mpLog->logMessage("mCamGunTrackerDistanceZ = " + Ogre::StringConverter::toString(mCamGunTrackerDistanceZ));
+		}
+		else
+			mpLog->logMessage("Could load settings for mCamGunTrackerDistanceZ");
+
+		if (f >> s && s=="mCamGunTrackerOffsetX")
+		{
+			f >> mCamGunTrackerOffsetX;
+			mpLog->logMessage("mCamGunTrackerOffsetX = " + Ogre::StringConverter::toString(mCamGunTrackerOffsetX));
+		}
+		else
+			mpLog->logMessage("Could load settings for mCamGunTrackerOffsetX");
+
+		if (f >> s && s=="mCamGunTrackerOffsetY")
+		{
+			f >> mCamGunTrackerOffsetY;
+			mpLog->logMessage("mCamGunTrackerOffsetY = " + Ogre::StringConverter::toString(mCamGunTrackerOffsetY));
+		}
+		else
+			mpLog->logMessage("Could load settings for mCamGunTrackerOffsetY");
+
+		if (f >> s && s=="mCamGunTrackerOffsetZ")
+		{
+			f >> mCamGunTrackerOffsetZ;
+			mpLog->logMessage("mCamGunTrackerOffsetZ = " + Ogre::StringConverter::toString(mCamGunTrackerOffsetZ));
+		}
+		else
+			mpLog->logMessage("Could load settings for mCamGunTrackerOffsetZ");
+
 
 		if (f >> s && s=="mCharMassBoundCapsule")
 		{
@@ -265,7 +311,7 @@ public:
 		else
 			mpLog->logMessage("Could load settings for mCharRotation");
 
-				if (f >> s && s=="mTerrainSize")
+		if (f >> s && s=="mTerrainSize")
 		{
 			f >> mTerrainSize ;
 			mpLog->logMessage("mTerrainSize  = " + Ogre::StringConverter::toString(mTerrainSize ));

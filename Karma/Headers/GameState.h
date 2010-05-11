@@ -11,6 +11,7 @@
 #include <Ogre.h>
 #include "WorldManager.h"
 #include "PhysicsManager.h"
+#include "SceneLoader.h"
 
 #define CAMERA_HEIGHT			1.2
 #define CAMERA_DISTANCE			3

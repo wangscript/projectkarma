@@ -118,7 +118,7 @@
 				Name="VCCLCompilerTool"
 				Optimization="2"
 				EnableIntrinsicFunctions="true"
-				AdditionalIncludeDirectories="&quot;$(OGRE_HOME)\include\OGRE&quot;;&quot;$(OGRE_HOME)\include\OGRE\Terrain&quot;;&quot;$(OGRE_HOME)\include\OIS&quot;;&quot;$(BOOST_ROOT)\&quot;;&quot;$(NXOGRE_HOME)\sdk&quot;;&quot;$(SolutionDir)\Headers&quot;;&quot;$(PHYSX_DIR)\SDKs\Physics\include&quot;;&quot;$(PHYSX_DIR)\SDKs\Foundation\include&quot;;&quot;$(IRRKLANG_HOME)\include&quot;;C:\OgreBuilds\Builds\sdk\include\OGRE\Paging"
+				AdditionalIncludeDirectories="&quot;$(OGRE_HOME)\include\OGRE&quot;;&quot;$(OGRE_HOME)\include\OGRE\Terrain&quot;;&quot;$(OGRE_HOME)\include\OIS&quot;;&quot;$(BOOST_ROOT)\&quot;;&quot;$(NXOGRE_HOME)\sdk&quot;;&quot;$(SolutionDir)\Headers&quot;;&quot;$(PHYSX_DIR)\SDKs\Physics\include&quot;;&quot;$(PHYSX_DIR)\SDKs\Foundation\include&quot;;&quot;$(IRRKLANG_HOME)\include&quot;;C:\OgreBuilds\Builds\sdk\include\OGRE\Paging;&quot;$(TINYXML_HOME)\source&quot;"
 				PreprocessorDefinitions="WIN32;NDEBUG;_WINDOWS"
 				RuntimeLibrary="2"
 				EnableFunctionLevelLinking="true"
@@ -137,9 +137,9 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="OgreMain.lib OgreTerrain.lib OgrePaging.lib OgreProperty.lib OgreRTShaderSystem.lib OIS.lib NxOgre.lib NxOgreOGRE3D.lib irrKlang.lib"
+				AdditionalDependencies="OgreMain.lib OgreTerrain.lib OgrePaging.lib OgreProperty.lib OgreRTShaderSystem.lib OIS.lib NxOgre.lib NxOgreOGRE3D.lib irrKlang.lib tinyxml.lib"
 				LinkIncremental="1"
-				AdditionalLibraryDirectories="&quot;$(OGRE_HOME)\lib\release&quot;;&quot;$(NXOGRE_HOME)\sdk&quot;;&quot;$(IRRKLANG_HOME)\lib\Win32-visualStudio&quot;"
+				AdditionalLibraryDirectories="&quot;$(OGRE_HOME)\lib\release&quot;;&quot;$(NXOGRE_HOME)\sdk&quot;;&quot;$(IRRKLANG_HOME)\lib\Win32-visualStudio&quot;;&quot;$(TINYXML_HOME)\lib\release&quot;"
 				GenerateDebugInformation="true"
 				SubSystem="1"
 				OptimizeReferences="2"
@@ -219,6 +219,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\Source\SceneLoader.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\Source\SoundManager.cpp"
 				>
 			</File>
@@ -278,6 +282,10 @@
 			</File>
 			<File
 				RelativePath=".\Headers\PowerUp.h"
+				>
+			</File>
+			<File
+				RelativePath=".\Headers\SceneLoader.h"
 				>
 			</File>
 			<File
