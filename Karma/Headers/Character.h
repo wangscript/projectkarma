@@ -7,7 +7,7 @@
 #include <NxScene.h>
 #include <NxUserContactReport.h>
 
-//Då kör vi!
+//Test
 
 class Character
 {
