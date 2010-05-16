@@ -6,6 +6,7 @@
 #include "PhysicsManager.h"
 #include "Ogre.h"
 #include "OgrePrerequisites.h"
+#include "OgreTerrain.h"
 
 class SceneLoader
 {
@@ -15,6 +16,7 @@ private:
 	Ogre::SceneNode			*mvpAttachNode;
 	PhysicsManager			*mvpPhysicsMgr;
 	Ogre::String			sFilename;
+	Ogre::Terrain*			mvpTerrain;
 	
 	bool parseNode(TiXmlElement *XMLNode);
 	bool parseScene(TiXmlElement *XMLRoot);
@@ -24,7 +26,7 @@ public:
 	SceneLoader() : mvpSceneMgr(0) {};
 	~SceneLoader();
 
-	bool parseLevel(const Ogre::String& filename,const Ogre::String &group, Ogre::SceneManager*,Ogre::SceneNode *attachNode, PhysicsManager *physicsMgr);
+	bool parseLevel(const Ogre::String& filename,const Ogre::String &group, Ogre::SceneManager*,Ogre::SceneNode *attachNode, PhysicsManager *physicsMgr,Ogre::Terrain* terrain);
 
 };
 

@@ -1,13 +1,13 @@
 #include "PowerUp.h"
 
-PowerUp::PowerUp(NxOgre::Scene* r, Ogre::SceneManager* m,NxOgre::RigidBody* c, Character* p)
+PowerUp::PowerUp(NxOgre::Scene* r, Ogre::SceneManager* m,NxOgre::RigidBody* c, Player* p)
 {
 	//Initate stuff. 
 	//@todo If time, fix singletons. These variables are being linked quite a lot
 	mScene = r;
 	mSceneMgr = m;
 	mCapsule = c;
-	mCharacter = p;
+	mPlayer = p;
 }
 
 PowerUp::~PowerUp()
@@ -48,7 +48,7 @@ void PowerUp::onVolumeEvent(NxOgre::Volume* volume, NxOgre::Shape* volumeShape, 
 				//Hide the Ogre Entity.
 				mSceneMgr->getEntity(itr->name)->setVisible(false);
 				//@todo Action!!!!!! Färger hit å dit tjarå
-				mCharacter->setPowerUp(powerUpFlag);
+				mPlayer->setPowerUp(powerUpFlag);
 				GameFramework::getSingletonPtr()->mpGui->changeIngameUIIcon(powerUpFlag);
 
 				//When once collected, there is no need to keep looking for more events.

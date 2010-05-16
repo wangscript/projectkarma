@@ -4,18 +4,16 @@
 #define GAME_STATE_H
 //|||||||||||||||||||||||||||||||||||||||||||||||
 
-#include "AppState.h"
 #include "CameraHandler.h"
-#include "Character.h"
+#include "Player.h"
 #include "PowerUp.h"
-#include <Ogre.h>
 #include "WorldManager.h"
 #include "PhysicsManager.h"
 #include "SceneLoader.h"
+#include "NPC.h"
+#include "NPCHandler.h"
 
-#define CAMERA_HEIGHT			1.2
-#define CAMERA_DISTANCE			3
-
+#include "GameCommon.h"
 
 //|||||||||||||||||||||||||||||||||||||||||||||||
 
@@ -54,7 +52,8 @@ private:
 	bool                                    mvQuit;
 
 	CameraHandler*							m_CameraHandler;
-	Character*								m_Character;
+	Player*								m_Character;
+	NPC*								mNPC;//SKA BORT @todo
 	PowerUp*								m_PowerUps;
 	WorldManager*							mvpWorld;
 

@@ -1,10 +1,8 @@
 #ifndef POWERUP_H
 #define POWERUP_H
-#include <Ogre.h>
-#include <NxOgre.h>
-#include <NxOgreOGRE3D.h>
-#include "Character.h"
-#include "AppState.h"
+
+#include "Player.h"
+#include "GameCommon.h"
 
 class PowerUp: public NxOgre::Callback
 {
@@ -15,15 +13,7 @@ public:
 		Ogre::String	name;
 	} struct_PowerUp;
 
-	enum PowerUpEnums
-	{
-		PowerUp_None = 0, 
-		PowerUp_SuperJump = 1,
-		PowerUp_SuperSpeed = 2,
-		PowerUp_MoveBox = 3
-	};
-
-	PowerUp(NxOgre::Scene*,Ogre::SceneManager*,NxOgre::RigidBody*, Character*);
+	PowerUp(NxOgre::Scene*,Ogre::SceneManager*,NxOgre::RigidBody*, Player*);
 	~PowerUp();
 	void addPowerUp(Ogre::Vector3&,Ogre::String);
 	void onVolumeEvent(NxOgre::Volume* volume, NxOgre::Shape* volumeShape, NxOgre::RigidBody* rigidBody,
@@ -35,7 +25,7 @@ protected:
 	NxOgre::Scene*					mScene;
 	Ogre::SceneManager*				mSceneMgr;
 	NxOgre::RigidBody*				mCapsule;
-	Character*						mCharacter;
+	Player*							mPlayer;
 };
 
 #endif

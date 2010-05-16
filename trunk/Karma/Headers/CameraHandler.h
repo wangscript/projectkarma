@@ -1,30 +1,14 @@
 #ifndef CAMERAHANDLER_H
 #define CAMERAHANDLER_H
 
-#include <Ogre.h>
-#include <NxOgreOGRE3D.h>
-#include "AppState.h"//Singelton usage
-#include <NxActor.h>
-#include <NxScene.h>
-#include <NxUserContactReport.h>
-#include <OISMouse.h>
-#include "Character.h"
+#include "Player.h"
+#include "GameCommon.h"
 
 class CameraHandler
 {
 	public:
 
-	enum CameraMode
-	{
-		Cam_ThirdPerson = 0, 
-		Cam_MixCursorCenter = 1,
-		Cam_MixCursorMovable = 2,
-		Cam_FirstPerson = 3,
-		Cam_FreeMode = 4
-	};
-
-
-		CameraHandler(Ogre::Camera* cam, Ogre::SceneNode* node, OGRE3DRenderSystem* renderSystem,Ogre::SceneManager* mSceneMgr);
+		CameraHandler(Ogre::Camera* cam, OGRE3DRenderSystem* renderSystem,Ogre::SceneManager* mSceneMgr, Player* p);
 		virtual ~CameraHandler();
 		void Zoom(const OIS::MouseEvent &arg);
 		void Rotate(const OIS::MouseEvent &arg);
@@ -32,7 +16,7 @@ class CameraHandler
 		void MoveCamera();
 		void setCamMode(int x);
 		int getCamMode(){return mtCamMode;};
-		void setCharPtr(Character* x){mtpChar = x;};
+		void setPlayerPtr(Player* x){mtpPlayer = x;};
 
 	protected:
 		OGRE3DBody*		cameraSphere;
@@ -41,7 +25,7 @@ class CameraHandler
 		Ogre::Real	 mtRotate; 
 		Ogre::Real	mtZoom;
 		int mtCamMode;
-		Character* mtpChar;
+		Player* mtpPlayer;
 		Ogre::Real mtCamCharYAdjust;
 		Ogre::Real mtCamGunTrackerOffsetX,mtCamGunTrackerOffsetY,mtCamGunTrackerOffsetZ;
 
@@ -61,10 +45,11 @@ class CameraHandler
 		Ogre::SceneNode* charNode;
 		Ogre::SceneNode* mtpCamFirstPersonNode;
 		Ogre::SceneNode* mtpFirstPersonGunTrackerNode;
-		Ogre::SceneNode* mtpCamMixNode;
-		Ogre::SceneNode* mtpCamMixHelperNode;
+		Ogre::SceneNode* mtpCamGunMoveNode;
+		Ogre::SceneNode* mtpCamGunMoveHelperNode;
+		Ogre::SceneNode* mtpCamGunCenterNode;
+		Ogre::SceneNode* mtpCamGunCenterHelperNode;
 		Ogre::SceneNode* mtpCursorMovableGunTrackerNode;
-		Ogre::SceneNode* mtpCursorCenterGunTrackerNode;
 
 		void RotateFree(const OIS::MouseEvent &arg);
 		void RotateThirdPerson(const OIS::MouseEvent &arg);

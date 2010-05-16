@@ -23,7 +23,7 @@ void GameState::enter()
 	mtpSceneMgr->setAmbientLight(Ogre::ColourValue(0.7f, 0.7f, 0.7f));         
 
 	mtpCamera = mtpSceneMgr->createCamera("GameCamera");
-	mtpCamera->setNearClipDistance(0.05);
+	mtpCamera->setNearClipDistance(0.05f);
 
 	mtpCamera->setAspectRatio(Real(GameFramework::getSingletonPtr()->mpViewport->getActualWidth()) / 
 		Real(GameFramework::getSingletonPtr()->mpViewport->getActualHeight()));
@@ -48,10 +48,9 @@ void GameState::enter()
 	mvChatMode = false;
 	
 	setUnbufferedMode();
-
 	createScene();
 
-
+	
 }
 
 //|||||||||||||||||||||||||||||||||||||||||||||||
@@ -84,6 +83,7 @@ void GameState::exit()
 	
 	mvpPhysicsMgr->destroyPhysicsWorld();
 	delete mvpWorld;
+	Chunks::getSingletonPtr()->destroyAll();
 	mtpSceneMgr->destroyCamera(mtpCamera);
 	if(mtpSceneMgr)
 		GameFramework::getSingletonPtr()->mpRoot->destroySceneManager(mtpSceneMgr);
@@ -170,71 +170,50 @@ void GameState::createScene()
 	//Shadow Technique. Stencil shadows.  @todo texture shadows
 	mtpSceneMgr->setShadowTechnique(Ogre::SHADOWTYPE_STENCIL_MODULATIVE);
 	//Fog @todo
-	mtpSceneMgr->setFog(FOG_LINEAR, ColourValue(0.7, 0.7, 0.8), 0, 10000, 25000);
+	mtpSceneMgr->setFog(FOG_LINEAR, ColourValue(0.7f, 0.7f, 0.8f), 0, 10000, 25000);
 	
 	//Directional light
-	Ogre::Vector3 lightdir(0.5, -0.9, 0.5);
+	Ogre::Vector3 lightdir(0.5f, -0.9f, 0.5f);
 	lightdir.normalise();
 	mtpSceneMgr->setShadowFarDistance(15);
 	Ogre::Light* l = mtpSceneMgr->createLight("dirLight");
 	l->setType(Light::LT_DIRECTIONAL);
 	l->setDirection(lightdir);
 	l->setDiffuseColour(ColourValue::White);
-	l->setSpecularColour(ColourValue(0.2, 0.2, 0.2));
+	l->setSpecularColour(ColourValue(0.2f, 0.2f, 0.2f));
 	
 	//Ambient light and skybox
-	mtpSceneMgr->setAmbientLight(ColourValue(0.2, 0.2, 0.2));
+	mtpSceneMgr->setAmbientLight(ColourValue(0.2f, 0.2f, 0.2f));
 	mtpSceneMgr->setSkyBox(true, "Examples/CloudyNoonSkyBox");	
 
 		
 	//For screenshotting minimap
 	mtpSceneMgr->getRootSceneNode()->createChildSceneNode("CamFree");
 
-	//Create Nodes for character and camera
-	SceneNode *node = mtpSceneMgr->getRootSceneNode()->createChildSceneNode("RootNode", Vector3(0,0,0));
-	node->createChildSceneNode("CharNode", Vector3(0, 0, 0));
-	
-	// "Root node" for a lot of the yaw operations
-	node = mtpSceneMgr->getSceneNode("RootNode")->createChildSceneNode("CamOrginNode", Vector3(0, CAMERA_HEIGHT, 0));
-
-	//First person nodes
-	node = mtpSceneMgr->getSceneNode("CamOrginNode")->createChildSceneNode("CamFirstPersonNode", Vector3(0, 0, 0));
-	float mCamGunTrackerDistanceZ = GameFramework::getSingletonPtr()->mpSettings->mCamGunTrackerDistanceZ;
-	node = mtpSceneMgr->getSceneNode("CamFirstPersonNode")->createChildSceneNode("FirstPersonGunTrackerNode", Vector3(0, 0, mCamGunTrackerDistanceZ));
-
-	//Third person nodes
-	node = mtpSceneMgr->getSceneNode("CamOrginNode")->createChildSceneNode("CamHelperNode", Vector3(0, 0, 0));
-	node = mtpSceneMgr->getSceneNode("CamHelperNode")->createChildSceneNode("CamNoCollisionNode", Vector3(0, 0, CAMERA_DISTANCE));
-	
-	// Semi-third person nodes
-	node = mtpSceneMgr->getSceneNode("CamOrginNode")->createChildSceneNode("CursorMovableGunTrackerNode", Vector3(0.0f, 0.0f, mCamGunTrackerDistanceZ));
-	node = mtpSceneMgr->getSceneNode("CamOrginNode")->createChildSceneNode("CamMixNode", Vector3(0, 0, 0));
-	node = mtpSceneMgr->getSceneNode("CamMixNode")->createChildSceneNode("CursorCenterGunTrackerNode", Vector3(0.0f, 0.0f, mCamGunTrackerDistanceZ));
-	node = mtpSceneMgr->getSceneNode("CamMixNode")->createChildSceneNode("CamMixHelperNode", Vector3(0.0f, 0.0f, 2.5f));
-
-	node = mtpSceneMgr->getRootSceneNode()->createChildSceneNode("CamCollisionNode",Vector3(0, 0, CAMERA_DISTANCE));
+	//Create Character
+	m_Character = new Player( mtpSceneMgr, mvpPhysicsMgr->getPhysicsScene(),mvpPhysicsMgr->getPhysicsRenderSystem(),"HaloBlender.mesh" , "", Ogre::Vector3(0,0,0),100,1);
+	NPC::setPlayerNode(m_Character->getPlayerNode());
+	Aimer::setPhysicsScene(mvpPhysicsMgr->getPhysicsScene());
 
 	//Create camera
-	m_CameraHandler = new CameraHandler(mtpCamera,node,mvpPhysicsMgr->getPhysicsRenderSystem(), mtpSceneMgr);
+	m_CameraHandler = new CameraHandler(mtpCamera,mvpPhysicsMgr->getPhysicsRenderSystem(), mtpSceneMgr, m_Character);
 
-	//Create Character
-	m_Character = new Character ( mtpSceneMgr, mvpPhysicsMgr->getPhysicsRenderSystem());
-	m_CameraHandler->setCharPtr(m_Character);
+	m_CameraHandler->setPlayerPtr(m_Character);
 
 	//Create PowerUp class. 
-	m_PowerUps = new PowerUp(mvpPhysicsMgr->getPhysicsScene(), mtpSceneMgr,m_Character->getCapsule(),m_Character);
+	m_PowerUps = new PowerUp(mvpPhysicsMgr->getPhysicsScene(), mtpSceneMgr,m_Character->getHitBox(),m_Character);
 
 
 	//------------- WILL BE REMOVED ONCE DOTSCENE IS WORKING ---------------
 	
-	Ogre::Vector3 pwrUpPosition(-5,0.2,-5);
+	Ogre::Vector3 pwrUpPosition(-5.0f,0.2f,-5.0f);
 	Ogre::SceneNode* pwrUpEntNode = mtpSceneMgr->getRootSceneNode()->createChildSceneNode();
 	Ogre::Entity* pwrUpEnt = mtpSceneMgr->createEntity("pwrup1", "pwrup1.mesh");
 	pwrUpEntNode->attachObject(pwrUpEnt);
 	pwrUpEntNode->setPosition(pwrUpPosition);
 	m_PowerUps->addPowerUp(pwrUpPosition,pwrUpEnt->getName());
 
-	Ogre::Vector3 pwrUpPosition2 (-5,0.2,1);
+	Ogre::Vector3 pwrUpPosition2 (-5.0f,0.2f,1.0f);
 	pwrUpEntNode = mtpSceneMgr->getRootSceneNode()->createChildSceneNode();
 	pwrUpEnt = mtpSceneMgr->createEntity("pwrup2", "pwrup2.mesh");
 	pwrUpEnt->setCastShadows(true);
@@ -243,7 +222,7 @@ void GameState::createScene()
 	m_PowerUps->addPowerUp(pwrUpPosition2,pwrUpEnt->getName());
 	pwrUpEnt->setCastShadows(true);
 
-	Ogre::Vector3 pwrUpPosition3(-5,0.2,5);
+	Ogre::Vector3 pwrUpPosition3(-5.0f,0.2,5.0f);
 	pwrUpEntNode = mtpSceneMgr->getRootSceneNode()->createChildSceneNode();
 	pwrUpEnt = mtpSceneMgr->createEntity("pwrup3", "pwrup3.mesh");
 	pwrUpEntNode->attachObject(pwrUpEnt);
@@ -269,7 +248,7 @@ void GameState::createScene()
 	v.push_back(Ogre::Vector3(10,0,0));
 	v.push_back(Ogre::Vector3(10,0,10));
 	mvpPhysicsMgr->addKinematicTriangleMesh( v, 0.5 , "stairs");
-	mvpPhysicsMgr->addKinematicCircle(0.1,Ogre::Vector3(5, 1, -15),4, "stairs");
+	mvpPhysicsMgr->addKinematicCircle(0.1,Ogre::Vector3(5.0f, 1.0f, -15.0f),4, "stairs");
 
 	//------------- END ---------------
 
@@ -292,9 +271,14 @@ void GameState::createScene()
 	createMotionBlurEffects();
 	Ogre::CompositorManager::getSingleton().addCompositor(GameFramework::getSingletonPtr()->mpViewport, "Motion Blur");
 
-
+	new NPC ( mtpSceneMgr,  mvpPhysicsMgr->getPhysicsScene(),mvpPhysicsMgr->getPhysicsRenderSystem(),"HaloBlender.mesh" , "Enemy1", Ogre::Vector3(15,mvpWorld->getTerrainAt(0,0)->getHeightAtWorldPosition(15,100,0),0),0.2,100,3);
+	new NPC ( mtpSceneMgr, mvpPhysicsMgr->getPhysicsScene(),mvpPhysicsMgr->getPhysicsRenderSystem(),"HaloBlender.mesh" , "Enemy2", Ogre::Vector3(150,mvpWorld->getTerrainAt(0,0)->getHeightAtWorldPosition(150,100,0),0),0.2,100,3);
+	new NPC ( mtpSceneMgr, mvpPhysicsMgr->getPhysicsScene(),mvpPhysicsMgr->getPhysicsRenderSystem(),"HaloBlender.mesh" , "Enemy3", Ogre::Vector3(150,mvpWorld->getTerrainAt(0,0)->getHeightAtWorldPosition(150,100,150),150),0.2,100,3);
+	new NPC ( mtpSceneMgr, mvpPhysicsMgr->getPhysicsScene(),mvpPhysicsMgr->getPhysicsRenderSystem(),"HaloBlender.mesh" , "Enemy4", Ogre::Vector3(270,mvpWorld->getTerrainAt(0,0)->getHeightAtWorldPosition(270,100,0),0),0.2,100,3);
+	new NPC ( mtpSceneMgr, mvpPhysicsMgr->getPhysicsScene(),mvpPhysicsMgr->getPhysicsRenderSystem(),"HaloBlender.mesh" , "Enemy5", Ogre::Vector3(-150,mvpWorld->getTerrainAt(0,0)->getHeightAtWorldPosition(-150,100,0),0),0.2,100,3);
+	new NPC ( mtpSceneMgr,mvpPhysicsMgr->getPhysicsScene(), mvpPhysicsMgr->getPhysicsRenderSystem(),"HaloBlender.mesh" , "Enemy6", Ogre::Vector3(15,mvpWorld->getTerrainAt(0,0)->getHeightAtWorldPosition(15,100,-150),-150),0.2,100,3);
 	SceneLoader* sceneLoad = new SceneLoader(); 
-	sceneLoad->parseLevel("scen.scene","Karma",mtpSceneMgr,mtpSceneMgr->getRootSceneNode(),mvpPhysicsMgr);
+	sceneLoad->parseLevel("scen.scene","Karma",mtpSceneMgr,mtpSceneMgr->getRootSceneNode(),mvpPhysicsMgr,mvpWorld->getTerrainAt(0,0));
 }
 //|||||||||||||||||||||||||||||||||||||||||||||||
 
@@ -315,37 +299,45 @@ bool GameState::keyPressed(const OIS::KeyEvent &keyEventRef)
 	switch (keyEventRef.key)		
 	{
 	case OIS::KC_1:
-		m_Character->setPowerUp(Character::PowerUp_None);
-		GameFramework::getSingletonPtr()->mpGui->changeIngameUIIcon(Character::PowerUp_None);
-		m_CameraHandler->setCamMode(CameraHandler::Cam_ThirdPerson);
+		m_Character->setPowerUp(Game::PowerUp_None);
+		GameFramework::getSingletonPtr()->mpGui->changeIngameUIIcon(Game::PowerUp_None);
+		m_CameraHandler->setCamMode(Game::Cam_ThirdPerson);
 		break;
 	case OIS::KC_2:
-		m_Character->setPowerUp(Character::PowerUp_SuperSpeed,3.0f);
-		GameFramework::getSingletonPtr()->mpGui->changeIngameUIIcon(Character::PowerUp_SuperSpeed);
+		m_Character->setPowerUp(Game::PowerUp_SuperSpeed,3.0f);
+		GameFramework::getSingletonPtr()->mpGui->changeIngameUIIcon(Game::PowerUp_SuperSpeed);
 		break;
 	case OIS::KC_3:
-		m_Character->setPowerUp(Character::PowerUp_SuperJump);
-		GameFramework::getSingletonPtr()->mpGui->changeIngameUIIcon(Character::PowerUp_SuperJump);
+		m_Character->setPowerUp(Game::PowerUp_SuperJump);
+		GameFramework::getSingletonPtr()->mpGui->changeIngameUIIcon(Game::PowerUp_SuperJump);
 		break;
 	case OIS::KC_4:
-		m_Character->setPowerUp(Character::PowerUp_MoveBox);
-		GameFramework::getSingletonPtr()->mpGui->changeIngameUIIcon(Character::PowerUp_MoveBox);
-		m_CameraHandler->setCamMode(CameraHandler::Cam_MixCursorMovable);
+		m_Character->setPowerUp(Game::PowerUp_MoveBox);
+		GameFramework::getSingletonPtr()->mpGui->changeIngameUIIcon(Game::PowerUp_MoveBox);
+		m_CameraHandler->setCamMode(Game::Cam_MixCursorMovable);
 		break;
 	case OIS::KC_5:
-		m_Character->setPowerUp(Character::PowerUp_GunMode);
+		m_Character->setPowerUp(Game::PowerUp_GunMode);
 		GameFramework::getSingletonPtr()->mpGui->hideInGameUI();
-		m_CameraHandler->setCamMode(CameraHandler::Cam_MixCursorMovable);
+		m_CameraHandler->setCamMode(Game::Cam_MixCursorMovable);
 		break;
 	case OIS::KC_6:
-		m_Character->setPowerUp(Character::PowerUp_GunMode);
+		m_Character->setPowerUp(Game::PowerUp_GunMode);
 		GameFramework::getSingletonPtr()->mpGui->hideInGameUI();
-		m_CameraHandler->setCamMode(CameraHandler::Cam_MixCursorCenter);
+		m_CameraHandler->setCamMode(Game::Cam_MixCursorCenter);
 		break;
 	case OIS::KC_7:
-		m_Character->setPowerUp(Character::PowerUp_GunMode);
+		m_Character->setPowerUp(Game::PowerUp_GunMode);
 		GameFramework::getSingletonPtr()->mpGui->hideInGameUI();
-		m_CameraHandler->setCamMode(CameraHandler::Cam_FirstPerson);
+		m_CameraHandler->setCamMode(Game::Cam_FirstPerson);
+		break;
+	case OIS::KC_8:
+		m_Character->setPowerUp(Game::PowerUp_RocketBoots);
+		m_CameraHandler->setCamMode(Game::Cam_MixCursorCenter);
+		break;
+	case OIS::KC_SPACE:
+		if ((m_Character->getPowerUp() & Game::PowerUp_RocketBoots) != 0)
+			m_Character->startRocketBoots();
 		break;
 	case OIS::KC_Q:
 		m_Character->debugMode();
@@ -357,7 +349,7 @@ bool GameState::keyPressed(const OIS::KeyEvent &keyEventRef)
 		mtpCamera->setPolygonMode(Ogre::PM_SOLID);
 		break;
 	case OIS::KC_P:
-		m_CameraHandler->setCamMode(CameraHandler::Cam_FreeMode);
+		m_CameraHandler->setCamMode(Game::Cam_FreeMode);
 		break;
 	case OIS::KC_F:
 		OGRE3DBody* mCube = mvpPhysicsMgr->getPhysicsRenderSystem()->createBody(new NxOgre::Box(1, 1, 1), NxOgre::Vec3(mtpSceneMgr->getSceneNode("CharNode")->_getDerivedPosition().x, 
@@ -380,16 +372,20 @@ bool GameState::keyReleased(const OIS::KeyEvent &keyEventRef)
 	{
 	case OIS::KC_UP:
 	case OIS::KC_W:
-		m_Character->setMoveDirection(Character::Move_None);
+		m_Character->setMoveDirection(Game::Move_None);
 		break;
 	case OIS::KC_A:
-		m_Character->setMoveDirection(Character::Move_None);
+		m_Character->setMoveDirection(Game::Move_None);
 		break;
 	case OIS::KC_D:
-		m_Character->setMoveDirection(Character::Move_None);
+		m_Character->setMoveDirection(Game::Move_None);
 		break;
 	case OIS::KC_S:
-		m_Character->setMoveDirection(Character::Move_None);
+		m_Character->setMoveDirection(Game::Move_None);
+		break;
+	case OIS::KC_SPACE:
+		if ((m_Character->getPowerUp() & Game::PowerUp_RocketBoots) != 0)
+			m_Character->resetRocketBoots();
 		break;
 	}
 
@@ -405,7 +401,7 @@ bool GameState::mouseMoved(const OIS::MouseEvent &evt)
 	{
 		m_CameraHandler->Zoom(evt);
 	}
-	if (m_Character->getPowerUp()==Character::PowerUp_MoveBox)
+	if ((m_Character->getPowerUp() & Game::PowerUp_MoveBox) != 0)
 	{
 		m_Character->moveBoxMoved(evt);
 	}
@@ -429,16 +425,18 @@ bool GameState::mousePressed(const OIS::MouseEvent &evt, OIS::MouseButtonID id)
 	{
 		onLeftPressed(evt);
 		mvLMouseDown = true;
-		if (m_Character->getPowerUp()==Character::PowerUp_MoveBox)
+		if ((m_Character->getPowerUp() & Game::PowerUp_MoveBox) != 0)
 		{
 			m_Character->moveBoxPressed(evt);
 		}
-		if (m_Character->getPowerUp()==Character::PowerUp_GunMode)
+		if ((m_Character->getPowerUp() & Game::PowerUp_GunMode) != 0)
 		{
-			if (m_CameraHandler->getCamMode() == CameraHandler::Cam_MixCursorMovable)
-				m_Character->toggleMuzzleFlash(evt,false);
-			else
-				m_Character->toggleMuzzleFlash(evt,true);
+			m_Character->queueFire();
+			//if (m_CameraHandler->getCamMode() == Game::Cam_MixCursorMovable)
+			//	int x;
+				//m_Character->toggleMuzzleFlash(evt,false);
+			//else
+				//m_Character->toggleMuzzleFlash(evt,true);
 		}
 
 	} 
@@ -457,7 +455,7 @@ bool GameState::mouseReleased(const OIS::MouseEvent &evt, OIS::MouseButtonID id)
 	if(id == OIS::MB_Left)
 	{
 		mvLMouseDown = false;
-		if (m_Character->getPowerUp()==Character::PowerUp_MoveBox)
+		if ((m_Character->getPowerUp() & Game::PowerUp_MoveBox) != 0)
 		{
 			m_Character->releaseBox();
 		}
@@ -483,24 +481,36 @@ void GameState::getInput()
 {
 	if(GameFramework::getSingletonPtr()->mpKeyboard->isKeyDown(OIS::KC_W))
 	{
-		m_Character->setMoveDirection(Character::Move_Forward);
+		m_Character->setMoveDirection(Game::Move_Forward);
 	}
 	if(GameFramework::getSingletonPtr()->mpKeyboard->isKeyDown(OIS::KC_S))
 	{
-		m_Character->setMoveDirection(Character::Move_Backward);
+		m_Character->setMoveDirection(Game::Move_Backward);
 	}
 	if(GameFramework::getSingletonPtr()->mpKeyboard->isKeyDown(OIS::KC_A))
 	{
-		m_Character->setMoveDirection(Character::Move_StrafeLeft);
+		m_Character->setMoveDirection(Game::Move_StrafeLeft);
 	}
 	if(GameFramework::getSingletonPtr()->mpKeyboard->isKeyDown(OIS::KC_D))
 	{
-		m_Character->setMoveDirection(Character::Move_StrafeLeft);
+		m_Character->setMoveDirection(Game::Move_StrafeLeft);
 	}
 	if(GameFramework::getSingletonPtr()->mpKeyboard->isKeyDown(OIS::KC_SPACE))
 	{
-		if ((m_Character->isJumping())==false)
-			m_Character->jump();
+		m_Character->rocketBoots();
+	}
+
+	if(GameFramework::getSingletonPtr()->mpKeyboard->isKeyDown(OIS::KC_SPACE))
+	{
+		if ((m_Character->getPowerUp() & Game::PowerUp_RocketBoots) == 0)
+		{
+			if ((m_Character->isJumping())==false)
+				m_Character->jump();
+		}
+		else
+		{
+			m_Character->rocketBoots();
+		}
 	}
 }
 
@@ -515,19 +525,23 @@ void GameState::update(double timeSinceLastFrame)
 	}
 	getInput();
 	m_CameraHandler->AdjustCamera();
-	m_Character->move(timeSinceLastFrame);		 
+	m_Character->move(timeSinceLastFrame);
+	Chunks::getSingletonPtr()->loopCurrentChunksMove(timeSinceLastFrame);
+	//Chunks::getSingletonPtr()->updateTempNpcs(timeSinceLastFrame);
+	NPCHandler::getSingletonPtr()->updateResetNPCs(timeSinceLastFrame);
+	NPCHandler::getSingletonPtr()->updateDeadNPCs(timeSinceLastFrame);
 	if (m_Character->getCastingBarTimer())
 	{
 		m_Character->updateCastingBar(timeSinceLastFrame);
 	}
 	mvpPhysicsMgr->update(timeSinceLastFrame);
 	m_Character->updatePosition();
-
-	if (m_CameraHandler->getCamMode() == CameraHandler::Cam_ThirdPerson)
+	//Chunks::getSingletonPtr()->loopCurrentChunksUpdatePosition();
+	if (m_CameraHandler->getCamMode() == Game::Cam_ThirdPerson)
 		m_CameraHandler->MoveCamera();
-	else
-		m_Character->updateMuzzleFlash(timeSinceLastFrame);
-
+	Effects::updateAll(timeSinceLastFrame);
+	//else
+		//m_Character->updateMuzzleFlash(timeSinceLastFrame);
 }
 
 //|||||||||||||||||||||||||||||||||||||||||||||||
