@@ -99,7 +99,6 @@ void WorldManager::initTerrain()
 		//Saves the terrains for further use.
 		mtpTerrainGroup->saveAllTerrains(true);
 	}
-
 	mtpTerrainGroup->freeTemporaryResources();
 
 	//@todo fixa texture skuggor. mjuk kant
@@ -176,6 +175,11 @@ void WorldManager::configureShadows(bool enabled, bool depthShadows)
 }
 
 //---------------------------------------------------------------------------------
+Ogre::Terrain* WorldManager::getTerrainAt(int x,int y)
+{
+	return mtpTerrainGroup->getTerrain(x,y);
+}
+
 void WorldManager::loadTerrainGeometry(const Ogre::String& name, float* data, Ogre::uint16 size, Ogre::Real worldSize, Ogre::Real minHeight, Ogre::Real maxHeight, const Ogre::Vector3& position)
 {
 	//Code snippet imported from http://www.ogre3d.org/wiki/index.php/BloodyMess_Ogre::Terrain_Heightfield

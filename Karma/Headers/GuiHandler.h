@@ -36,6 +36,8 @@ protected:
 	Ogre::OverlayElement* debugMouseX;
 	Ogre::OverlayElement* debugMouseY;
 	Ogre::OverlayElement* debugTriangles;
+	Ogre::OverlayElement* debugChunkX;
+	Ogre::OverlayElement* debugChunkY;
 
 public:
 
@@ -51,6 +53,7 @@ public:
 	void updateDebugDirXYZ(Ogre::Vector3&);
 	void updateDebugTriangles(Ogre::String& s);
 	void updateDebugCursorPos(const int x,const int y);
+	void GuiHandler::updateCurChunk(const int x, const int y);
 
 	void initIngameUI();
 	void changeIngameUIIcon(int pwrup);

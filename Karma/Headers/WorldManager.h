@@ -22,6 +22,7 @@ public:
 	void addTextureLayer(Ogre::String& diffuseAndSpecMap, Ogre::String& normalAndHeightMap, Ogre::Real worldSize);
 	void buildNxOgreTerrain();
 	void configureShadows(bool enabled, bool depthShadows);
+	Ogre::Terrain* getTerrainAt(int x,int y);
 
 protected:
 

@@ -19,7 +19,7 @@ SceneLoader::~SceneLoader()
 
 
 //Loads and checks the scenefile. then calls parseScene to parse the data.
-bool SceneLoader::parseLevel(const Ogre::String &filename,const Ogre::String &group, Ogre::SceneManager *sceneMgr, Ogre::SceneNode *attachNode, PhysicsManager *physicsMgr)
+bool SceneLoader::parseLevel(const Ogre::String &filename,const Ogre::String &group, Ogre::SceneManager *sceneMgr, Ogre::SceneNode *attachNode, PhysicsManager *physicsMgr, Ogre::Terrain* terrain)
 {
 	//Initialize
 	mvpXMLDoc = 0;
@@ -27,6 +27,7 @@ bool SceneLoader::parseLevel(const Ogre::String &filename,const Ogre::String &gr
 	mvpAttachNode = attachNode;
 	mvpPhysicsMgr = physicsMgr;
 	TiXmlElement *XMLRoot;
+	mvpTerrain = terrain;
 	
 	try
 	{
@@ -182,6 +183,9 @@ bool SceneLoader::parseNode(TiXmlElement *XMLNode)
 	std::cout << "nodeName + Node";
 	Ogre::String str = nodeName;
 	str += "Node";
+	
+	vec3Position.y = mvpTerrain->getHeightAtWorldPosition(vec3Position);
+	vec3Position.y -= 0.3; //@todo wtf!
 	Ogre::SceneNode *node = mvpSceneMgr->getRootSceneNode()->createChildSceneNode(str,vec3Position,quatRotation);
 	std::cout << "createChildNode";
 	node->scale(vec3Scale);

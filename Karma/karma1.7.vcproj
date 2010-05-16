@@ -41,7 +41,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="&quot;$(OGRE_HOME)\include\OGRE&quot;;&quot;$(OGRE_HOME)\include\OGRE\Terrain&quot;;&quot;$(OGRE_HOME)\include\OIS&quot;;&quot;$(BOOST_ROOT)\&quot;;&quot;$(NXOGRE_HOME)\sdk&quot;;&quot;$(SolutionDir)\Headers&quot;;&quot;$(PHYSX_DIR)\SDKs\Physics\include&quot;;&quot;$(PHYSX_DIR)\SDKs\Foundation\include&quot;;&quot;$(IRRKLANG_HOME)\include&quot;;C:\OgreBuilds\Builds\sdk\include\OGRE\Paging"
+				AdditionalIncludeDirectories="&quot;$(OGRE_HOME)\include\OGRE&quot;;&quot;$(OGRE_HOME)\include\OGRE\Terrain&quot;;&quot;$(OGRE_HOME)\include\OIS&quot;;&quot;$(BOOST_ROOT)\&quot;;&quot;$(NXOGRE_HOME)\sdk&quot;;&quot;$(SolutionDir)\Headers&quot;;&quot;$(PHYSX_DIR)\SDKs\Physics\include&quot;;&quot;$(PHYSX_DIR)\SDKs\Foundation\include&quot;;&quot;$(IRRKLANG_HOME)\include&quot;;C:\OgreBuilds\Builds\sdk\include\OGRE\Paging;&quot;$(TINYXML_HOME)\source&quot;"
 				PreprocessorDefinitions="WIN32;_DEBUG;_WINDOWS"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
@@ -61,9 +61,9 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="OgreMain_d.lib OgreTerrain_d.lib OgrePaging_d.lib OgreProperty_d.lib OgreRTShaderSystem_d.lib OIS_d.lib irrKlang.lib NxOgre_Debug.lib NxOgreOGRE3D_Debug.lib"
+				AdditionalDependencies="OgreMain_d.lib OgreTerrain_d.lib OgrePaging_d.lib OgreProperty_d.lib OgreRTShaderSystem_d.lib OIS_d.lib irrKlang.lib NxOgre_Debug.lib NxOgreOGRE3D_Debug.lib tinyxmld.lib"
 				LinkIncremental="2"
-				AdditionalLibraryDirectories="&quot;$(OGRE_HOME)\lib\debug&quot;;&quot;$(NXOGRE_HOME)\sdk&quot;;&quot;$(IRRKLANG_HOME)\lib\Win32-visualStudio&quot;"
+				AdditionalLibraryDirectories="&quot;$(OGRE_HOME)\lib\debug&quot;;&quot;$(NXOGRE_HOME)\sdk&quot;;&quot;$(IRRKLANG_HOME)\lib\Win32-visualStudio&quot;;&quot;$(TINYXML_HOME)\lib\debug&quot;"
 				GenerateDebugInformation="true"
 				SubSystem="1"
 				EntryPointSymbol="WinMainCRTStartup"
@@ -179,6 +179,10 @@
 			UniqueIdentifier="{4FC737F1-C7A5-4376-A066-2A32D752A2FF}"
 			>
 			<File
+				RelativePath=".\Source\Aimer.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\Source\AppStateManager.cpp"
 				>
 			</File>
@@ -187,7 +191,15 @@
 				>
 			</File>
 			<File
-				RelativePath=".\Source\Character.cpp"
+				RelativePath=".\Headers\Character.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\Source\Chunks.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\Source\Effects.cpp"
 				>
 			</File>
 			<File
@@ -211,7 +223,19 @@
 				>
 			</File>
 			<File
+				RelativePath=".\Source\NPC.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\Source\NPCHandler.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\Source\PhysicsManager.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\Source\Player.cpp"
 				>
 			</File>
 			<File
@@ -241,6 +265,10 @@
 			UniqueIdentifier="{93995380-89BD-4b04-88EB-625FBE52EBFB}"
 			>
 			<File
+				RelativePath=".\Headers\Aimer.h"
+				>
+			</File>
+			<File
 				RelativePath=".\Headers\AppState.h"
 				>
 			</File>
@@ -254,6 +282,18 @@
 			</File>
 			<File
 				RelativePath=".\Headers\Character.h"
+				>
+			</File>
+			<File
+				RelativePath=".\Headers\Chunks.h"
+				>
+			</File>
+			<File
+				RelativePath=".\Headers\Effects.h"
+				>
+			</File>
+			<File
+				RelativePath=".\Headers\GameCommon.h"
 				>
 			</File>
 			<File
@@ -277,7 +317,19 @@
 				>
 			</File>
 			<File
+				RelativePath=".\Headers\NPC.h"
+				>
+			</File>
+			<File
+				RelativePath=".\Headers\NPCHandler.h"
+				>
+			</File>
+			<File
 				RelativePath=".\Headers\PhysicsManager.h"
+				>
+			</File>
+			<File
+				RelativePath=".\Headers\Player.h"
 				>
 			</File>
 			<File

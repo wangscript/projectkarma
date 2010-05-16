@@ -1,12 +1,8 @@
 #ifndef PHYSICSMANAGER_H
 #define PHYSICSMANAGER_H
 
-#include <NxOgre.h>
-#include <NxOgreOGRE3D.h>
-#include <NxActor.h>
-#include <NxScene.h>
-#include <NxUserContactReport.h>
-#include "AppState.h"
+#include "GameCommon.h"
+
 
 class PhysicsManager
 {

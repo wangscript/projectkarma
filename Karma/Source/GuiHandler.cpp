@@ -34,6 +34,8 @@ void GuiHandler::initDebugGui()
 	debugMouseX =	Ogre::OverlayManager::getSingleton().getOverlayElement("GuiKarma/DebugOverlay/TextMousePosX"); 
 	debugMouseY =	Ogre::OverlayManager::getSingleton().getOverlayElement("GuiKarma/DebugOverlay/TextMousePosY"); 
 	debugTriangles= Ogre::OverlayManager::getSingleton().getOverlayElement("GuiKarma/DebugOverlay/TextTriangles"); 
+	debugChunkX = Ogre::OverlayManager::getSingleton().getOverlayElement("GuiKarma/DebugOverlay/TextPlaceholder1"); 
+	debugChunkY = Ogre::OverlayManager::getSingleton().getOverlayElement("GuiKarma/DebugOverlay/TextPlaceholder2"); 
 }
 
 void GuiHandler::updateDebugFPS(Ogre::String& s)
@@ -81,6 +83,14 @@ void GuiHandler::updateDebugCursorPos(const int x,const int y)
 	debugMouseX->setCaption(mousePosX + Ogre::StringConverter::toString(x));
 	static Ogre::String mousePosY = "Mouse Y: ";
 	debugMouseY->setCaption(mousePosY + Ogre::StringConverter::toString(y));
+}
+
+void GuiHandler::updateCurChunk(const int x, const int y)
+{
+	static Ogre::String ChunkPosX = "Chunk X: "; 		
+	debugChunkX->setCaption(ChunkPosX + Ogre::StringConverter::toString(x));
+	static Ogre::String ChunkPosY = "Chunk Y: ";
+	debugChunkY->setCaption(ChunkPosY + Ogre::StringConverter::toString(y));
 }
 
 void GuiHandler::initIngameUI()
@@ -141,7 +151,6 @@ void GuiHandler::updateCastingBar(float curTime)
 {
 	mtpCastingBarText->setCaption(mtCastingBarString + Ogre::StringConverter::toString(curTime));
 	float blabla = curTime/mtCastingBarTotalTime;
-	std::cout << blabla << "\n";
 	mtpCastingBar->setWidth(300 * blabla);
 }
 
