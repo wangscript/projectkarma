@@ -45,14 +45,23 @@ namespace Game
 		PowerUp_GunMode = (1 << 4), 
 		PowerUp_RocketBoots = (1 << 5), 
 	};
+
+	enum CollisionGroups
+	{
+		CollisionGroup_Player = (1 << 0),
+		CollisionGroup_MoveBoxReference = (1 << 1),
+		CollisionGroup_NPC = (1 << 2),
+		CollisioNGroup_DynamicObjects = (1 << 3),
+	};
 }
+
 class GridData
 {
 public:
 	GridData(){};
 	GridData(int x1,int y2) {x = x1;y=y2;};
-	int x;
-	int y;
+
+	int x,y;
 };
 
 #endif

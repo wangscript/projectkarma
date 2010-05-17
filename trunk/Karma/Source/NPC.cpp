@@ -1,93 +1,91 @@
 #include "NPC.h"
 #include "Chunks.h"
 
+/*---------------------------------------------------------------------------------*/
 Ogre::SceneNode* NPC::playerNode = 0;
-
+/*---------------------------------------------------------------------------------*/
 NPC::NPC(Ogre::SceneManager* sceneMgr,NxOgre::Scene* physScene,OGRE3DRenderSystem* renderSystem, Ogre::String filename, 
 		 Ogre::String name, Ogre::Vector3 spawnPoint, float scale, float hp , float walkSpeed)
-: Character(sceneMgr,physScene,renderSystem,filename,name,spawnPoint,scale,hp,walkSpeed)
+: Character(sceneMgr,physScene,renderSystem,filename,name,spawnPoint,scale,hp,walkSpeed),
+	mtReseting(false)
 {
-	mtReseting = false;
-	mtDying = false;
-	//flytta coordinat
-	double worldSize = GameFramework::getSingletonPtr()->mpSettings->mTerrainWorldSize;
-	double x = spawnPoint.x + worldSize/2.0;
-	double y = spawnPoint.z - worldSize/2.0;
-	//skala
-	x = (x*Chunks::getSingletonPtr()->getChunksWidth())/worldSize;
-	y = -(y*Chunks::getSingletonPtr()->getChunksWidth())/worldSize;
-	//avrunda
-	mtChunk.x = std::floor(x + 0.5);
-	mtChunk.y = std::floor(y + 0.5);
+	//Calculate what chunk the NPC belongs to
+	mtChunk = worldToChunk(spawnPoint.x,spawnPoint.z);
 
+	//Adds the NPC to its chunk.
 	std::cout << "NPC at CHUNK("<<mtChunk.x <<","<<mtChunk.y<< ")\n";
 	Chunks::getSingletonPtr()->addStaticNPC(this,mtChunk);
 }
-
-void NPC::move(const double& timeSinceLastFrame)
-{
-	if (mtReseting || mtDying)
-		return;
-	updatePosition();
-	bool move=true;
-	Ogre::Vector3 dirNPCtoChar = playerNode->_getDerivedPosition() - mtpCharNode->_getDerivedPosition();
-	if (dirNPCtoChar.length() < 2)
-		move=false;
-	dirNPCtoChar.y = 0;
-	//Movement velocity not dependent of the distance between Character and Camera.
-	dirNPCtoChar.normalise();
-	//Make the NPC always face the player when moving
-	rotateCharacter(mtpCharNode,dirNPCtoChar,mtFaceDirection);
-	changeAnimation("Walk", timeSinceLastFrame);
-	if (move)
-		mtpHitBox->setLinearVelocity(NxOgre::Vec3(dirNPCtoChar.x*mtWalkSpeed ,mtpHitBox->getLinearVelocity().y,dirNPCtoChar.z*mtWalkSpeed ));		
-}
-
+/*---------------------------------------------------------------------------------*/
 bool NPC::moveReset(const double& timeSinceLastFrame)
 {
+	//Updates the position here. Not as accurate as the method Player uses, but works fine.
+	//See GameState::update to see how Player need two calls each update. One before and after physics timestep.
 	updatePosition();
+
+	//Get the direction to the spawnpoint
 	Ogre::Vector3 dirNPCtoSpawnPoint = mtSpawnPoint - mtpCharNode->_getDerivedPosition();
+
+	//Instead of length, use this approximation to check if the NPC is in range close enough of the spawn point
+	//If so, the reset is done.
 	if ((dirNPCtoSpawnPoint.x > -0.1 && dirNPCtoSpawnPoint.x < 0.1) && (dirNPCtoSpawnPoint.z > -0.1 && dirNPCtoSpawnPoint.z < 0.1))
 	{
 		mtReseting = false;
+		//Returns true and tells the NPCHandler to delete it from a temporary Vector of reseting NPCs.
 		return true;
 	}
+	//No movement in Y direciton
 	dirNPCtoSpawnPoint.y = 0;
 	//Movement velocity not dependent of the distance between Character and Camera.
 	dirNPCtoSpawnPoint.normalise();
-	//Make the NPC always face the player when moving
+
+	//Make the NPC always face the spawn point when moving
 	rotateCharacter(mtpCharNode,dirNPCtoSpawnPoint,mtFaceDirection);
+
+	//Animare and move the box
 	changeAnimation("Walk", timeSinceLastFrame);
 	mtpHitBox->setLinearVelocity(NxOgre::Vec3(dirNPCtoSpawnPoint.x*mtWalkSpeed ,mtpHitBox->getLinearVelocity().y,dirNPCtoSpawnPoint.z*mtWalkSpeed ));	
+	
+	//Returning false == no reset yet.
 	return false;
 }
-
+/*---------------------------------------------------------------------------------*/
 void NPC::reset()
 {
+	//If not reseting already, active reset.
 	if (!mtReseting)
 	{
 		std::cout << "\nReseting: " << mtpCharEnt->getName() << ". Orginal chunk = " << mtChunk.x << "," << mtChunk.y;
 		mtReseting = true;
-		//Chunks::addTempNPC(this);
 	}
 }
-
+/*---------------------------------------------------------------------------------*/
 void NPC::die()
 {
 	std::cout << "Dead";
-	GameFramework::getSingletonPtr()->mpSound->playSound("die.wav", mtpCharNode->_getDerivedPosition());
-	mtDying=true;
-/*		const NxU32 avoid = 1 << 3;
-	NxOgre::RaycastHit rayCastResult = mtpPhysicsScene->raycastClosestShape(NxOgre::Ray(NxOgre::Vec3(mtpCharNode->_getDerivedPosition() + Ogre::Vector3(0,3,0) ),NxOgre::Vec3(0,-1,0)),NxOgre::Enums::ShapesType_All,~avoid);
-		Ogre::Vector3 hitNormal = rayCastResult.mWorldNormal.as<Ogre::Vector3>();
-		hitNormal.x = 0;
-		rotateCharacter(mtpCharNode,hitNormal,Ogre::Vector3(0,1,0));*/
 
-	//mtpCharNode->detachObject(mtpCharEnt);
-	//mtpDieNode->attachObject(mtpCharEnt);
-	//rotateCharacter(mtpDieNode,playerNode->_getDerivedPosition() - mtpCharNode->_getDerivedPosition(),mtFaceDirection);
-	//	mtpHitBox->getNxActor()->clearBodyFlag(NX_BF_FROZEN_ROT); 
-		//std::cout << "Normal underneath the dead character: " << hitNormal.x << " " << hitNormal.y << " " << hitNormal.z;
+	//Play a die sound
+	GameFramework::getSingletonPtr()->mpSound->playSound("die.wav", mtpCharNode->_getDerivedPosition());
+
+	//Active the dead variable
+	mtDying=true;
+	
+	//Attach the entity to the dieNode instead of charNode. The die node will fall to the ground along with the body capsule.
+	mtpCharNode->detachObject(mtpCharEnt);
+	mtpDieNode->attachObject(mtpCharEnt);
+
+	//Clearing PhysX body flags of the capsule to make it fall!
+	//Important to re-enable these once the capsule is active again
+	mtpHitBox->getNxActor()->clearBodyFlag(NX_BF_FROZEN_ROT_X);
+	mtpHitBox->getNxActor()->clearBodyFlag(NX_BF_FROZEN_ROT_Z);
+	mtpHitBox->getNxActor()->setAngularDamping(1);
+
+	//Makes the NPC face the player when it dies.
+	Ogre::Vector3 dir=  playerNode->_getDerivedPosition() - mtpCharNode->_getDerivedPosition();
+	dir.y = 0;
+	rotateCharacter(mtpDieNode,dir,mtFaceDirection);
+
+	//Adds the dead NPC to a vector in the NPC Manager
 	NPCHandler::getSingletonPtr()->addDeadNPC(this);
-	//mtpHitBox->getNxActor()->raiseActorFlag(NxActorFlag::);
 }
+/*---------------------------------------------------------------------------------*/

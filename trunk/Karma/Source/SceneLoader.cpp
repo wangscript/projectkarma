@@ -144,7 +144,6 @@ bool SceneLoader::parseNode(TiXmlElement *XMLNode)
 
 	//Get the rotation
 	XMLRotation = XMLNode->FirstChildElement("quaternion");
-	std::cout << "DEN HITTADE QUATERNION";
 	quatRotation.x = Ogre::StringConverter::parseReal(XMLRotation->Attribute("x"));
 	quatRotation.y = Ogre::StringConverter::parseReal(XMLRotation->Attribute("y"));
 	quatRotation.z = Ogre::StringConverter::parseReal(XMLRotation->Attribute("z"));

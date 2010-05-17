@@ -10,7 +10,7 @@
 #include "WorldManager.h"
 #include "PhysicsManager.h"
 #include "SceneLoader.h"
-#include "NPC.h"
+#include "NPCAimer.h"
 #include "NPCHandler.h"
 
 #include "GameCommon.h"
