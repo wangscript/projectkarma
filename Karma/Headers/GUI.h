@@ -13,28 +13,27 @@ template <class T> class GUI
 public:
 	struct mouseOverElement
 	{		
-	Ogre::OverlayElement* overlay, *overlayMOE, *overlayLocked;
-	Ogre::Real left,right,top,bottom;
-	void (GUI::*onGUIPressFunction)();		
-	void (T::*onStatePressFunction)();
-	bool locked;
-	std::vector<int>* lockRelationships, *unlockRelationships;
+	Ogre::OverlayElement	*overlay,*overlayMOE,*overlayLocked;
+	Ogre::Real				 left,right,top,bottom;
+	void			  (GUI::*onGUIPressFunction)();		
+	void				(T::*onStatePressFunction)();
+	bool					 locked;
+	std::vector<int>        *lockRelationships, *unlockRelationships;
 	};
 
 	GUI(T* state, Ogre::String& s);
 	~GUI();
+
 	void	addLockedRelation(int currentMOE, std::vector<int> relationshipMOEs);
+	int		addMouseOver(Ogre::String &s,void (T::*onStatePressFunction)(), bool lockedAvailable = false, bool locked = false);	
 	void	addUnlockedRelation(int currentMOE, std::vector<int> relationshipMOEs);
-	int		addMouseOver(Ogre::String &s,void (T::*onStatePressFunction)(), bool lockedAvailable = false, bool locked = false);
 	bool	checkMouseOver(const int x, const int y);
 	bool	mousePressed();
 	void	resetMouseOver(){mtpCurrentMouseOver = NULL;};
 
 protected:
-
 	T*									mtpClass;
-	int									mtWindowWidth;
-	int									mtWindowHeight;
+	int									mtWindowWidth,mtWindowHeight;
 	mouseOverElement*					mtpCurrentMouseOver;
 	bool								mtMouseOver;
 	std::vector<mouseOverElement>		mtMouseOverElements;	

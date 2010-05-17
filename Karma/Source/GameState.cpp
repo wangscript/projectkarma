@@ -189,11 +189,12 @@ void GameState::createScene()
 		
 	//For screenshotting minimap
 	mtpSceneMgr->getRootSceneNode()->createChildSceneNode("CamFree");
-
+	
 	//Create Character
 	m_Character = new Player( mtpSceneMgr, mvpPhysicsMgr->getPhysicsScene(),mvpPhysicsMgr->getPhysicsRenderSystem(),"HaloBlender.mesh" , "", Ogre::Vector3(0,0,0),100,1);
 	NPC::setPlayerNode(m_Character->getPlayerNode());
 	Aimer::setPhysicsScene(mvpPhysicsMgr->getPhysicsScene());
+	Chunks::getSingletonPtr()->createGrid();
 
 	//Create camera
 	m_CameraHandler = new CameraHandler(mtpCamera,mvpPhysicsMgr->getPhysicsRenderSystem(), mtpSceneMgr, m_Character);
@@ -271,12 +272,13 @@ void GameState::createScene()
 	createMotionBlurEffects();
 	Ogre::CompositorManager::getSingleton().addCompositor(GameFramework::getSingletonPtr()->mpViewport, "Motion Blur");
 
-	new NPC ( mtpSceneMgr,  mvpPhysicsMgr->getPhysicsScene(),mvpPhysicsMgr->getPhysicsRenderSystem(),"HaloBlender.mesh" , "Enemy1", Ogre::Vector3(15,mvpWorld->getTerrainAt(0,0)->getHeightAtWorldPosition(15,100,0),0),0.2,100,3);
-	new NPC ( mtpSceneMgr, mvpPhysicsMgr->getPhysicsScene(),mvpPhysicsMgr->getPhysicsRenderSystem(),"HaloBlender.mesh" , "Enemy2", Ogre::Vector3(150,mvpWorld->getTerrainAt(0,0)->getHeightAtWorldPosition(150,100,0),0),0.2,100,3);
-	new NPC ( mtpSceneMgr, mvpPhysicsMgr->getPhysicsScene(),mvpPhysicsMgr->getPhysicsRenderSystem(),"HaloBlender.mesh" , "Enemy3", Ogre::Vector3(150,mvpWorld->getTerrainAt(0,0)->getHeightAtWorldPosition(150,100,150),150),0.2,100,3);
-	new NPC ( mtpSceneMgr, mvpPhysicsMgr->getPhysicsScene(),mvpPhysicsMgr->getPhysicsRenderSystem(),"HaloBlender.mesh" , "Enemy4", Ogre::Vector3(270,mvpWorld->getTerrainAt(0,0)->getHeightAtWorldPosition(270,100,0),0),0.2,100,3);
-	new NPC ( mtpSceneMgr, mvpPhysicsMgr->getPhysicsScene(),mvpPhysicsMgr->getPhysicsRenderSystem(),"HaloBlender.mesh" , "Enemy5", Ogre::Vector3(-150,mvpWorld->getTerrainAt(0,0)->getHeightAtWorldPosition(-150,100,0),0),0.2,100,3);
-	new NPC ( mtpSceneMgr,mvpPhysicsMgr->getPhysicsScene(), mvpPhysicsMgr->getPhysicsRenderSystem(),"HaloBlender.mesh" , "Enemy6", Ogre::Vector3(15,mvpWorld->getTerrainAt(0,0)->getHeightAtWorldPosition(15,100,-150),-150),0.2,100,3);
+	new NPCAimer ( mtpSceneMgr,  mvpPhysicsMgr->getPhysicsScene(),mvpPhysicsMgr->getPhysicsRenderSystem(),"HaloBlender.mesh" , "Enemy1", Ogre::Vector3(15,mvpWorld->getTerrainAt(0,0)->getHeightAtWorldPosition(15,100,0),0),0.2,100,3);
+	new NPCAimer ( mtpSceneMgr, mvpPhysicsMgr->getPhysicsScene(),mvpPhysicsMgr->getPhysicsRenderSystem(),"HaloBlender.mesh" , "Enemy2", Ogre::Vector3(150,mvpWorld->getTerrainAt(0,0)->getHeightAtWorldPosition(150,100,0),0),0.2,100,3);
+	new NPCAimer ( mtpSceneMgr, mvpPhysicsMgr->getPhysicsScene(),mvpPhysicsMgr->getPhysicsRenderSystem(),"HaloBlender.mesh" , "Enemy3", Ogre::Vector3(150,mvpWorld->getTerrainAt(0,0)->getHeightAtWorldPosition(150,100,150),150),0.2,100,3);
+	new NPCAimer ( mtpSceneMgr, mvpPhysicsMgr->getPhysicsScene(),mvpPhysicsMgr->getPhysicsRenderSystem(),"HaloBlender.mesh" , "Enemy4", Ogre::Vector3(270,mvpWorld->getTerrainAt(0,0)->getHeightAtWorldPosition(270,100,0),0),0.2,100,3);
+	new NPCAimer ( mtpSceneMgr, mvpPhysicsMgr->getPhysicsScene(),mvpPhysicsMgr->getPhysicsRenderSystem(),"HaloBlender.mesh" , "Enemy5", Ogre::Vector3(-150,mvpWorld->getTerrainAt(0,0)->getHeightAtWorldPosition(-150,100,0),0),0.2,100,3);
+	new NPCAimer ( mtpSceneMgr,mvpPhysicsMgr->getPhysicsScene(), mvpPhysicsMgr->getPhysicsRenderSystem(),"HaloBlender.mesh" , "Enemy6", Ogre::Vector3(15,mvpWorld->getTerrainAt(0,0)->getHeightAtWorldPosition(15,100,-150),-150),0.2,100,3);
+
 	SceneLoader* sceneLoad = new SceneLoader(); 
 	sceneLoad->parseLevel("scen.scene","Karma",mtpSceneMgr,mtpSceneMgr->getRootSceneNode(),mvpPhysicsMgr,mvpWorld->getTerrainAt(0,0));
 }
@@ -333,11 +335,13 @@ bool GameState::keyPressed(const OIS::KeyEvent &keyEventRef)
 		break;
 	case OIS::KC_8:
 		m_Character->setPowerUp(Game::PowerUp_RocketBoots);
-		m_CameraHandler->setCamMode(Game::Cam_MixCursorCenter);
 		break;
 	case OIS::KC_SPACE:
 		if ((m_Character->getPowerUp() & Game::PowerUp_RocketBoots) != 0)
+		{
 			m_Character->startRocketBoots();
+			GameFramework::getSingletonPtr()->mpSound->playSound(GameFramework::getSingletonPtr()->mpSound->mpRocketBoots,m_Character->getPlayerNode()->_getDerivedPosition(),true);
+		}
 		break;
 	case OIS::KC_Q:
 		m_Character->debugMode();
@@ -385,7 +389,10 @@ bool GameState::keyReleased(const OIS::KeyEvent &keyEventRef)
 		break;
 	case OIS::KC_SPACE:
 		if ((m_Character->getPowerUp() & Game::PowerUp_RocketBoots) != 0)
+		{
 			m_Character->resetRocketBoots();
+			GameFramework::getSingletonPtr()->mpSound->stopPlaySound(GameFramework::getSingletonPtr()->mpSound->mpRocketBoots);
+		}
 		break;
 	}
 
@@ -431,7 +438,16 @@ bool GameState::mousePressed(const OIS::MouseEvent &evt, OIS::MouseButtonID id)
 		}
 		if ((m_Character->getPowerUp() & Game::PowerUp_GunMode) != 0)
 		{
-			m_Character->queueFire();
+			if (m_CameraHandler->getCamMode() == Game::Cam_MixCursorCenter || m_CameraHandler->getCamMode() == Game::Cam_FirstPerson)
+				m_Character->queueFire(0.5,0.5);
+			else
+			{
+				
+				double x = double(evt.state.X.abs)/GameFramework::getSingletonPtr()->mpRenderWnd->getWidth();
+				double y = double(evt.state.Y.abs)/GameFramework::getSingletonPtr()->mpRenderWnd->getHeight();
+				std::cout << "Skickar: " <<  x<< y;
+				m_Character->queueFire(x,y);
+			}
 			//if (m_CameraHandler->getCamMode() == Game::Cam_MixCursorMovable)
 			//	int x;
 				//m_Character->toggleMuzzleFlash(evt,false);
@@ -502,14 +518,14 @@ void GameState::getInput()
 
 	if(GameFramework::getSingletonPtr()->mpKeyboard->isKeyDown(OIS::KC_SPACE))
 	{
-		if ((m_Character->getPowerUp() & Game::PowerUp_RocketBoots) == 0)
+		if ((m_Character->getPowerUp() & Game::PowerUp_RocketBoots) != 0)
 		{
-			if ((m_Character->isJumping())==false)
-				m_Character->jump();
+			m_Character->rocketBoots();
 		}
 		else
 		{
-			m_Character->rocketBoots();
+			if ((m_Character->isJumping())==false)
+				m_Character->jump();
 		}
 	}
 }
@@ -526,7 +542,7 @@ void GameState::update(double timeSinceLastFrame)
 	getInput();
 	m_CameraHandler->AdjustCamera();
 	m_Character->move(timeSinceLastFrame);
-	Chunks::getSingletonPtr()->loopCurrentChunksMove(timeSinceLastFrame);
+	Chunks::getSingletonPtr()->loopCurrentChunksUpdate(timeSinceLastFrame);
 	//Chunks::getSingletonPtr()->updateTempNpcs(timeSinceLastFrame);
 	NPCHandler::getSingletonPtr()->updateResetNPCs(timeSinceLastFrame);
 	NPCHandler::getSingletonPtr()->updateDeadNPCs(timeSinceLastFrame);

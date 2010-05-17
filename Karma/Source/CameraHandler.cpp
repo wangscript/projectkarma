@@ -134,7 +134,7 @@ void CameraHandler::RotateFirstPerson(const OIS::MouseEvent &arg)
 	charPosition.y += mtCamCharYAdjust;
     Ogre::Vector3 directionToGunTracker =  mtpFirstPersonGunTrackerNode->_getDerivedPosition() - charPosition  ;
     camera->setDirection(directionToGunTracker);
-	mtpPlayer->updateBones(arg);
+	mtpPlayer->setNeedUpdateBones();
 }
 void CameraHandler::RotateMixCursorCenter(const OIS::MouseEvent &arg)
 {
@@ -152,7 +152,7 @@ void CameraHandler::RotateMixCursorCenter(const OIS::MouseEvent &arg)
 	charPosition.y += mtCamCharYAdjust;
     Ogre::Vector3 directionToCharacter =  charPosition - mtpCamGunCenterHelperNode->_getDerivedPosition();
     camera->setDirection(directionToCharacter);
-	mtpPlayer->updateBones(arg);
+	mtpPlayer->setNeedUpdateBones();
 }
 
 void CameraHandler::RotateMixCursorMovable(const OIS::MouseEvent &arg)
@@ -169,7 +169,7 @@ void CameraHandler::RotateMixCursorMovable(const OIS::MouseEvent &arg)
     Ogre::Vector3 directionToCharacter =  charNode->_getDerivedPosition() - mtpCamGunMoveNode->_getDerivedPosition();
 	directionToCharacter.y= 0;
     camera->setDirection(directionToCharacter);
-	mtpPlayer->updateBones(arg);
+	mtpPlayer->setNeedUpdateBones();
 	GameFramework::getSingletonPtr()->mpGui->updateCursorPos(arg.state.X.abs,arg.state.Y.abs );
 }
 
