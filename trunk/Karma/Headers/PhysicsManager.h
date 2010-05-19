@@ -35,6 +35,7 @@ public:
 	OGRE3DRenderSystem* getPhysicsRenderSystem() {return mtpPhysicsRenderSystem;};
 	void addStaticTriangleMesh(const Ogre::Vector3&, char* filename); 
 	void addKinematicTriangleMesh(const std::vector<Ogre::Vector3>, const Ogre::Real speed,char* filename);
+	void addRigidBody(const Ogre::Vector3&, char* filename, Ogre::Real mass, int collisionGroup);
 	void addKinematicCircle(const Ogre::Real angVel, const Ogre::Vector3 orgin, const Ogre::Real radius, char* filename);
 	void update(const double);
 	void pause();
