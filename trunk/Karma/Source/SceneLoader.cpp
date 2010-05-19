@@ -9,6 +9,8 @@
 
 #include "SceneLoader.h"
 #include <algorithm>
+#include <vector>
+#include <sstream>
 
 SceneLoader::~SceneLoader()
 {
@@ -117,6 +119,7 @@ bool SceneLoader::parseNode(TiXmlElement *XMLNode)
 	TiXmlElement *XMLPosition;
 	TiXmlElement *XMLEntity;
 	TiXmlElement *XMLScale;
+	TiXmlElement *XMLProperty;
 
 	Ogre::String  nodeName;
 	Ogre::String  meshName;
@@ -191,12 +194,71 @@ bool SceneLoader::parseNode(TiXmlElement *XMLNode)
 	std::cout << "scale";
 	node->attachObject(ent);
 
-	//@todo register ent with PhysicsManager
-	
-	//char chP[80];
-	//std::strcpy(chP,meshName.c_str());
-	//mvpPhysicsMgr->addStaticTriangleMesh(vec3Position,chP);
+	//Get physicsproperties
+	std::vector<Ogre::Vector3> posList;
 
+	TiXmlElement * XMLUserData = XMLNode->FirstChildElement("userData");
+	XMLProperty = XMLUserData->FirstChildElement("property");
+	bool EntityIsStatic = false;
+	int collisionGroup;
+	int mass  = 0;
+	Ogre::String posString;
+	Ogre::Vector3 tempVec(0,0,0);
+	Ogre::Real speed;
+	double tempDouble;
+	while(XMLProperty)
+	{
+		Ogre::String propName = XMLProperty->Attribute("name");
+		if (propName.compare("isStatic") == 0)
+			if (Ogre::StringConverter::parseInt(XMLProperty->Attribute("data")) == 1)
+				EntityIsStatic = true;
+
+		if (propName.compare("mass") == 0)
+			mass = Ogre::StringConverter::parseInt(XMLProperty->Attribute("data"));
+					
+		if(propName.compare("collisionGroup") == 0)
+			collisionGroup = Ogre::StringConverter::parseInt(XMLProperty->Attribute("data"));
+
+		if(propName.compare("position") == 0)
+		{
+			std::stringstream ost;
+			posString = XMLProperty->Attribute("data");
+			ost << posString;
+			ost >> tempDouble;
+			tempVec.x = tempDouble;
+			ost >> tempDouble;
+			tempVec.y = tempDouble;
+			ost >> tempDouble;
+			tempVec.z = tempDouble;
+			posList.push_back(tempVec);
+			ost.clear();
+		}
+
+		if(propName.compare("speed") == 0)
+			speed = Ogre::StringConverter::parseReal(XMLProperty->Attribute("data"));
+		
+		XMLProperty = XMLProperty->NextSiblingElement("property");
+	}
+
+	//Convert meshName (string) to char array
+	char meshNameCharArr[80];
+	std::strcpy(meshNameCharArr,meshName.c_str());
+
+	if (EntityIsStatic)
+	{
+		mvpPhysicsMgr->addStaticTriangleMesh(vec3Position,meshNameCharArr);
+	}
+	else if(!posList.empty())
+	{
+		mvpPhysicsMgr->addKinematicTriangleMesh(posList,speed,meshNameCharArr);
+	}
+	else
+	{
+		mvpPhysicsMgr->addRigidBody(vec3Position,meshNameCharArr,mass,collisionGroup);
+	}
+	
+ 	
+	
 	return true;
 }
 
