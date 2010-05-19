@@ -57,6 +57,25 @@ void PhysicsManager::addStaticTriangleMesh(const Ogre::Vector3& pos ,char* filen
 	triangleNode->setPosition(pos);
 }
 
+void PhysicsManager::addRigidBody(const Ogre::Vector3& pos, char* filename, Ogre::Real mass, int collisionGroup)
+{
+	char nxOgreFileName[80] = "nxogre:";
+	std::strcat(nxOgreFileName,filename);
+	std::strcat(nxOgreFileName,".xns");
+
+	char ogreFileName[80] = "";
+	std::strcat(ogreFileName,filename);
+	std::strcat(ogreFileName,".mesh");
+	NxOgre::Mesh* triangleMesh = NxOgre::MeshManager::getSingleton()->load(nxOgreFileName);
+	NxOgre::TriangleGeometry* triangleGeometry = new NxOgre::TriangleGeometry(triangleMesh);
+
+	NxOgre::RigidBodyDescription description;
+	description.mGroup = collisionGroup;
+	description.mMass = mass;
+	
+	mtpPhysicsRenderSystem->createBody(triangleGeometry,pos,ogreFileName,description);
+}
+
 void PhysicsManager::addKinematicTriangleMesh(const std::vector<Ogre::Vector3> posList, const Ogre::Real speed,char* filename)
 {
 	char nxOgreFileName[80] = "nxogre:";
