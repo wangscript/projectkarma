@@ -12,6 +12,8 @@ NPCHandler* NPCHandler::getSingletonPtr()
 {
 	return &singleton;
 }
+
+int NPCHandler::killcount = 0;
 /*---------------------------------------------------------------------------------*/
 void NPCHandler::updateNPCsFromChunk(const std::vector<NPC*>& npcs,const double& timeSinceLastFrame,bool reset)
 {

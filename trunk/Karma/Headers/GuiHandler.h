@@ -2,27 +2,93 @@
 #define GUIHANDLER_H
 
 #include <Ogre.h>
+#include "Debug.h"
+#include "GameEnums.h"
 
 class GuiHandler
 {
-protected:
+public:
 
-	Ogre::OverlayElement* mtpCursor;
+	GuiHandler(Ogre::RenderWindow* renderWnd);
+
+	void initGui();
+
+	struct ActionBarElements
+	{
+		Ogre::OverlayElement	*PowerUp,*PowerUpLocked,*Active;
+	};
+	void toggleGameGUI(bool state);
+
+	void updateActionBarElement(int powerUp,int ActionBarMode);
+	bool isLoaded(int powerUp);
+	void loadCastingBar(int powerUp, float totalTime);
+	void updateCastingBar(float curTime);
+	void hideCastingBar();
+
+	void showMuzzleFire(bool state);
+	void firstPerson(bool state);
+	void updateHP(float hp);
+	void updateMiniMap(double globalX, double globalZ);
+
+	void showCursor();
+	void changeCursor(int cursor);
+	void hideCursor();
+	void updateCursorPos(const int x,const int y);
+
+private:
+	bool mvFirstPerson,mvCastBar;
+	int mvMouseX,mvMouseY;
+	Ogre::OverlayElement *mtpCursorNormal,*mtpCursorMoveBox, *mtpCursorMoveBoxGrab,*mtpCursorAim,*mtpCurCursor;
 	Ogre::Overlay* mtpCursorLayer;
-	Ogre::Overlay* mtpDebugLayer;
-	Ogre::Overlay* mtpIngameUILayer;
-	Ogre::Overlay* mtpMenuGUILayer;
 	Ogre::Overlay*	mtpMiniMapLayer;
-	//mtpCursorLayer->setZOrder(400);
+	Ogre::Overlay* mtpMuzzleFireFirstPerson;
+	Ogre::Overlay* mtpFirstPersonLayer;
+	Ogre::Overlay* mtpHPLayer;
+	Ogre::RenderWindow* mvpRenderWnd;
+	
 	
 	Ogre::Overlay* mtpCastingBarLayer;
 	Ogre::OverlayElement* mtpMiniMap;
 	Ogre::OverlayElement* mtpCastingBar;
+	Ogre::OverlayElement* mtpCastingBarCur;
 	Ogre::OverlayElement* mtpCastingBarText;
-	Ogre::String mtCastingBarString;
-	Ogre::Real mtCastingBarTotalTime;
+	Ogre::OverlayElement* mtpHPText;
+	Ogre::OverlayElement* mtpCastingBarTextTime;
+	Ogre::OverlayElement* mtpCastingBarSuperSpeed,*mtpCastingBarMoveBox,*mtpCastingBarRocketBoots;
+	Ogre::OverlayElement* mtpCurrCastingBarIcon;
+	float mtCastingBarTotalTime;
 
+	//Action Bar
+	Ogre::Overlay* mvActionBar;
+	ActionBarElements mvActionBarSuperJump; 
+	ActionBarElements mvActionBarSuperSpeed;
+	ActionBarElements mvActionBarMoveBox;
+	ActionBarElements mvActionBarPistol;
+	ActionBarElements mvActionBarMachineGun;
+	ActionBarElements mvActionBarRocketBoots;
+	
+	void initHP();
+	void initActionBar();
+	void initFirstPersonShooter();
+	void initMiniMap();
+	void initCastingBar();
+	void changeActionBarElement(ActionBarElements& ae, int ActionBarMode);
+	
 
+#ifdef DEBUG
+
+public:
+	void initDebugGui();
+	void updateDebugFPS(Ogre::String&);
+	void updateDebugCharXYZ(Ogre::Vector3&);
+	void updateDebugCamXYZ(Ogre::Vector3&);
+	void updateDebugDirXYZ(Ogre::Vector3&);
+	void updateDebugTriangles(Ogre::String& s);
+	void updateDebugCursorPos(const int x,const int y);
+	void updateCurChunk(const int x, const int y);
+	void updateDebugHP(float x);	
+private:
+	Ogre::Overlay* mtpDebugLayer;
 	Ogre::OverlayElement* debugFPS;
 	Ogre::OverlayElement* debugCharX;
 	Ogre::OverlayElement* debugCharY;
@@ -38,41 +104,9 @@ protected:
 	Ogre::OverlayElement* debugTriangles;
 	Ogre::OverlayElement* debugChunkX;
 	Ogre::OverlayElement* debugChunkY;
+	Ogre::OverlayElement* debugHP;
+#endif
 
-public:
-
-	GuiHandler();
-	~GuiHandler();
-
-	void initGui();
-
-	void initDebugGui();
-	void updateDebugFPS(Ogre::String&);
-	void updateDebugCharXYZ(Ogre::Vector3&);
-	void updateDebugCamXYZ(Ogre::Vector3&);
-	void updateDebugDirXYZ(Ogre::Vector3&);
-	void updateDebugTriangles(Ogre::String& s);
-	void updateDebugCursorPos(const int x,const int y);
-	void GuiHandler::updateCurChunk(const int x, const int y);
-
-	void initIngameUI();
-	void changeIngameUIIcon(int pwrup);
-	void showInGameUI();
-	void hideInGameUI();
-	void initCastingBar();
-	void loadCastingBar(Ogre::String name, float totalTime);
-	void updateCastingBar(float curTime);
-	void hideCastingBar();
-
-	void initMenuGUI();
-	void removeMenuGUI();
-
-	void showMiniMap();
-	void updateMiniMap(double globalX, double globalZ);
-
-	void showCursor();
-	void hideCursor();
-	void updateCursorPos(const int x,const int y);
 };
 
 #endif

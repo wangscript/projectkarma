@@ -18,7 +18,8 @@ public:
 		
 protected:
 	GridData mtChunk;
-	
+	float mtUpdateTimer;
+
 	static Ogre::SceneNode* playerNode;
 	
 	void die();

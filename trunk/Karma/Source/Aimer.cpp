@@ -3,6 +3,15 @@
 /*---------------------------------------------------------------------------------*/
 NxOgre::Scene*	Aimer::mvpPhysicsScene = 0;
 /*---------------------------------------------------------------------------------*/
+Aimer::Aimer():
+mvContinuousShoot(false),
+mvpFireDistanceMax(&Settings::getSingletonPtr()->mAimerFireDistanceMax),
+mvpFireDistanceMin(&Settings::getSingletonPtr()->mAimerFireDistanceMin),
+mvpShotDmgNormal(&Settings::getSingletonPtr()->mAimerShotDmgNormal),
+mvpShotDmgHeadshot(&Settings::getSingletonPtr()->mAimerShotDmgHeadshot),
+mvpShotForce(&Settings::getSingletonPtr()->mAimerShotForce)
+{}
+/*---------------------------------------------------------------------------------*/
 Aimer::~Aimer()
 {
 	delete mvpMuzzleFire1;
@@ -16,19 +25,23 @@ void Aimer::setNodes(Ogre::SceneNode* charNode,Ogre::SceneManager* sceneMgr,cons
 	mtvCharNode = charNode;
 	mvpName = &name;
 	mvpSceneMgr = sceneMgr;
+	mvContinuousShoot = false;
+	mvContinuousShootTimer = 0.2;
 
 	//This node is unique for Aimer. Used for aiming
 	mtvGunTrackNode = sceneMgr->getSceneNode("CamOrginNode")->createChildSceneNode(name + Ogre::String("GunTrackNode"),
-		Ogre::Vector3(0.0f,GameFramework::getSingletonPtr()->mpSettings->mCamCharYAdjust, 
-		GameFramework::getSingletonPtr()->mpSettings->mCamGunTrackerDistanceZ ));
+		Ogre::Vector3(0.0f,Settings::getSingletonPtr()->mCamCharYAdjust, 
+		Settings::getSingletonPtr()->mCamGunTrackerOffsetZ ));
 }
 /*---------------------------------------------------------------------------------*/
-void Aimer::setBones(Ogre::Entity* charEnt,Ogre::String& strArmR, Ogre::String& strArmL,Ogre::String& strHead)
+void Aimer::setBones(Ogre::Entity* charEnt,Ogre::String& strUpArmR, Ogre::String& strUpArmL, Ogre::String& strLowArmL, Ogre::String& strLowArmR,Ogre::String& strHead)
 {
 	//Pointers to the entity and the bones.
 	mvpCharEnt = charEnt;
-	mtpBoneArmRight = charEnt->getSkeleton()->getBone(strArmR);
-	mtpBoneArmLeft = charEnt->getSkeleton()->getBone(strArmL);
+	mtpBoneArmRight = charEnt->getSkeleton()->getBone(strUpArmR);
+	mtpBoneArmLeft = charEnt->getSkeleton()->getBone(strUpArmL);
+	mtpBoneLowArmRight = charEnt->getSkeleton()->getBone(strLowArmR);
+	mtpBoneLowArmLeft = charEnt->getSkeleton()->getBone(strLowArmL);
 	mtpBoneHead = charEnt->getSkeleton()->getBone(strHead);
 }
 /*---------------------------------------------------------------------------------*/
@@ -52,21 +65,27 @@ void Aimer::updateBones(Ogre::SceneNode* aimNode)
 void Aimer::destroyNodeTracks(Ogre::Animation* animation)
 {
 	//Destroy the node tracks for an animation. Must be done if the animation has key nodes for the bones in this animation
+	std::cout << "\nDestroying" << animation->getName() <<"\n";
 	animation->destroyNodeTrack(mtpBoneArmRight->getHandle());
 	animation->destroyNodeTrack(mtpBoneArmLeft->getHandle());
+	animation->destroyNodeTrack(mtpBoneLowArmRight->getHandle());
+	animation->destroyNodeTrack(mtpBoneLowArmLeft->getHandle());
 	animation->destroyNodeTrack(mtpBoneHead->getHandle());
 }
 /*---------------------------------------------------------------------------------*/
 void Aimer::addGun(const Ogre::String& hand1,Ogre::Quaternion rot1,Ogre::Vector3 offset1, const Ogre::String& hand2,Ogre::Quaternion rot2,Ogre::Vector3 offset2)
 {
 	//Adds two pistols the hands. Not so general. @todo...
-	Ogre::Entity* gunEnt1 = mvpSceneMgr->createEntity(*mvpName + Ogre::String("Gun1"), "pistol.mesh");
-	gunEnt1->setMaterialName("2 - Default");//@todo fixa
-	Ogre::Entity* gunEnt2 = mvpSceneMgr->createEntity(*mvpName + Ogre::String("Gun2"), "pistol.mesh");
-	gunEnt2->setMaterialName("2 - Default");//@todo fixa
+	mvpGun1Ent= mvpSceneMgr->createEntity(*mvpName + Ogre::String("Gun1"), "pistol.mesh");
+	mvpGun1Ent->setMaterialName("gunmaterial");//@todo fixa
+	mvpGun2Ent = mvpSceneMgr->createEntity(*mvpName + Ogre::String("Gun2"), "pistol.mesh");
+	mvpGun2Ent->setMaterialName("gunmaterial");//@todo fixa
 
-	mvpCharEnt->attachObjectToBone(hand1,gunEnt1,rot1,offset1); 
-	mvpCharEnt->attachObjectToBone(hand2,gunEnt2,rot2,offset2);
+	mvpCharEnt->attachObjectToBone(hand1,mvpGun1Ent,rot1,offset1); 
+	mvpCharEnt->attachObjectToBone(hand2,mvpGun2Ent,rot2,offset2);
+
+	mvpGun1Ent->setVisible(false);
+	mvpGun2Ent->setVisible(false);
 }
 /*---------------------------------------------------------------------------------*/
 void Aimer::addMuzzleFire(const Ogre::String& hand1,Ogre::Quaternion rot1,Ogre::Vector3 offset1, const Ogre::String& hand2,Ogre::Quaternion rot2,Ogre::Vector3 offset2,bool addToChunk, GridData chunk)
@@ -122,7 +141,7 @@ void Aimer::fire(const Ogre::Vector3& start, const Ogre::Vector3& dir,int filter
 	NxOgre::RaycastHit rayCastResult = mvpPhysicsScene->raycastClosestShape(NxOgre::Ray(rayOrgin,rayDirection),NxOgre::Enums::ShapesType_All,~filterGroup);
 
 	//If the distance is less than 100m and the hit is a dynamic rigidbody
-	if (rayCastResult.mDistance < 100 && rayCastResult.mRigidBody->isDynamic())
+	if (rayCastResult.mDistance < *mvpFireDistanceMax && rayCastResult.mRigidBody->isDynamic())
 	{
 		bool headshot = false;
 
@@ -149,11 +168,11 @@ void Aimer::fire(const Ogre::Vector3& start, const Ogre::Vector3& dir,int filter
 			if (headshot)
 			{
 				GameFramework::getSingletonPtr()->mpSound->playSound(GameFramework::getSingletonPtr()->mpSound->mpHeadShot,mtvCharNode->_getDerivedPosition());
-				hitChar->updateHp(100.0);
+				hitChar->updateHp(*mvpShotDmgHeadshot);
 			}
 			//Normal shot. Less cool.
 			else
-				hitChar->updateHp(10.0);
+				hitChar->updateHp(*mvpShotDmgNormal);
 		}
 		//If the rigidbody wasn't a character
 		else if (!hitChar)
@@ -164,12 +183,12 @@ void Aimer::fire(const Ogre::Vector3& start, const Ogre::Vector3& dir,int filter
 		//Adds force
 		NxOgre::Vec3 force = rayCastResult.mWorldImpact - NxOgre::Vec3(mtvCharNode->_getDerivedPosition());
 		force.normalise();
-		force = force*1000;
+		force = force * *mvpShotForce;
 		rayCastResult.mRigidBody->getNxActor()->addForce(NxVec3(force.x,force.y,force.z));
 	}
 	//If the hit wasnt dynamic, i.e the terrain
-	else
-		std::cout << "\nIngen träff dynamisk eller distance < 100";
+	else if (rayCastResult.mDistance > *mvpFireDistanceMin)
+		BulletHoles::getSingletonPtr()->addBulletHole(rayCastResult.mWorldNormal.as<Ogre::Vector3>(),rayCastResult.mWorldImpact.as<Ogre::Vector3>());
 
 	std::cout << rayCastResult.mWorldImpact.x << " " <<rayCastResult.mWorldImpact.y  << " " << rayCastResult.mWorldImpact.z;
 }

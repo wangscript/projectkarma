@@ -27,27 +27,36 @@ void MenuState::enter()
 
 	GameFramework::getSingletonPtr()->mpKeyboard->setEventCallback(this);
 	GameFramework::getSingletonPtr()->mpMouse->setEventCallback(this);
-	//GameFramework::getSingletonPtr()->mpGui->initMenuGUI();
 
 	mvQuit = false;
-	Ogre::String s = "GuiKarma/Menu";
+	if(!Ogre::ResourceGroupManager::getSingletonPtr()->resourceGroupExists("Menu"))
+		GameFramework::getSingletonPtr()->loadMenuResources();
+	GameFramework::getSingletonPtr()->mpRoot->renderOneFrame();
+
+	bool fromGame;
+	if(Ogre::ResourceGroupManager::getSingletonPtr()->resourceGroupExists("Game"))
+		fromGame = true;
+	else
+		fromGame = false;
+
+	Ogre::String s = "GuiMenu/Menu";
 	mvGUI = new GUI<MenuState>(this, s);
 
-	Ogre::String resume = "GuiKarma/Menu/Resume";
+	Ogre::String resume = "GuiMenu/Menu/Resume";
 	void (MenuState::*resumeFunction)() = &MenuState::resumeToGameState;
-	int resumeButtoN = mvGUI->addMouseOver(resume,resumeFunction,true,false);
+	int resumeButtoN = mvGUI->addMouseOver(resume,resumeFunction,true,!fromGame);
 
-	Ogre::String quit = "GuiKarma/Menu/Quit";
+	Ogre::String quit = "GuiMenu/Menu/Quit";
 	void (MenuState::*quitFunction)() = &MenuState::quit;
 	int quitButtoN = mvGUI->addMouseOver(quit,quitFunction);
 
-	Ogre::String disc = "GuiKarma/Menu/Disconnect";
+	Ogre::String disc = "GuiMenu/Menu/Disconnect";
 	void (MenuState::*discFunction)() = &MenuState::disconnect;
-	int disconnectButtoN = mvGUI->addMouseOver(disc,discFunction,true,false);
+	int disconnectButtoN = mvGUI->addMouseOver(disc,discFunction,true,!fromGame);
 
-	Ogre::String newgame = "GuiKarma/Menu/NewGame";
+	Ogre::String newgame = "GuiMenu/Menu/NewGame";
 	void (MenuState::*newGameFunction)() = &MenuState::createNewGameState;
-	int newGameButtoN = mvGUI->addMouseOver(newgame,newGameFunction,true,true);
+	int newGameButtoN = mvGUI->addMouseOver(newgame,newGameFunction,true,fromGame);
 
 	std::vector<int> test;
 	test.push_back(disconnectButtoN);
@@ -93,6 +102,9 @@ void MenuState::createScene()
 void MenuState::exit()
 {
 	GameFramework::getSingletonPtr()->mpLog->logMessage("Leaving MenuState...");
+	Ogre::OverlayManager::getSingletonPtr()->getByName("Loading")->show();
+	Ogre::OverlayManager::getSingleton().getByName("GuiMenu/Menu")->hide();
+	GameFramework::getSingletonPtr()->mpRoot->renderOneFrame();
 	mtpSceneMgr->destroyCamera(mtpCamera);
 	delete mvGUI;
 	if(mtpSceneMgr)
@@ -105,6 +117,7 @@ void MenuState::exit()
 
 void MenuState::createNewGameState()
 {
+
 	this->changeAppState(findByName("GameState"));
 }
 
@@ -149,7 +162,6 @@ bool MenuState::keyPressed(const OIS::KeyEvent &keyEventRef)
 bool MenuState::keyReleased(const OIS::KeyEvent &keyEventRef)
 {		
 	GameFramework::getSingletonPtr()->keyReleased(keyEventRef);
-
 	return true;
 }
 

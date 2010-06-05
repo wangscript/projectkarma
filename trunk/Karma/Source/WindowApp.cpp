@@ -7,6 +7,7 @@
 WindowApp::WindowApp()
 {
 	mtbShutdown = false;
+	mvpAppStateManager=0;
 }
 
 //|||||||||||||||||||||||||||||||||||||||||||||||
@@ -14,6 +15,7 @@ WindowApp::WindowApp()
 WindowApp::~WindowApp()
 {
 	delete GameFramework::getSingletonPtr();
+	if(mvpAppStateManager)
 	delete mvpAppStateManager;
 }
 
@@ -22,16 +24,18 @@ WindowApp::~WindowApp()
 void WindowApp::startWindowApp()
 {
 	new GameFramework();
-	GameFramework::getSingletonPtr()->initOgre("AdvancedGameFramework", 0, 0);
-	
-	GameFramework::getSingletonPtr()->mpLog->logMessage("Demo initialized!");
+	if (GameFramework::getSingletonPtr()->initOgre("Karma 3D", 0, 0))
+	{
+		GameFramework::getSingletonPtr()->mpLog->logMessage("Demo initialized!");
 
-	mvpAppStateManager = new AppStateManager();
+		mvpAppStateManager = new AppStateManager();
 
-	MenuState::create(mvpAppStateManager, "MenuState");
-	GameState::create(mvpAppStateManager, "GameState");
 
-	mvpAppStateManager->start(mvpAppStateManager->findByName("GameState"));
+		GameState::create(mvpAppStateManager, "GameState");
+		MenuState::create(mvpAppStateManager, "MenuState");
+
+		mvpAppStateManager->start(mvpAppStateManager->findByName("MenuState"));
+	}
 }
 
 //|||||||||||||||||||||||||||||||||||||||||||||||

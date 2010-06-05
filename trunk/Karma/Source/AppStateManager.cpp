@@ -87,7 +87,10 @@ void AppStateManager::start(AppState* state)
 
 			mtActiveStateStack.back()->update(timeSinceLastFrame);
 			
+			#ifdef DEBUG
 			GameFramework::getSingletonPtr()->updateOgre(timeSinceLastFrame);
+			#endif
+
 			GameFramework::getSingletonPtr()->mpRoot->renderOneFrame();
 		
 			timeSinceLastFrame = GameFramework::getSingletonPtr()->mpTimer->getMillisecondsCPU() - startTime;

@@ -10,15 +10,24 @@ PowerUp::PowerUp(NxOgre::Scene* r, Ogre::SceneManager* m,NxOgre::RigidBody* c, P
 	mPlayer = p;
 }
 
-PowerUp::~PowerUp()
+void PowerUp::addPowerUp(const Ogre::Vector3 &p,const Ogre::String& s)
 {
-}
+	//Creates the entity and attaches it to a node.
+	Ogre::SceneNode* pwrUpNode = mSceneMgr->getRootSceneNode()->createChildSceneNode();
+	Ogre::Entity* pwrUpEnt = mSceneMgr->createEntity(s, "PowerUpBarrel.mesh");
+	pwrUpNode->attachObject(pwrUpEnt);
+	pwrUpNode->setPosition(p);
 
-void PowerUp::addPowerUp(Ogre::Vector3 &p, Ogre::String s)
-{
+	//Set the correct texture by adding an extra layer
+	pwrUpEnt->setMaterialName(s);
+	Ogre::MaterialPtr mat = (Ogre::MaterialPtr)Ogre::MaterialManager::getSingleton().getByName(s);
+	Ogre::Pass *pass = mat->getTechnique(0)->createPass();
+	pass->setSceneBlending(Ogre::SBT_TRANSPARENT_ALPHA);
+	Ogre::TextureUnitState *texState = pass->createTextureUnitState(s + Ogre::String(".png"));
+
 	//Creating NxOgre Box Volume object. Local Callback method.
 	NxOgre::Volume* mVolume = mScene->createVolume(new NxOgre::Box(1.5), NxOgre::Matrix44(NxOgre::Vec3(p)),
-		this, NxOgre::Enums::VolumeCollisionType_All);
+		this, NxOgre::Enums::VolumeCollisionType_OnEnter);
 
 	//Stores information in struct_PowerUp. Useful later for check what PowerUpBox that was entered.
 	struct_PowerUp pwrup;
@@ -47,9 +56,10 @@ void PowerUp::onVolumeEvent(NxOgre::Volume* volume, NxOgre::Shape* volumeShape, 
 			{
 				//Hide the Ogre Entity.
 				mSceneMgr->getEntity(itr->name)->setVisible(false);
-				//@todo Action!!!!!! Färger hit å dit tjarå
-				mPlayer->setPowerUp(powerUpFlag);
-				GameFramework::getSingletonPtr()->mpGui->changeIngameUIIcon(powerUpFlag);
+				GameFramework::getSingletonPtr()->mpGui->updateActionBarElement(1 << powerUpFlag,Game::ActionBar_Normal);
+
+				GameFramework::getSingletonPtr()->mpSound->playSound("../Media/Sounds/powerup.ogg", itr->volume->getGlobalPosition().as<Ogre::Vector3>());
+				
 
 				//When once collected, there is no need to keep looking for more events.
 				itr->volume->removeCallback();

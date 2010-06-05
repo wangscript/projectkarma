@@ -15,9 +15,9 @@ PhysicsManager::PhysicsManager(Ogre::SceneManager* sceneMgr)
 	mtpPhysicsScene = mtpPhysicsWorld->createScene(sceneDesc);
 
 	// Set some physical scene values
-	mtpPhysicsScene->getMaterial(0)->setStaticFriction(GameFramework::getSingletonPtr()->mpSettings->mTemp1);
-	mtpPhysicsScene->getMaterial(0)->setDynamicFriction(GameFramework::getSingletonPtr()->mpSettings->mTemp2);
-	mtpPhysicsScene->getMaterial(0)->setRestitution(0);
+	mtpPhysicsScene->getMaterial(0)->setStaticFriction(*Settings::getSingletonPtr()->mPysicsFrictionStatic);
+	mtpPhysicsScene->getMaterial(0)->setDynamicFriction(*Settings::getSingletonPtr()->mPysicsFrictionDynamic);
+	mtpPhysicsScene->getMaterial(0)->setRestitution(*Settings::getSingletonPtr()->mPysicsRestitution);
 
 	//For kinematic objects
 	mtpPhysicsScene->getScene()->setDominanceGroupPair(1,2,NxConstraintDominance::NxConstraintDominance(1.0f, 0.0f));
@@ -30,38 +30,41 @@ PhysicsManager::PhysicsManager(Ogre::SceneManager* sceneMgr)
 
 	//Load own resources for NxOgre
 	NxOgre::ResourceSystem::getSingleton()->openArchive("nxogre", "file:nxogre");
-	mtpPhysicsScene->createSceneGeometry(new NxOgre::PlaneGeometry(0, NxOgre::Vec3(0, 1, 0)), Matrix44_Identity);
 }
 
 PhysicsManager::~PhysicsManager()
 {
 }
 
-void PhysicsManager::addStaticTriangleMesh(const Ogre::Vector3& pos ,char* filename)
+void PhysicsManager::addStaticTriangleMesh(const Ogre::Vector3& pos ,const char* filename)
 {
 	char nxOgreFileName[80] = "nxogre:";
 	std::strcat(nxOgreFileName,filename);
-	std::strcat(nxOgreFileName,".xns");
+	std::strcat(nxOgreFileName,".nxs");
 	std::cout << nxOgreFileName;
 	NxOgre::Mesh* triangleMesh = NxOgre::MeshManager::getSingleton()->load(nxOgreFileName);
 	NxOgre::TriangleGeometry* triangleGeometry = new NxOgre::TriangleGeometry(triangleMesh);
-	mtpPhysicsScene->createSceneGeometry(triangleGeometry, NxOgre::Matrix44(NxOgre::Vec3(pos)));
+	NxOgre::SceneGeometry* test = mtpPhysicsScene->createSceneGeometry(triangleGeometry, NxOgre::Matrix44(NxOgre::Vec3(pos)));
+	
 
+	
 	//@todo ska bort, bör finnas i dotscene.
-	char ogreFileName[80] = "";
+	/*char ogreFileName[80] = "";
 	std::strcat(ogreFileName,filename);
 	std::strcat(ogreFileName,".mesh");
 	Ogre::Entity* triangleEntity = mtpSceneMgr->createEntity("physicsEntity" + Ogre::StringConverter::toString(mtEntityCounter++), ogreFileName);
+	triangleEntity->setCastShadows(false);
 	Ogre::SceneNode* triangleNode = mtpSceneMgr->getRootSceneNode()->createChildSceneNode();
 	triangleNode->attachObject(triangleEntity);
-	triangleNode->setPosition(pos);
+	triangleNode->setPosition(pos);*/
 }
+
 
 void PhysicsManager::addRigidBody(const Ogre::Vector3& pos, char* filename, Ogre::Real mass, int collisionGroup)
 {
 	char nxOgreFileName[80] = "nxogre:";
 	std::strcat(nxOgreFileName,filename);
-	std::strcat(nxOgreFileName,".xns");
+	std::strcat(nxOgreFileName,".nxs");
 
 	char ogreFileName[80] = "";
 	std::strcat(ogreFileName,filename);
@@ -76,11 +79,11 @@ void PhysicsManager::addRigidBody(const Ogre::Vector3& pos, char* filename, Ogre
 	mtpPhysicsRenderSystem->createBody(triangleGeometry,pos,ogreFileName,description);
 }
 
-void PhysicsManager::addKinematicTriangleMesh(const std::vector<Ogre::Vector3> posList, const Ogre::Real speed,char* filename)
+void PhysicsManager::addKinematicTriangleMesh(const std::vector<Ogre::Vector3> posList, const Ogre::Real speed,const char* filename)
 {
 	char nxOgreFileName[80] = "nxogre:";
 	std::strcat(nxOgreFileName,filename);
-	std::strcat(nxOgreFileName,".xns");
+	std::strcat(nxOgreFileName,".nxs");
 
 	char ogreFileName[80] = "";
 	std::strcat(ogreFileName,filename);
@@ -108,7 +111,7 @@ void PhysicsManager::addKinematicTriangleMesh(const std::vector<Ogre::Vector3> p
 
 }
 
-void PhysicsManager::addKinematicCircle(const Ogre::Real angVel, const Ogre::Vector3 orgin, const Ogre::Real radius, char* filename)
+void PhysicsManager::addKinematicCircle(const Ogre::Real angVel, const Ogre::Vector3 orgin, const Ogre::Real radius, const char* filename)
 {
 	char nxOgreFileName[80] = "nxogre:";
 	std::strcat(nxOgreFileName,filename);

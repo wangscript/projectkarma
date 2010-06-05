@@ -12,6 +12,10 @@
 #include "SceneLoader.h"
 #include "NPCAimer.h"
 #include "NPCHandler.h"
+#include <stdlib.h>
+#include <time.h>
+
+
 
 #include "GameCommon.h"
 
@@ -39,26 +43,17 @@ public:
         bool mousePressed(const OIS::MouseEvent &arg, OIS::MouseButtonID id); 
         bool mouseReleased(const OIS::MouseEvent &arg, OIS::MouseButtonID id);
 
-        void onLeftPressed(const OIS::MouseEvent &evt);
-
         void update(double timeSinceLastFrame);
-
-        void setBufferedMode();
-        void setUnbufferedMode();
 
 private:
 
 	PhysicsManager*							mvpPhysicsMgr;
-	bool                                    mvQuit;
+	bool                                    mvQuit,mvRightButton;
 
-	CameraHandler*							m_CameraHandler;
 	Player*								m_Character;
 	NPC*								mNPC;//SKA BORT @todo
 	PowerUp*								m_PowerUps;
 	WorldManager*							mvpWorld;
-
-	bool                                    mvLMouseDown, mvRMouseDown;
-	bool                                    mvChatMode;
 
 };
 

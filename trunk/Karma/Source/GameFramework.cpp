@@ -10,8 +10,6 @@ template<> GameFramework* Ogre::Singleton<GameFramework>::ms_Singleton = 0;
 
 GameFramework::GameFramework()
 {
-	mtNumScreenShots	= 0;
-
 	mpRoot				= 0;
 	mpRenderWnd			= 0;
 	mpViewport			= 0;
@@ -21,9 +19,8 @@ GameFramework::GameFramework()
 	mpInputMgr			= 0;
 	mpKeyboard			= 0;
 	mpMouse				= 0;
-
-	mtpDebugOverlay		= 0;
-	mtpInfoOverlay		= 0;
+	mpSound				= 0;
+	mpGui				= 0;
 }
 
 //|||||||||||||||||||||||||||||||||||||||||||||||
@@ -38,15 +35,17 @@ GameFramework::~GameFramework()
 		delete m_pKeyboard;
 		delete m_pMouse;
 */
+	if(mpSound)
+		mpSound->deleteSound();
 
-	mpSound->deleteSound();
+	delete mpGui;
 	delete mpSound;	
 	delete mpRoot;
 }
 
 //|||||||||||||||||||||||||||||||||||||||||||||||
 
-void GameFramework::initOgre(Ogre::String wndTitle, OIS::KeyListener *pKeyListener, OIS::MouseListener *pMouseListener)
+bool GameFramework::initOgre(Ogre::String wndTitle, OIS::KeyListener *pKeyListener, OIS::MouseListener *pMouseListener)
 {
 	Ogre::LogManager* logMgr = new Ogre::LogManager();
 	
@@ -54,8 +53,9 @@ void GameFramework::initOgre(Ogre::String wndTitle, OIS::KeyListener *pKeyListen
 	mpLog->setDebugOutputEnabled(true);
 	
 	mpRoot = new Ogre::Root();
+	if (!mpRoot->showConfigDialog())
+		return false;
 
-	mpRoot->showConfigDialog();
 	mpRenderWnd = mpRoot->initialise(true, wndTitle);
 
 	mpViewport = mpRenderWnd->addViewport(0);
@@ -88,71 +88,67 @@ void GameFramework::initOgre(Ogre::String wndTitle, OIS::KeyListener *pKeyListen
 	else
 		mpMouse->setEventCallback(pMouseListener);
 	
-	Ogre::String secName, typeName, archName;
-	Ogre::ConfigFile cf;
-	cf.load("resources.cfg");
+	mpRenderWnd->setActive(true);
 
-	Ogre::ConfigFile::SectionIterator seci = cf.getSectionIterator();
-    while (seci.hasMoreElements())
-    {
-        secName = seci.peekNextKey();
-		Ogre::ConfigFile::SettingsMultiMap *settings = seci.getNext();
-        Ogre::ConfigFile::SettingsMultiMap::iterator i;
-        for (i = settings->begin(); i != settings->end(); ++i)
-        {
-            typeName = i->first;
-            archName = i->second;
-            Ogre::ResourceGroupManager::getSingleton().addResourceLocation(archName, typeName, secName);
-        }
-    }
 	Ogre::TextureManager::getSingleton().setDefaultNumMipmaps(5);
-	Ogre::ResourceGroupManager::getSingleton().initialiseAllResourceGroups();
+
+	//Load cursor resources
+	Ogre::ResourceGroupManager::getSingleton().createResourceGroup("Cursor");
+	Ogre::ResourceGroupManager::getSingleton().addResourceLocation("../Media/Cursor.zip","Zip","Cursor");
+	Ogre::ResourceGroupManager::getSingleton().initialiseResourceGroup("Cursor");
+
+	mpGui = new GuiHandler(mpRenderWnd);
+
+#ifdef DEBUG
+	loadDebugResources();
+	mpGui->initDebugGui();
+#endif
+
+	Settings::getSingletonPtr()->setLog(mpLog);
 
 	mpTimer = new Ogre::Timer();
-	mpTimer->reset();
-	
-	
-	/*mtpDebugOverlay = Ogre::OverlayManager::getSingleton().getByName("Core/DebugOverlay");
-	mtpDebugOverlay->show();*/
+	mpTimer->reset();	
 
-	mpRenderWnd->setActive(true);
 	mpSound = new SoundManager();
-	mpSound->initSound();
 
-	mpGui = new GuiHandler();
-	mpGui->initGui();
-	mpGui->initDebugGui();
-	mpGui->initIngameUI();
-	mpGui->initCastingBar();
-
-	mpSettings = new Settings(mpLog);
-	mpSettings->loadSettingsFromFile();
+	return true;
 }
 
-//|||||||||||||||||||||||||||||||||||||||||||||||
+void GameFramework::loadMenuResources()
+{
+	Ogre::ResourceGroupManager::getSingleton().createResourceGroup("Menu");
+	Ogre::ResourceGroupManager::getSingleton().addResourceLocation("../Media/Menu.zip","Zip","Menu");
+	Ogre::ResourceGroupManager::getSingleton().initialiseResourceGroup("Menu");
+}
+
+void GameFramework::loadGameResources()
+{
+	Ogre::ResourceGroupManager::getSingleton().addResourceLocation("../Media/Gui.zip","Zip","Game");
+	Ogre::ResourceGroupManager::getSingleton().addResourceLocation("../Media/Material.zip","Zip","Game");
+
+	Ogre::ResourceGroupManager::getSingleton().addResourceLocation("../Media/Meshes.zip","Zip","Game");
+
+	Ogre::ResourceGroupManager::getSingleton().addResourceLocation("../Media/ParticleSystems.zip","Zip","Game");
+	Ogre::ResourceGroupManager::getSingleton().addResourceLocation("../Media/Terrain.zip","Zip","Game");	
+	Ogre::ResourceGroupManager::getSingleton().addResourceLocation("../Media/Textures.zip","Zip","Game");
+	Ogre::ResourceGroupManager::getSingleton().addResourceLocation("../Media/ActionBar.zip","Zip","Game");
+
+	Ogre::ResourceGroupManager::getSingleton().initialiseResourceGroup("Game");
+}
+
+
+#ifdef DEBUG
+void GameFramework::loadDebugResources()
+{
+	Ogre::ResourceGroupManager::getSingleton().createResourceGroup("Debug");
+	Ogre::ResourceGroupManager::getSingleton().addResourceLocation("../Media/Debug.zip","Zip","Debug");
+	Ogre::ResourceGroupManager::getSingleton().initialiseResourceGroup("Debug");
+}
+#endif
 
 bool GameFramework::keyPressed(const OIS::KeyEvent &keyEventRef)
 {
-	if(mpKeyboard->isKeyDown(OIS::KC_SYSRQ))
-	{
-		std::ostringstream ss;
-		ss << "screenshot_" << ++mtNumScreenShots << ".png";
-		mpRenderWnd->writeContentsToFile(ss.str());
-		return true;
-	}
-
-	if(mpKeyboard->isKeyDown(OIS::KC_O))
-	{
-		if(mtpDebugOverlay)
-		{
-			if(!mtpDebugOverlay->isVisible())
-				mtpDebugOverlay->show();
-			else
-				mtpDebugOverlay->hide();
-		}
-	}
-
-	return true;
+return true;
 }
 
 //|||||||||||||||||||||||||||||||||||||||||||||||
@@ -187,17 +183,9 @@ bool GameFramework::mouseReleased(const OIS::MouseEvent &evt, OIS::MouseButtonID
 
 void GameFramework::updateOgre(double timeSinceLastFrame)
 {
-	updateStats();
-}
-
-//|||||||||||||||||||||||||||||||||||||||||||||||
-
-void GameFramework::updateStats() 
-{ 
+#ifdef DEBUG
 	const Ogre::RenderTarget::FrameStats& stats = mpRenderWnd->getStatistics(); 
 	mpGui->updateDebugFPS(Ogre::StringConverter::toString(stats.lastFPS));
 	mpGui->updateDebugTriangles(Ogre::StringConverter::toString(stats.triangleCount));
-
-} 
-
-//|||||||||||||||||||||||||||||||||||||||||||||||
+#endif
+}

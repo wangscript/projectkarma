@@ -28,7 +28,8 @@ public:
 	void destroyAll();
 	int getChunksWidth(){return mvChunksNumber;};
 	void loopCurrentChunksUpdate( const double& timeSinceLastFrame);
-	NPC* Chunks::searchForNPCinChunk(NxActor* actor, bool& headshot);
+	void resetAllNPcs();
+	NPC* searchForNPCinChunk(NxActor* actor, bool& headshot);
 	void setActiveChunkArea(const GridData& d,bool diagonalMove);
 	
 private:	

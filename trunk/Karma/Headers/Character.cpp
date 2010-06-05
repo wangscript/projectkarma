@@ -14,18 +14,21 @@ Character::Character(Ogre::SceneManager* sceneMgr,NxOgre::Scene* physScene,OGRE3
 	mtHP(hp),
 	mtHPCur(mtHP),
 	mtWalkSpeed(walkSpeed),
-	mtFaceDirection(Ogre::Vector3(0,0,-1)),//@todo fixa
-	mtDieRespawnTimer(0.0f),//@todo fixa
-	mtDieRespawnTime(6.0f),//@todo fixa
-	mtCharSpeedForward(GameFramework::getSingletonPtr()->mpSettings->mCharSpeedForward), 
-	mtCharSpeedBackward(GameFramework::getSingletonPtr()->mpSettings->mCharSpeedBackward), 
-	mtCharSpeedStrafeLeft(GameFramework::getSingletonPtr()->mpSettings->mCharSpeedStrafeLeft),
-	mtCharSpeedStrafeRight(GameFramework::getSingletonPtr()->mpSettings->mCharSpeedStrafeRight),
-	mtWorldSize(GameFramework::getSingletonPtr()->mpSettings->mTerrainWorldSize),
+	mtFaceDirection(&Settings::getSingletonPtr()->mCharFaceDirection),
+	mtDieRespawnTimer(0.0f),
+	mtDieRespawnTime(&Settings::getSingletonPtr()->mCharRespawnTime),
+	mtFreezeAfterDieTimer(&Settings::getSingletonPtr()->mCharFreezeAfterDieTimer),
+	mtFallingSpeed(0.0f),
+	mtJumpForceY(&Settings::getSingletonPtr()->mCharJumpForceY),
+	mtCharSpeedForward(&Settings::getSingletonPtr()->mCharSpeedForward), 
+	mtCharSpeedBackward(&Settings::getSingletonPtr()->mCharSpeedBackward), 
+	mtCharSpeedStrafeLeft(&Settings::getSingletonPtr()->mCharSpeedStrafeLeft),
+	mtCharSpeedStrafeRight(&Settings::getSingletonPtr()->mCharSpeedStrafeRight),
+	mtWorldSize(&Settings::getSingletonPtr()->mTerrainWorldSize),
 	mtChunksWidth(Chunks::getSingletonPtr()->getChunksWidth()) 	
 {
 	//Loads the mesh and calculates tangents if needed.
-	Ogre::MeshPtr mesh = Ogre::MeshManager::getSingleton().load(filename, "Karma",
+	Ogre::MeshPtr mesh = Ogre::MeshManager::getSingleton().load(filename, "Game",
 		Ogre::HardwareBuffer::HBU_DYNAMIC_WRITE_ONLY);
 	unsigned short src, dest;
 	if (!mesh->suggestTangentVectorBuildParams(Ogre::VES_TANGENT, src, dest))
@@ -43,33 +46,44 @@ Character::Character(Ogre::SceneManager* sceneMgr,NxOgre::Scene* physScene,OGRE3
 
 	//Properties for bounding capsule
 	NxOgre::RigidBodyDescription descriptionCapsule;
-	//description.mMass = mtCharMassBoundCapsule; @todo
-	descriptionCapsule.mMass = 80;
+	descriptionCapsule.mMass = *Settings::getSingletonPtr()->mCharCapsuleMass;
 	descriptionCapsule.mBodyFlags |= NxOgre::Enums::BodyFlags_FreezeRotation;
 
 	//Add capsule to physics world and set Collision Group
-	mtpHitBox = renderSystem->createBody(new NxOgre::Capsule(0.25,0.85), NxOgre::Vec3(spawnPoint + Ogre::Vector3(0,0.675,0)), "capsule.mesh", descriptionCapsule);
+	float radius = Settings::getSingletonPtr()->mCharCapsuleRadius;
+	float height = Settings::getSingletonPtr()->mCharCapsuleHeight;
+	mtCharOffsetY = (height+radius*2)/2;
+	mtpHitBox = renderSystem->createBody(new NxOgre::Capsule(radius,height),
+		NxOgre::Vec3(spawnPoint + Ogre::Vector3(0,mtCharOffsetY,0)), "CharCapsule.mesh", descriptionCapsule);
 	mtHitBoxGlobalOrientation = mtpHitBox->getNxActor()->getGlobalOrientation();
 	NxShape* const* s = mtpHitBox->getNxActor()->getShapes();
 	(*s)->setGroup(collisionGroup);
-	mtpHitBox->getEntity()->setVisible(false);	
 	//So that it doesn't change position of kinematic objects
 	mtpHitBox->getNxActor()->setDominanceGroup(1);
 
 	//These nodes are being used when the character dies and falls to the ground
-	mtpDieNode = mtpHitBox->getSceneNode()->createChildSceneNode(name + Ogre::String("DieNode"),Ogre::Vector3(0,-0.675,0));
+	mtpDieNode = mtpHitBox->getSceneNode()->createChildSceneNode(name + Ogre::String("DieNode"),Ogre::Vector3(0,-(height+radius*2)/2,0));
 	mtpDieNode->setScale(scale,scale,scale);
 
 	//Properties for bounding sphere that's going to visualize the head.	
-	NxOgre::RigidBodyDescription description2;
-	description2.mMass = 60;
-	description2.mBodyFlags |= NxOgre::Enums::BodyFlags_FreezeRotation;
-	description2.mBodyFlags |= NxOgre::Enums::BodyFlags_DisableGravity;
-	mtpHitBoxHead = renderSystem->createBody(new NxOgre::Sphere(0.2), NxOgre::Vec3(spawnPoint + Ogre::Vector3(0,1.25,0)), "capsule.mesh", description2);//@todo fixa sphere
-	mtpHitBoxHead->getEntity()->setVisible(false);
+	NxOgre::RigidBodyDescription descriptionSphere;
+	descriptionSphere.mMass = *Settings::getSingletonPtr()->mCharSphereMass;
+	descriptionSphere.mBodyFlags |= NxOgre::Enums::BodyFlags_FreezeRotation;
+	descriptionSphere.mBodyFlags |= NxOgre::Enums::BodyFlags_DisableGravity;
+	mtpHitBoxHead = renderSystem->createBody(new NxOgre::Sphere(Settings::getSingletonPtr()->mCharSphereRadius), NxOgre::Vec3(spawnPoint + Ogre::Vector3(0,Settings::getSingletonPtr()->mCharSpherePosY,0)), "CharSphere.mesh", descriptionSphere);//@todo fixa sphere
+
 	mtpHitBoxHead->getNxActor()->setDominanceGroup(1);
 	NxShape* const* s2 = mtpHitBoxHead->getNxActor()->getShapes();
 	(*s2)->setGroup(collisionGroup);
+	std::cout << "\n\n\nCollisionGRoup : " << collisionGroup;
+
+	mtpHitBox->getEntity()->setVisible(false);	
+	mtpHitBoxHead->getEntity()->setVisible(false);
+
+	#ifdef DEBUG_SHOW_HITBOX
+	mtpHitBox->getEntity()->setVisible(true);	
+	mtpHitBoxHead->getEntity()->setVisible(true);
+	#endif
 
 	//Create a joint between head and body so that we will only have to update the body.
 	NxOgre::FixedJointDescription desciptionJoint;
@@ -99,14 +113,9 @@ void Character::changeAnimation(const Ogre::String& name,const double time,bool 
 
 	//Load the animationState. If the Character is jumping,override with the jumping animation
 	Ogre::AnimationState* animState;
-	if (mtJumping)
-		animState = mtpCharEnt->getAnimationState("Jump");
-	else
-	{
 		animState = mtpCharEnt->getAnimationState(name);
 		//Some animation don't want to be looped
 		animState->setLoop(loop);
-	}
 
 	animState->setEnabled(true);
 	//Switch (to a maybe new) state; 
@@ -115,11 +124,10 @@ void Character::changeAnimation(const Ogre::String& name,const double time,bool 
 	mtpAnimationState->addTime(time);
 
 	//Special case. If jumping and the jumping animation is done, reset mtJumping.
-	if (mtJumping && mtpAnimationState->getTimePosition() >= mtpAnimationState->getLength())
-	{
-		mtJumping=false;
-		mtpAnimationState->setTimePosition(0);
-	}
+	//if (mtJumping && mtpCharEnt->getAnimationState("Jump")->getTimePosition() >= mtpCharEnt->getAnimationState("Jump")->getLength())
+	//{
+		//mtpAnimationState->setTimePosition(0);
+	//}
 }
 /*---------------------------------------------------------------------------------*/
 void Character::jump()
@@ -127,8 +135,9 @@ void Character::jump()
 	//Just not jumping already, add force on the positve Y-axis
 	if (!mtJumping)
 	{
+		std::cout << "\nJumping!\n";
 		mtJumping = true;
-		mtpHitBox->addForce(NxOgre::Vec3(0,30000,0),NxOgre::Enums::ForceMode_Force); //@todo value
+		mtpHitBox->addForce(NxOgre::Vec3(0,*mtJumpForceY,0),NxOgre::Enums::ForceMode_Force);
 	}
 }
 /*---------------------------------------------------------------------------------*/
@@ -151,8 +160,8 @@ void Character::updatePosition()
 {
 	//Get position of capsule and set the characters position to the capsule's position.
 	NxOgre::Vec3 hitBoxPos = mtpHitBox->getGlobalPosition();
-	//Move the "RootNode". CHARACTER_ADJUST_Y , translate node if orgin is not in origo
-	mtpCharNode->getParentSceneNode()->setPosition(hitBoxPos.x ,hitBoxPos.y-0.675,hitBoxPos.z);
+	//Move the "RootNode". mtCharOffsetY , translate node if orgin is not in origo
+	mtpCharNode->getParentSceneNode()->setPosition(hitBoxPos.x ,hitBoxPos.y-mtCharOffsetY,hitBoxPos.z);
 }
 /*---------------------------------------------------------------------------------*/
 float Character::updateHp(float minusHP)
@@ -169,7 +178,7 @@ void Character::die()
 	//Is a virtual function, can (and should) be overwritten
 	std::cout << "Dead, respawning";
 	mtHPCur = mtHP;
-	mtDying=true;	
+	mtDying=true;
 }
 /*---------------------------------------------------------------------------------*/
 void Character::rotateCharacter(Ogre::SceneNode* sceneNode,const Ogre::Vector3& dest, const Ogre::Vector3& originalDir)
@@ -187,28 +196,35 @@ void Character::rotateCharacter(Ogre::SceneNode* sceneNode,const Ogre::Vector3& 
 bool Character::updateDead(const double& timeSinceLastFrame)
 {
 	//Update the "Die" animation. Currently no animation added 2010-05-17
-	//changeAnimation("Die",timeSinceLastFrame/5,false); // /10 för snabb i blender@todo
+	//changeAnimation("Die",timeSinceLastFrame,false); // /10 för snabb i blender@todo
 
 	//Update the respawntimer
 	mtDieRespawnTimer+=timeSinceLastFrame;
 
-	//If the capsule ever gets positive velocity on the Y axis after 1.5 seconds, it means
+	//If the capsule ever gets positive velocity on the Y axis after "mtFreezeAfterDieTimer" seconds, it means
 	//that it has hit the ground already. Friction can then make it shake on the ground.
 	//Solution: setPosition = frozen.
-	if (mtpHitBox->getLinearVelocity().y > 0 && mtDieRespawnTimer>1.5)
+	if (mtpHitBox->getLinearVelocity().y > 0 && mtDieRespawnTimer>*mtFreezeAfterDieTimer)
 		mtpHitBox->getNxActor()->raiseBodyFlag(NX_BF_FROZEN);
 
 	//If the timwer has reached the respawn time => Respawn
-	if (mtDieRespawnTimer >= mtDieRespawnTime)
+	if (mtDieRespawnTimer >= *mtDieRespawnTime)
 	{
-		//Resets animation
-		mtpAnimationState->setTimePosition(0);
-
 		std::cout << "Respawning";
+		respawn();
 
+		//Return respawn = true
+		return true;
+	}
+	//Not respawned yet, return false,
+	return false;
+}
+
+void Character::respawn()
+{
 		//Manually moving the physics actor to their spawn points.
-		mtpHitBox->setGlobalPosition(NxOgre::Vec3(mtSpawnPoint + Ogre::Vector3(0,0.675,0)));
-		mtpHitBoxHead->setGlobalPosition(NxOgre::Vec3(mtSpawnPoint + Ogre::Vector3(0,1.25,0)));
+		mtpHitBox->setGlobalPosition(NxOgre::Vec3(mtSpawnPoint + Ogre::Vector3(0,mtCharOffsetY,0)));
+		mtpHitBoxHead->setGlobalPosition(NxOgre::Vec3(mtSpawnPoint + Ogre::Vector3(0,Settings::getSingletonPtr()->mCharSpherePosY,0)));
 		//Important to set the orientation to the original one (since it is now lies on the ground)
 		mtpHitBox->getNxActor()->setGlobalOrientation(mtHitBoxGlobalOrientation);
 
@@ -227,23 +243,17 @@ bool Character::updateDead(const double& timeSinceLastFrame)
 
 		//Finally updates the position of the character to the capsule
 		updatePosition();
-
-		//Return respawn = true
-		return true;
-	}
-	//Not respawned yet, return false,
-	return false;
 }
 
 GridData Character::worldToChunk(const float& x, const float& z)
 {
 	//Move the coordinate system to only have positive values
-	double newX = x + mtWorldSize/2.0;
-	double newY = -z + mtWorldSize/2.0;
+	double newX = x + *mtWorldSize/2.0;
+	double newY = -z + *mtWorldSize/2.0;
 	
 	//Scales the coordinate system
-	newX = (newX*mtChunksWidth)/mtWorldSize;
-	newY = (newY*mtChunksWidth)/mtWorldSize;
+	newX = (newX*mtChunksWidth)/ *mtWorldSize;
+	newY = (newY*mtChunksWidth)/ *mtWorldSize;
 
 	//Rounds the double to an int.
 	newX = std::floor(newX + 0.5);

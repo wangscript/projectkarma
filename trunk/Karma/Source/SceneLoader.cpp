@@ -177,7 +177,6 @@ bool SceneLoader::parseNode(TiXmlElement *XMLNode)
 
 	//Create the entity
 	ent = mvpSceneMgr->createEntity(meshName,meshFile);
-	
 	//if(Ogre::StringConverter::parseBool(XMLEntity->Attribute("castShadows")))
 	ent->setCastShadows(false);
 	//if(ent->getCastShadows())
@@ -186,8 +185,8 @@ bool SceneLoader::parseNode(TiXmlElement *XMLNode)
 	Ogre::String str = nodeName;
 	str += "Node";
 	
-	vec3Position.y = mvpTerrain->getHeightAtWorldPosition(vec3Position);
-	vec3Position.y -= 0.3; //@todo wtf!
+	//vec3Position.y = mvpTerrain->getHeightAtWorldPosition(vec3Position);
+	//vec3Position.y -= 0.3; //@todo wtf!
 	Ogre::SceneNode *node = mvpSceneMgr->getRootSceneNode()->createChildSceneNode(str,vec3Position,quatRotation);
 	std::cout << "createChildNode";
 	node->scale(vec3Scale);
@@ -242,15 +241,19 @@ bool SceneLoader::parseNode(TiXmlElement *XMLNode)
 
 	//Convert meshName (string) to char array
 	char meshNameCharArr[80];
+	Ogre::String name(meshFile.begin(),meshFile.end()-5);
 	std::strcpy(meshNameCharArr,meshName.c_str());
+
+	if(!posList.empty())
+	{
+		mvpSceneMgr->destroyEntity(ent);
+		mvpSceneMgr->destroySceneNode(node);
+		mvpPhysicsMgr->addKinematicTriangleMesh(posList,speed,name.c_str());
+	}
 
 	if (EntityIsStatic)
 	{
-		mvpPhysicsMgr->addStaticTriangleMesh(vec3Position,meshNameCharArr);
-	}
-	else if(!posList.empty())
-	{
-		mvpPhysicsMgr->addKinematicTriangleMesh(posList,speed,meshNameCharArr);
+		mvpPhysicsMgr->addStaticTriangleMesh(vec3Position,name.c_str());
 	}
 	else
 	{

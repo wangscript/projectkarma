@@ -87,7 +87,6 @@ template <class T> GUI<T>::~GUI()
 		delete mtMouseOverElements[i].lockRelationships;
 		delete mtMouseOverElements[i].unlockRelationships;
 	}
-	Ogre::OverlayManager::getSingleton().getByName("GuiKarma/Menu")->hide();
 }
 /*---------------------------------------------------------------------------------*/
 template <class T> void GUI<T>::addLockedRelation(int currentMOE, std::vector<int> relationshipMOEs)
@@ -136,7 +135,7 @@ template <class T> int GUI<T>::addMouseOver(Ogre::String &s,void (T::*onStatePre
 	//Information about the size. 
 	mOE.top = mOE.overlay->_getDerivedTop() * mtWindowHeight;
 	mOE.bottom = (mOE.overlay->_getDerivedTop() +  mOE.overlay->_getHeight()) * mtWindowHeight;
-	mOE.left = mOE.overlay->_getDerivedLeft() * mtWindowWidth;
+	mOE.left = mOE.overlay->_getDerivedLeft()* mtWindowWidth;
 	mOE.right = (mOE.overlay->_getDerivedLeft()  +  mOE.overlay->_getWidth() ) * mtWindowWidth;
 
 	//Pointer to the function that will be executed when element is pressed;

@@ -2,6 +2,7 @@
 #define EFFECTS_H
 
 #include <Ogre.h>
+#include "Appstate.h"
 #include <vector>
 
 class Effects
@@ -40,6 +41,17 @@ private:
 	void resetTimer();
 };
 
+class MuzzleFireFirstPerson : public Effects
+{
+public:
+	MuzzleFireFirstPerson(const double& timerReset);
+	
+	void startTimer();
+	
+private:
+	void resetTimer();
+};
+
 class Blood : public Effects
 {
 public:
@@ -70,4 +82,19 @@ private:
 	void resetTimer();
 };
 
+class BulletHoles
+{
+private: 
+	static BulletHoles singleton;
+	BulletHoles(): mvBulletHoles(0){};
+	int mvBulletHoles;
+	Ogre::SceneManager* mvpSceneMgr;
+public:
+	static BulletHoles getSingleton(){return singleton;};
+	static BulletHoles* getSingletonPtr(){return &singleton;};
+
+	void addBulletHole(const Ogre::Vector3 &normal,const Ogre::Vector3 &pos);
+	void setSceneManager(Ogre::SceneManager* s) {mvpSceneMgr = s;};
+	void resetBulletHoles(){mvBulletHoles = 0;};
+};
 #endif

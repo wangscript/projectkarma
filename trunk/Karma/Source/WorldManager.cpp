@@ -9,14 +9,14 @@ WorldManager::WorldManager(Ogre::SceneManager* s, Ogre::Camera* c, NxOgre::Scene
 
 	//Global terrain options here
 	mtpTerrainGlobals = OGRE_NEW Ogre::TerrainGlobalOptions();
-	mtpTerrainGlobals->setMaxPixelError(GameFramework::getSingletonPtr()->mpSettings->mTerrainMaxPixelError);
+	mtpTerrainGlobals->setMaxPixelError(*Settings::getSingletonPtr()->mTerrainMaxPixelError);
 
 	//Important information when calculating lightmaps
 	mtpTerrainGlobals->setLightMapDirection(dirLight->getDerivedDirection());
 	mtpTerrainGlobals->setCompositeMapAmbient(mtpSceneMgr->getAmbientLight());
 	mtpTerrainGlobals->setCompositeMapDiffuse(dirLight->getDiffuseColour());
 	// Set the distance at which to start using a composite map if present
-	mtpTerrainGlobals->setCompositeMapDistance(GameFramework::getSingletonPtr()->mpSettings->mTerrainCompositeMapDistance);
+	mtpTerrainGlobals->setCompositeMapDistance(*Settings::getSingletonPtr()->mTerrainCompositeMapDistance);
 
 	//From wikipedia:
 	//Anisotropic filtering (AF) is a method of enhancing the image quality of textures on surfaces 
@@ -25,19 +25,21 @@ WorldManager::WorldManager(Ogre::SceneManager* s, Ogre::Camera* c, NxOgre::Scene
 	//which can result in aliasing or blurring of textures. By reducing detail in one direction more than another,
 	//these effects can be reduced.	
 	Ogre::MaterialManager::getSingleton().setDefaultTextureFiltering(Ogre::TFO_ANISOTROPIC);
-	Ogre::MaterialManager::getSingleton().setDefaultAnisotropy(GameFramework::getSingletonPtr()->mpSettings->mTerrainDefaultAnisotropy);
+	Ogre::MaterialManager::getSingleton().setDefaultAnisotropy(*Settings::getSingletonPtr()->mTerrainDefaultAnisotropy);
 
 	// FIX VARIABLES. ska kunna ändra ifrån createScene i GameState
 	//Since we want the ability to load not only one terrain, we define a terrain group.
 	mtpTerrainGroup = OGRE_NEW Ogre::TerrainGroup(mtpSceneMgr, Ogre::Terrain::ALIGN_X_Z,
-		GameFramework::getSingletonPtr()->mpSettings->mTerrainSize, 
-		GameFramework::getSingletonPtr()->mpSettings->mTerrainWorldSize);
-	mtpTerrainGroup->setFilenameConvention(TERRAIN_FILE_PREFIX, TERRAIN_FILE_SUFFIX);//whats this/Per
-	mtpTerrainGroup->setResourceGroup("Karma");
+		*Settings::getSingletonPtr()->mTerrainSize, 
+		Settings::getSingletonPtr()->mTerrainWorldSize);
+	mtpTerrainGroup->setFilenameConvention(TERRAIN_FILE_PREFIX, TERRAIN_FILE_SUFFIX);
+	mtpTerrainGroup->setResourceGroup("Game");
 }
 
 WorldManager::~WorldManager()
 {
+	OGRE_DELETE mtpTerrainGroup;
+	OGRE_DELETE mtpTerrainGlobals;
 }
 
 void WorldManager::addTextureLayer(Ogre::String& diffuseAndSpecMap, Ogre::String& normalAndHeightMap, Ogre::Real worldSize)
@@ -52,7 +54,7 @@ void WorldManager::addTextureLayer(Ogre::String& diffuseAndSpecMap, Ogre::String
 
 void WorldManager::initTerrain()
 {
-	//mtpTerrainGroup->setOrigin(Ogre::Vector3(-115,GameFramework::getSingletonPtr()->mpSettings->mTerrainAdjustY,12));
+	//mtpTerrainGroup->setOrigin(Ogre::Vector3(-115,*Settings::getSingletonPtr()->mTerrainAdjustY,12));
 
 	//@todo fixa paging? Fixa loopar här så x y varierar
 	int x = 0; int y = 0;
@@ -71,15 +73,15 @@ void WorldManager::initTerrain()
 		//@todo borde kanske kunna sätta dessa värden som parametrar i initTerrain. olika värden för olika banor
 		// Configure default import settings
 		Ogre::Terrain::ImportData& defaultimp = mtpTerrainGroup->getDefaultImportSettings();	
-		defaultimp.terrainSize = GameFramework::getSingletonPtr()->mpSettings->mTerrainSize;
-		defaultimp.worldSize = GameFramework::getSingletonPtr()->mpSettings->mTerrainWorldSize;
-		defaultimp.inputScale = GameFramework::getSingletonPtr()->mpSettings->mTerrainInputScale;
-		defaultimp.minBatchSize = GameFramework::getSingletonPtr()->mpSettings->mTerrainMinBatchSize;
-		defaultimp.maxBatchSize = GameFramework::getSingletonPtr()->mpSettings->mTerrainMaxBatchSize;
+		defaultimp.terrainSize = *Settings::getSingletonPtr()->mTerrainSize;
+		defaultimp.worldSize = Settings::getSingletonPtr()->mTerrainWorldSize;
+		defaultimp.inputScale = *Settings::getSingletonPtr()->mTerrainInputScale;
+		defaultimp.minBatchSize = *Settings::getSingletonPtr()->mTerrainMinBatchSize;
+		defaultimp.maxBatchSize = *Settings::getSingletonPtr()->mTerrainMaxBatchSize;
 
 		//@todo fixa så den inte behöver heta just terrain.png
 		Ogre::Image img;
-		img.load("TerrainTest256.png", "Karma");
+		img.load("TerrainTest256.png", "Game");
 		mtpTerrainGroup->defineTerrain(x, y, &img);
 		mtTerrainsImported = true;
 	}	
@@ -118,62 +120,6 @@ void WorldManager::buildNxOgreTerrain()
 	}
 	GameFramework::getSingletonPtr()->mpLog->logMessage("NxOgre Terrain files was created!");
 }
-/*---------------------------------------------------------------------------------*/
-void WorldManager::configureShadows(bool enabled, bool depthShadows)
-{
-	Ogre::TerrainMaterialGeneratorA::SM2Profile* matProfile = 
-		static_cast<Ogre::TerrainMaterialGeneratorA::SM2Profile*>(mtpTerrainGlobals->getDefaultMaterialGenerator()->getActiveProfile());
-	matProfile->setReceiveDynamicShadowsEnabled(enabled);
-
-	matProfile->setReceiveDynamicShadowsLowLod(false);
-
-	// General scene setup
-	//mtpSceneMgr->setShadowTechnique(Ogre::SHADOWTYPE_TEXTURE_ADDITIVE_INTEGRATED);
-
-
-	// 3 textures per directional light (PSSM)
-	mtpSceneMgr->setShadowTextureCountPerLightType(Ogre::Light::LT_DIRECTIONAL, 3);
-
-	if (mtPSSMSetup.isNull())
-	{
-		// shadow camera setup
-		Ogre::PSSMShadowCameraSetup* pssmSetup = new Ogre::PSSMShadowCameraSetup();
-		pssmSetup->setSplitPadding(mtpCamera->getNearClipDistance());
-		pssmSetup->calculateSplitPoints(3, mtpCamera->getNearClipDistance(), mtpSceneMgr->getShadowFarDistance());
-		pssmSetup->setOptimalAdjustFactor(0, 2);
-		pssmSetup->setOptimalAdjustFactor(1, 1);
-		pssmSetup->setOptimalAdjustFactor(2, 0.5);
-
-		mtPSSMSetup.bind(pssmSetup);
-
-	}
-	mtpSceneMgr->setShadowCameraSetup(mtPSSMSetup);
-
-
-	/*mtpSceneMgr->setShadowTextureCount(3);
-	mtpSceneMgr->setShadowTextureConfig(0, 2048, 2048, Ogre::PF_FLOAT32_R);
-	mtpSceneMgr->setShadowTextureConfig(1, 1024, 1024, Ogre::PF_FLOAT32_R);
-	mtpSceneMgr->setShadowTextureConfig(2, 1024, 1024, Ogre::PF_FLOAT32_R);
-	mtpSceneMgr->setShadowTextureSelfShadow(true);
-	mtpSceneMgr->setShadowCasterRenderBackFaces(true);
-	mtpSceneMgr->setShadowTextureCasterMaterial("PSSM/shadow_caster");
-
-	std::cout << "SUBENT!!\n\n\n";
-	Ogre::MaterialPtr houseMat1 = buildDepthShadowMaterial("ogre.tex.jpg");
-	Ogre::MaterialPtr houseMat2 = buildDepthShadowMaterial("ogreahead.tex.jpg");
-	Ogre::SubEntity* sub1 = mtpSceneMgr->getEntity("Char")->getSubEntity(0);
-	Ogre::SubEntity* sub2 = mtpSceneMgr->getEntity("Char")->getSubEntity(2);
-	sub1->setMaterial(houseMat1);
-	sub2->setMaterial(houseMat2);*/
-
-
-	matProfile->setReceiveDynamicShadowsDepth(depthShadows);
-	matProfile->setReceiveDynamicShadowsPSSM(static_cast<Ogre::PSSMShadowCameraSetup*>(mtPSSMSetup.get()));
-
-	//addTextureShadowDebugOverlay(TL_RIGHT, 3);
-
-}
-
 //---------------------------------------------------------------------------------
 Ogre::Terrain* WorldManager::getTerrainAt(int x,int y)
 {
@@ -250,9 +196,9 @@ void WorldManager::initBlendMaps(Ogre::Terrain* terrain)
 		blendMaps.push_back(blendMap);
 		blendPointers.push_back(blendMap->getBlendPointer());
 
-		//Loading image named blendMap"i".png from the Resource Group "Karma".
+		//Loading image named blendMap"i".png from the Resource Group "Game".
 		Ogre::Image img;
-		img.load("blendMap" +  Ogre::StringConverter::toString(i) + ".png","Karma");
+		img.load("blendMap" +  Ogre::StringConverter::toString(i) + ".png","Game");
 		//If the size isn't right, resize.
 		if(img.getWidth() != blendMapSize)
 		{
@@ -289,6 +235,8 @@ void WorldManager::initBlendMaps(Ogre::Terrain* terrain)
 	}
 
 }
+/*
+For shadow mapping and not shadow volumes:
 
 Ogre::MaterialPtr WorldManager::buildDepthShadowMaterial(const Ogre::String& textureName)
 {
@@ -310,9 +258,61 @@ Ogre::MaterialPtr WorldManager::buildDepthShadowMaterial(const Ogre::String& tex
 			splitPoints[i] = splitPointList[i];
 		}
 		p->getFragmentProgramParameters()->setNamedConstant("pssmSplitPoints", splitPoints);
-
-
 	}
-
 	return ret;
 }
+void WorldManager::configureShadows(bool enabled, bool depthShadows)
+{
+	Ogre::TerrainMaterialGeneratorA::SM2Profile* matProfile = 
+		static_cast<Ogre::TerrainMaterialGeneratorA::SM2Profile*>(mtpTerrainGlobals->getDefaultMaterialGenerator()->getActiveProfile());
+	matProfile->setReceiveDynamicShadowsEnabled(enabled);
+
+	matProfile->setReceiveDynamicShadowsLowLod(false);
+
+	// General scene setup
+	//mtpSceneMgr->setShadowTechnique(Ogre::SHADOWTYPE_TEXTURE_ADDITIVE_INTEGRATED);
+
+
+	// 3 textures per directional light (PSSM)
+	mtpSceneMgr->setShadowTextureCountPerLightType(Ogre::Light::LT_DIRECTIONAL, 3);
+
+	if (mtPSSMSetup.isNull())
+	{
+		// shadow camera setup
+		Ogre::PSSMShadowCameraSetup* pssmSetup = new Ogre::PSSMShadowCameraSetup();
+		pssmSetup->setSplitPadding(mtpCamera->getNearClipDistance());
+		pssmSetup->calculateSplitPoints(3, mtpCamera->getNearClipDistance(), mtpSceneMgr->getShadowFarDistance());
+		pssmSetup->setOptimalAdjustFactor(0, 2);
+		pssmSetup->setOptimalAdjustFactor(1, 1);
+		pssmSetup->setOptimalAdjustFactor(2, 0.5);
+
+		mtPSSMSetup.bind(pssmSetup);
+
+	}
+	mtpSceneMgr->setShadowCameraSetup(mtPSSMSetup);
+
+
+	mtpSceneMgr->setShadowTextureCount(3);
+	mtpSceneMgr->setShadowTextureConfig(0, 2048, 2048, Ogre::PF_FLOAT32_R);
+	mtpSceneMgr->setShadowTextureConfig(1, 1024, 1024, Ogre::PF_FLOAT32_R);
+	mtpSceneMgr->setShadowTextureConfig(2, 1024, 1024, Ogre::PF_FLOAT32_R);
+	mtpSceneMgr->setShadowTextureSelfShadow(true);
+	mtpSceneMgr->setShadowCasterRenderBackFaces(true);
+	mtpSceneMgr->setShadowTextureCasterMaterial("PSSM/shadow_caster");
+
+	std::cout << "SUBENT!!\n\n\n";
+	Ogre::MaterialPtr houseMat1 = buildDepthShadowMaterial("ogre.tex.jpg");
+	Ogre::MaterialPtr houseMat2 = buildDepthShadowMaterial("ogreahead.tex.jpg");
+	Ogre::SubEntity* sub1 = mtpSceneMgr->getEntity("Char")->getSubEntity(0);
+	Ogre::SubEntity* sub2 = mtpSceneMgr->getEntity("Char")->getSubEntity(2);
+	sub1->setMaterial(houseMat1);
+	sub2->setMaterial(houseMat2);
+
+
+	matProfile->setReceiveDynamicShadowsDepth(depthShadows);
+	matProfile->setReceiveDynamicShadowsPSSM(static_cast<Ogre::PSSMShadowCameraSetup*>(mtPSSMSetup.get()));
+
+	//addTextureShadowDebugOverlay(TL_RIGHT, 3);
+
+}
+*/
