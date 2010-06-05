@@ -11,6 +11,8 @@ protected:
 	irrklang::ISoundEngine*		m_engine;
 	irrklang::ISound*			m_BackgroundMusic;
 	irrklang::ISound*			mpRocketSound;
+	irrklang::ISound*			mpRocketFadeSound;
+	irrklang::ISound*			bgSound;
 	bool updateRocketSound;
 
 public:
@@ -20,11 +22,16 @@ public:
 	irrklang::ISoundSource*		mpWood;
 	irrklang::ISoundSource*		mpHeadShot;
 	irrklang::ISoundSource*		mpRocketBoots;
+	irrklang::ISoundSource*		mpRocketBootsFade;
+	irrklang::ISoundSource*		mpMoveBox;
     SoundManager();
-    ~SoundManager();
 
-    void initSound();
+	void initGameStateSound();
+	void removeGameStateSounds();
 	void deleteSound();
+
+	void playBackgroundSound();
+	void stopBackgroundSound();
 
 	void setBackgroundMusic(const char*);
 	void setBackgroundMusicVolume(const float);
@@ -33,7 +40,7 @@ public:
 	void playSound(const char* , Ogre::Vector3 );
 	void playSound(irrklang::ISoundSource* sound, Ogre::Vector3 pos,bool loop=false);
 	void play2D(irrklang::ISoundSource* sound,bool loop);
-	void stopPlaySound(irrklang::ISoundSource* sound);
+	void stopRocketSound(Ogre::Vector3 pos);
 	void updateListenerPos(Ogre::Vector3 );
 };
 

@@ -61,6 +61,21 @@ void MuzzleFire::setVisible(bool state)
 	mvpMuzzleFire->setVisible(state);
 }
 /*---------------------------------------------------------------------------------*/
+/*								MuzzleFireFirstPerson
+/*---------------------------------------------------------------------------------*/
+MuzzleFireFirstPerson::MuzzleFireFirstPerson(const double& timerReset) : Effects(timerReset){};
+/*---------------------------------------------------------------------------------*/	
+void MuzzleFireFirstPerson::startTimer()
+{
+	GameFramework::getSingletonPtr()->mpGui->showMuzzleFire(true);
+	mtTimer+=0.001;
+}
+/*---------------------------------------------------------------------------------*/
+void MuzzleFireFirstPerson::resetTimer()
+{
+	GameFramework::getSingletonPtr()->mpGui->showMuzzleFire(false);
+}
+/*---------------------------------------------------------------------------------*/
 /*									Blood
 /*---------------------------------------------------------------------------------*/
 Blood::Blood(const double& timerReset,Ogre::SceneManager *sceneMgr, const Ogre::String &name, const Ogre::String &particleSystem) : Effects(timerReset)
@@ -113,5 +128,27 @@ void ManuallyControlledParticles::startTimer()
 void ManuallyControlledParticles::resetTimer()
 {
 	mvpPS->setEmitting(false);
+}
+/*---------------------------------------------------------------------------------*/
+/*					Bullet Holes
+/*---------------------------------------------------------------------------------*/
+BulletHoles BulletHoles::singleton;
+/*---------------------------------------------------------------------------------*/
+void BulletHoles::addBulletHole(const Ogre::Vector3 &normal,const Ogre::Vector3 &pos)
+{
+	Ogre::Plane plane(normal,0.001);
+
+	Ogre::String name = "bulletHoleNr" + Ogre::StringConverter::toString(mvBulletHoles);
+	Ogre::Vector3 upVector= normal.perpendicular();
+	Ogre::MeshManager::getSingleton().createPlane(name,
+		Ogre::ResourceGroupManager::DEFAULT_RESOURCE_GROUP_NAME, plane,
+		Settings::getSingletonPtr()->mBulletHoleSize,Settings::getSingletonPtr()->mBulletHoleSize,20,20,true,1,1,1,upVector);
+
+	Ogre::Entity* ent = mvpSceneMgr->createEntity(name+"Ent", name);
+	mvpSceneMgr->getRootSceneNode()->createChildSceneNode(pos)->attachObject(ent);
+	ent->setMaterialName("BulletHole");
+	ent->setCastShadows(false);
+	mvBulletHoles++;
+	
 }
 /*---------------------------------------------------------------------------------*/

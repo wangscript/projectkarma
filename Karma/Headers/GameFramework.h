@@ -35,9 +35,14 @@ public:
 	GameFramework();
 	~GameFramework();
 
-	void initOgre(Ogre::String wndTitle, OIS::KeyListener *pKeyListener = 0, OIS::MouseListener *pMouseListener = 0);
+	bool initOgre(Ogre::String wndTitle, OIS::KeyListener *pKeyListener = 0, OIS::MouseListener *pMouseListener = 0);
+	void loadMenuResources();
+	void loadGameResources();
+#ifdef DEBUG
+	void loadDebugResources();
+#endif 
+
 	void updateOgre(double timeSinceLastFrame);
-	void updateStats();
 
 	bool keyPressed(const OIS::KeyEvent &keyEventRef);
 	bool keyReleased(const OIS::KeyEvent &keyEventRef);
@@ -57,15 +62,10 @@ public:
 	OIS::Mouse*					mpMouse;
 	SoundManager*				mpSound;
 	GuiHandler*					mpGui;
-	Settings*					mpSettings;
 
 private:
 	GameFramework(const GameFramework&);
 	GameFramework& operator= (const GameFramework&);
-
-	Ogre::Overlay*				mtpDebugOverlay;
-	Ogre::Overlay*				mtpInfoOverlay;
-	int							mtNumScreenShots;
 };
 
 //|||||||||||||||||||||||||||||||||||||||||||||||

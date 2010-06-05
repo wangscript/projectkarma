@@ -8,10 +8,6 @@ Chunks Chunks::singleton;
 /*---------------------------------------------------------------------------------*/
 Chunks::Chunks()
 {
-	//Gridsize
-	mvChunksNumber = 20;
-	//Size of each grid
-	mvGridArea = 1;
 }
 /*---------------------------------------------------------------------------------*/
 Chunks Chunks::getSingleton()
@@ -25,6 +21,11 @@ Chunks* Chunks::getSingletonPtr()
 }
 void Chunks::createGrid()
 {
+	//Gridsize
+	mvChunksNumber = *Settings::getSingletonPtr()->mChunksNumber;
+	//Size of each grid
+	mvGridArea = *Settings::getSingletonPtr()->mChunksGridArea;
+
 	//New two dimensionall array
 	mvStaticChunks = new chunkData*[mvChunksNumber];
 	for( int i = 0 ; i < mvChunksNumber ; i++ )
@@ -169,6 +170,11 @@ void Chunks::setActiveChunkArea(const GridData& d, bool diagonalMove)
 	top = newTop;
 	bot = newBot;
 	std::cout << "\nNew ChunkBorder. L:" << left << " R:" << right << " T:" << top << " B:" << bot;
+}
+/*---------------------------------------------------------------------------------*/
+void Chunks::resetAllNPcs()
+{
+	loopChunks(left,right,top,bot,0.0,true);
 }
 /*---------------------------------------------------------------------------------*/
 void Chunks::resetNPCs(const int l,const int r,const int t,const int b)

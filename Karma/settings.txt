@@ -1,9 +1,81 @@
 mTemp1 0
 mTemp2 5
 mTemp3 5
-mTemp4 240
+mTemp4 0
 mTemp5 0
 mTemp6 0
+
+mAimerGunMaterial GunMaterial
+mAimerMuzzleMaterial muzze
+mAimerMuzzleTimer 0.1
+mAimerBloodTimer 0.2
+mAimerFireDistanceMax 100
+mAimerFireDistanceMin 0.2
+mAimerShotDmgNormal 10
+mAimerShotDmgHeadshot 100
+mAimerShotForce 1000
+mAimerOffsetVectorLX 0.3
+mAimerOffsetVectorLY 0.9
+mAimerOffsetVectorLZ 0
+mAimerOffsetQuatLW 0.5
+mAimerOffsetQuatLX 0
+mAimerOffsetQuatLY 1
+mAimerOffsetQuatLZ 0
+mAimerOffsetVectorRX 0
+mAimerOffsetVectorRY 0.7
+mAimerOffsetVectorRZ 0
+mAimerOffsetQuatRW 1
+mAimerOffsetQuatRX -0.1
+mAimerOffsetQuatRY 0.6
+mAimerOffsetQuatRZ -0.2
+
+mChunksNumber 20
+mChunksGridArea 1
+
+mBulletHoleSize 0.1
+
+mAmbientLight 0.2
+mNearClipDistance 0.05
+mFarClipDistance 600
+mShadowFarDistance 60
+mDirectionalLightDirX 0.5
+mDirectionalLightDirY -0.9
+mDirectionalLightDirZ 0.5
+mFogColor 0.7
+mFogStart 10000
+mFogEnd 25000
+mSkyBox Examples/MorningSkyBox
+
+mNPCUpdateTimerFreq 20
+mNPCAimerRangeLong 5
+mNPCAimerRangeLongFreq 1.5
+mNPCAimerRangeShort 3
+mNPCAimerRangeShortFreq 0.5
+mNPCAimerRandomness 2
+
+mPysicsFrictionStatic 5
+mPysicsFrictionDynamic 5
+mPysicsRestitution 0
+
+mPlayerSpawnPointX -200
+mPlayerSpawnPointY 30
+mPlayerSpawnPointZ 200
+mPlayerParticleMoveBoxOffsetX 0.0
+mPlayerParticleMoveBoxOffsetY 0.7
+mPlayerParticleMoveBoxOffsetZ -0.7
+mPlayerParticleRocketBootsOffsetX 0
+mPlayerParticleRocketBootsOffsetY 2.4
+mPlayerParticleRocketBootsOffsetZ 0
+mPlayerMaxFallSpeedBeforeDie -15
+mPlayerRocketBootsUpdateFreq 30
+mPlayerRocketBootsCastingBarUpFreq 2
+mPlayerUpdateBonesFreq 30
+mPlayerRocketBootsForceY 900
+mPlayerContiniousShootTimer 0.2
+mPlayerMoveBoxDuration 2.0
+mPlayerRocketBootsDuration 1.5
+mPlayerSuperSpeedDuration 2.5
+mPlayerSuperSpeed 10
 
 mCamZoom 0.005
 mCamRotate 0.10
@@ -14,22 +86,39 @@ mCamHeightMinY 1.1
 mCamDistanceMax 14
 mCamDistanceMin 4
 mCamCharYAdjust 1.6
-mCamGunTrackerDistanceZ -3.0
 mCamGunTrackerOffsetX 2.5 
 mCamGunTrackerOffsetY 2.5
 mCamGunTrackerOffsetZ -3.0
+mCamMixHelperHeight 2.5
+mCamThirdDistance 3.0
+mCamThirdHeight 1.2
+mCamMass 100
+mCamLinearDamping 5
+mCamAngularDamping 10
+mCamRadius 0.1
+mCamStartPosX 0.0
+mCamStartPosY 2.0
+mCamStartPosZ 3.0
 
-mCharMassBoundCapsule 80
-mCharSpeedSuper 5
 mCharSpeedForward 3
 mCharSpeedBackward -1
 mCharSpeedStrafeLeft 1.5
 mCharSpeedStrafeRight 1.5
-mCharAdjustPosX 0
-mCharAdjustPosY 0
-mCharAdjustPosZ 0
 mCharScale 0.2
 mCharRotation 0
+mCharDieAngularDamping 1
+mCharRespawnTime 6
+mCharFaceDirectionX 0
+mCharFaceDirectionY 0
+mCharFaceDirectionZ -1
+mCharCapsuleMass 80
+mCharSphereMass 60
+mCharSphereRadius 0.2
+mCharSpherePosY 1.25
+mCharCapsuleHeight 0.85
+mCharCapsuleRadius 0.25
+mCharJumpForceY 30000
+mCharFreezeAfterDieTimer 1.5
 
 mTerrainSize 257
 mTerrainWorldSize 600
@@ -37,6 +126,7 @@ mTerrainInputScale 77.6
 mTerrainMinBatchSize 33
 mTerrainMaxBatchSize 65
 mTerrainMaxPixelError 1
-mTerrainCompositeMapDistance 30
+mTerrainCompositeMapDistance 60
 mTerrainDefaultAnisotropy 7
 mTerrainAdjustY 0
+mTerrainTextureWorldSize 10

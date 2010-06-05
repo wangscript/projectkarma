@@ -6,56 +6,61 @@
 
 class CameraHandler
 {
-	public:
+private: 
+	static CameraHandler singleton;
 
-		CameraHandler(Ogre::Camera* cam, OGRE3DRenderSystem* renderSystem,Ogre::SceneManager* mSceneMgr, Player* p);
-		virtual ~CameraHandler();
-		void Zoom(const OIS::MouseEvent &arg);
-		void Rotate(const OIS::MouseEvent &arg);
-		void AdjustCamera();
-		void MoveCamera();
-		void setCamMode(int x);
-		int getCamMode(){return mtCamMode;};
-		void setPlayerPtr(Player* x){mtpPlayer = x;};
+	CameraHandler() {};
+public:
+	static CameraHandler getSingleton();
+	static CameraHandler* getSingletonPtr();
 
-	protected:
-		OGRE3DBody*		cameraSphere;
-		Ogre::Camera*	camera;
-		Ogre::SceneManager* sceneMgr;
-		Ogre::Real	 mtRotate; 
-		Ogre::Real	mtZoom;
-		int mtCamMode;
-		Player* mtpPlayer;
-		Ogre::Real mtCamCharYAdjust;
-		Ogre::Real mtCamGunTrackerOffsetX,mtCamGunTrackerOffsetY,mtCamGunTrackerOffsetZ;
+	void initCameraHandler(Ogre::Camera* cam, OGRE3DRenderSystem* renderSystem,Ogre::SceneManager* mSceneMgr, Player* p);
+	void Zoom(const OIS::MouseEvent &arg);
+	void Rotate(const OIS::MouseEvent &arg);
+	void AdjustCamera();
+	void MoveCamera();
+	void setCamMode(int x);
+	int getCamMode(){return mtCamMode;};
+	OGRE3DBody* getCameraSphere(){return cameraSphere;};
+	void setPlayerPtr(Player* x){mtpPlayer = x;};
 
-		Ogre::Real mtCamVelocityY; 
-		Ogre::Real mtCamVelocityXZ;
-		Ogre::Real mtCamHeightMaxY;
-		Ogre::Real mtCamHeightMinY;
-		Ogre::Real mtCamDistanceMax;
-		Ogre::Real mtCamDistanceMin;
-		Ogre::Real mtScreenWidth;
-		Ogre::Real mtScreenHeight;
+private:
+	OGRE3DBody*		cameraSphere;
+	Ogre::Camera*	camera;
+	Ogre::SceneManager* sceneMgr;
+	Ogre::Real	 *mvpRotate,*mvpZoom; 
+	int mtCamMode;
+	Player* mtpPlayer;
+	float mtPitchTrackerThirdPerson,mtPitchTrackerSemiThirdPerson,mtPitchTrackerFirstPerson;
 
-		Ogre::SceneNode* camNoCollisionNode;
-		Ogre::SceneNode* camCollisionNode;
-		Ogre::SceneNode* camHelperNode;
-		Ogre::SceneNode* camOrginNode;
-		Ogre::SceneNode* charNode;
-		Ogre::SceneNode* mtpCamFirstPersonNode;
-		Ogre::SceneNode* mtpFirstPersonGunTrackerNode;
-		Ogre::SceneNode* mtpCamGunMoveNode;
-		Ogre::SceneNode* mtpCamGunMoveHelperNode;
-		Ogre::SceneNode* mtpCamGunCenterNode;
-		Ogre::SceneNode* mtpCamGunCenterHelperNode;
-		Ogre::SceneNode* mtpCursorMovableGunTrackerNode;
+	Ogre::Real *mvpCamCharYAdjust,*mvpCamGunTrackerOffsetX,*mvpCamGunTrackerOffsetY,*mvpCamGunTrackerOffsetZ;
+	Ogre::Real *mvpCamVelocityY,*mvpCamVelocityXZ,*mvpCamHeightMaxY,*mvpCamHeightMinY,*mvpCamDistanceMax,*mvpCamDistanceMin;
+	Ogre::Real mtScreenWidth,mtScreenHeight;
 
-		void RotateFree(const OIS::MouseEvent &arg);
-		void RotateThirdPerson(const OIS::MouseEvent &arg);
-		void RotateFirstPerson(const OIS::MouseEvent &arg);
-		void RotateMixCursorCenter(const OIS::MouseEvent &arg);
-		void RotateMixCursorMovable(const OIS::MouseEvent &arg);
+	Ogre::SceneNode* camNoCollisionNode;
+	Ogre::SceneNode* camCollisionNode;
+	Ogre::SceneNode* camHelperNode;
+	Ogre::SceneNode* camOrginNode;
+	Ogre::SceneNode* charNode;
+	Ogre::SceneNode* mtpCamFirstPersonNode;
+	Ogre::SceneNode* mtpFirstPersonGunTrackerNode;
+	Ogre::SceneNode* mtpCamGunMoveNode;
+	Ogre::SceneNode* mtpCamGunMoveHelperNode;
+	Ogre::SceneNode* mtpCamGunCenterNode;
+	Ogre::SceneNode* mtpCamGunCenterHelperNode;
+	Ogre::SceneNode* mtpCursorMovableGunTrackerNode;
+
+	void enterThirdPersonMode();
+	void enterMixCursorCenterMode();
+	void enterMixCursorMovableMode();
+	void enterFirstPersonMode();
+
+	void Pitch(const OIS::MouseEvent &arg,Ogre::SceneNode* node,float& mtPitchTracker);
+	void RotateFree(const OIS::MouseEvent &arg);
+	void RotateThirdPerson(const OIS::MouseEvent &arg);
+	void RotateFirstPerson(const OIS::MouseEvent &arg);
+	void RotateMixCursorCenter(const OIS::MouseEvent &arg);
+	void RotateMixCursorMovable(const OIS::MouseEvent &arg);
 };		
 
 #endif 

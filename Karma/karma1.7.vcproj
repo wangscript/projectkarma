@@ -137,11 +137,11 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="OgreMain.lib OgreTerrain.lib OgrePaging.lib OgreProperty.lib OgreRTShaderSystem.lib OIS.lib NxOgre.lib NxOgreOGRE3D.lib irrKlang.lib tinyxml.lib"
+				AdditionalDependencies="OgreMain.lib OgreTerrain.lib OgreProperty.lib OgreRTShaderSystem.lib OIS.lib NxOgre.lib NxOgreOGRE3D.lib irrKlang.lib tinyxml.lib"
 				LinkIncremental="1"
 				AdditionalLibraryDirectories="&quot;$(OGRE_HOME)\lib\release&quot;;&quot;$(NXOGRE_HOME)\sdk&quot;;&quot;$(IRRKLANG_HOME)\lib\Win32-visualStudio&quot;;&quot;$(TINYXML_HOME)\lib\release&quot;"
 				GenerateDebugInformation="true"
-				SubSystem="1"
+				SubSystem="0"
 				OptimizeReferences="2"
 				EnableCOMDATFolding="2"
 				EntryPointSymbol="WinMainCRTStartup"
@@ -251,6 +251,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\Source\Settings.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\Source\SoundManager.cpp"
 				>
 			</File>
@@ -293,11 +297,19 @@
 				>
 			</File>
 			<File
+				RelativePath=".\Headers\Debug.h"
+				>
+			</File>
+			<File
 				RelativePath=".\Headers\Effects.h"
 				>
 			</File>
 			<File
 				RelativePath=".\Headers\GameCommon.h"
+				>
+			</File>
+			<File
+				RelativePath=".\Headers\GameEnums.h"
 				>
 			</File>
 			<File
@@ -370,18 +382,6 @@
 			Filter="rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav"
 			UniqueIdentifier="{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}"
 			>
-			<File
-				RelativePath=".\Media\Karma\Gui\guikarma.overlay"
-				>
-			</File>
-			<File
-				RelativePath=".\Release\resources.cfg"
-				>
-			</File>
-			<File
-				RelativePath=".\settings.txt"
-				>
-			</File>
 		</Filter>
 	</Files>
 	<Globals>

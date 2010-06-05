@@ -13,10 +13,14 @@ private:
 
 	std::vector<NPC*> mvNPCsReset;
 	std::vector<NPC*> mvNPCsDead;
+	static int killcount;
 
 public:
 	static NPCHandler getSingleton();
 	static NPCHandler* getSingletonPtr();
+	static void addKill(){++killcount;};
+	static int getKills(){return killcount;};
+	static void resetKills(){killcount = 0;};
 
 	void addDeadNPC(NPC* npc);
 	void destroyAll();

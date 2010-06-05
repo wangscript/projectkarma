@@ -6,8 +6,9 @@ Ogre::SceneNode* NPC::playerNode = 0;
 /*---------------------------------------------------------------------------------*/
 NPC::NPC(Ogre::SceneManager* sceneMgr,NxOgre::Scene* physScene,OGRE3DRenderSystem* renderSystem, Ogre::String filename, 
 		 Ogre::String name, Ogre::Vector3 spawnPoint, float scale, float hp , float walkSpeed)
-: Character(sceneMgr,physScene,renderSystem,filename,name,spawnPoint,scale,hp,walkSpeed),
-	mtReseting(false)
+		 : Character(sceneMgr,physScene,renderSystem,filename,name,spawnPoint,scale,hp,walkSpeed,Game::CollisionGroup_NPC),
+	mtReseting(false),
+	mtUpdateTimer(0)
 {
 	//Calculate what chunk the NPC belongs to
 	mtChunk = worldToChunk(spawnPoint.x,spawnPoint.z);
@@ -40,7 +41,7 @@ bool NPC::moveReset(const double& timeSinceLastFrame)
 	dirNPCtoSpawnPoint.normalise();
 
 	//Make the NPC always face the spawn point when moving
-	rotateCharacter(mtpCharNode,dirNPCtoSpawnPoint,mtFaceDirection);
+	rotateCharacter(mtpCharNode,dirNPCtoSpawnPoint,*mtFaceDirection);
 
 	//Animare and move the box
 	changeAnimation("Walk", timeSinceLastFrame);
@@ -65,7 +66,7 @@ void NPC::die()
 	std::cout << "Dead";
 
 	//Play a die sound
-	GameFramework::getSingletonPtr()->mpSound->playSound("die.wav", mtpCharNode->_getDerivedPosition());
+	GameFramework::getSingletonPtr()->mpSound->playSound("../Media/Sounds/die.ogg", mtpCharNode->_getDerivedPosition());
 
 	//Active the dead variable
 	mtDying=true;
@@ -83,7 +84,7 @@ void NPC::die()
 	//Makes the NPC face the player when it dies.
 	Ogre::Vector3 dir=  playerNode->_getDerivedPosition() - mtpCharNode->_getDerivedPosition();
 	dir.y = 0;
-	rotateCharacter(mtpDieNode,dir,mtFaceDirection);
+	rotateCharacter(mtpDieNode,dir,*mtFaceDirection);
 
 	//Adds the dead NPC to a vector in the NPC Manager
 	NPCHandler::getSingletonPtr()->addDeadNPC(this);

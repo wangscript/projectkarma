@@ -7,7 +7,7 @@ class Character
 {
 public:
 	Character(Ogre::SceneManager* sceneMgr,NxOgre::Scene* physScene,OGRE3DRenderSystem* renderSystem, Ogre::String filename, 
-		Ogre::String name, Ogre::Vector3 spawnPoint , float scale, float hp , float walkSpeed,int collisionGroup=3);
+		Ogre::String name, Ogre::Vector3 spawnPoint , float scale, float hp , float walkSpeed,int collisionGroup);
 
 			void changeAnimation(const Ogre::String& name,const double time,bool loop=true);
 			void debugMode();
@@ -20,7 +20,7 @@ public:
 	virtual void move(const double& timeSinceLastFrame) = 0; //Abstract
 			void setMoveDirection (const int& d){mtMoveDir = d;};
 	virtual bool updateDead(const double& timeSinceLastFrame);	
-			float updateHp(float minusHP);
+	virtual	float updateHp(float minusHP);
 	virtual void updatePosition();
 			GridData worldToChunk(const float& x, const float& z);
 	
@@ -28,7 +28,7 @@ public:
 
 protected:
 	bool					 mtDying,mtJumping;
-	float 					 mtHP,mtHPCur,mtWalkSpeed,mtDieRespawnTimer,mtDieRespawnTime,mtWorldSize,mtChunksWidth;
+	float 					 mtHP,mtHPCur,mtWalkSpeed,mtDieRespawnTimer,*mtDieRespawnTime,*mtWorldSize,mtChunksWidth,mtFallingSpeed,*mtJumpForceY,mtCharOffsetY,*mtFreezeAfterDieTimer;
 	int 					 mtMoveDir;
 	NxMat33 				 mtHitBoxGlobalOrientation;
 	NxOgre::Scene*			 mtpPhysicsScene;
@@ -36,10 +36,11 @@ protected:
 	Ogre::AnimationState	*mtpAnimationState;
 	Ogre::SceneNode			*mtpCharNode, *mtpDieNode; 
 	Ogre::Entity 			*mtpCharEnt;
-	Ogre::Vector3			 mtSpawnPoint,mtFaceDirection;
-	Ogre::Real 				 mtCharSpeedForward,mtCharSpeedBackward,mtCharSpeedStrafeLeft,mtCharSpeedStrafeRight; 
+	Ogre::Vector3			 mtSpawnPoint,*mtFaceDirection;
+	Ogre::Real 				 *mtCharSpeedForward,*mtCharSpeedBackward,*mtCharSpeedStrafeLeft,*mtCharSpeedStrafeRight; 
 			
 	virtual void die();
+	virtual void respawn();
 			void rotateCharacter(Ogre::SceneNode* sceneNode,const Ogre::Vector3& dest,const Ogre::Vector3& originalDir);
 
 	static std::vector<Character*> mtDynamicCharacters;	
