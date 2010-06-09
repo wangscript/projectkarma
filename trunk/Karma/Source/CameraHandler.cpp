@@ -1,4 +1,20 @@
+/*---------------------------------------------------------------------------------*/
+/* File: CameraHandler.cpp														   */
+/* Author: Per Karlsson, perkarlsson89@gmail.com								   */
+/*																				   */
+/* Description:	CameraHandler is a singleton class that takes care of all the	   */	
+/* camera movements.															   */
+/*	There are 4 different camera views:											   */
+/*	1. Third Person (Uses physics).												   */
+/*	2. Semi-Third Person with mouse movable.									   */
+/*	3. Semi-Third Person with mouse locked.										   */
+/*	4. First Person.															   */
+/*---------------------------------------------------------------------------------*/
+
 #include "CameraHandler.h"
+
+/*---------------------------------------------------------------------------------*/
+/*									STATIC										   */
 /*---------------------------------------------------------------------------------*/
 CameraHandler CameraHandler::singleton;
 /*---------------------------------------------------------------------------------*/
@@ -12,11 +28,31 @@ CameraHandler* CameraHandler::getSingletonPtr()
 	return &singleton;
 }
 /*---------------------------------------------------------------------------------*/
-void CameraHandler::initCameraHandler(Ogre::Camera* cam, OGRE3DRenderSystem* renderSystem,Ogre::SceneManager* mSceneMgr , Player* p)
-{
-	camera = cam;
-	sceneMgr = mSceneMgr;
 
+/*---------------------------------------------------------------------------------*/
+/*									PUBLIC										   */
+/*---------------------------------------------------------------------------------*/
+void CameraHandler::AdjustCamera()
+{
+	//Get position of imaginary camera and the bounding sphere.
+	Ogre::Vector3 noCollisionPos = mvpCamNoCollisionNode->_getDerivedPosition();
+	NxOgre::Vec3 collisionSpherePos = mvpCamSphere->getGlobalPosition();
+
+	//Get direction from bounding sphere to imaginary camera and set it as linear velocity
+	NxOgre::Vec3 linearVelocityDirection;
+	linearVelocityDirection.x = (noCollisionPos.x - collisionSpherePos.x) * *mvpCamVelocityXZ;
+	linearVelocityDirection.y = (noCollisionPos.y - collisionSpherePos.y) * *mvpCamVelocityY;
+	linearVelocityDirection.z = (noCollisionPos.z - collisionSpherePos.z) * *mvpCamVelocityXZ  ;
+	mvpCamSphere->setLinearVelocity(linearVelocityDirection);
+}
+
+/*---------------------------------------------------------------------------------*/
+void CameraHandler::initCameraHandler(Ogre::Camera* cam, OGRE3DRenderSystem* renderSystem,Ogre::SceneManager* mmvpSceneMgr , Player* p)
+{
+	mvpCam = cam;
+	mvpSceneMgr = mmvpSceneMgr;
+
+	//Gett settings from the settings class.
 	mvpRotate = &Settings::getSingletonPtr()->mCamRotate;
 	mvpZoom = &Settings::getSingletonPtr()->mCamZoom;
 	mvpCamVelocityY = &Settings::getSingletonPtr()->mCamVelocityY;
@@ -30,27 +66,29 @@ void CameraHandler::initCameraHandler(Ogre::Camera* cam, OGRE3DRenderSystem* ren
 	mvpCamGunTrackerOffsetY = &Settings::getSingletonPtr()->mCamGunTrackerOffsetY;
 	mvpCamGunTrackerOffsetZ = &Settings::getSingletonPtr()->mCamGunTrackerOffsetZ;
 
-	mtScreenWidth = GameFramework::getSingletonPtr()->mpRenderWnd->getWidth();
-	mtScreenHeight = GameFramework::getSingletonPtr()->mpRenderWnd->getHeight();
-	camNoCollisionNode = sceneMgr->getSceneNode("CamNoCollisionNode");
-	camCollisionNode = sceneMgr->getSceneNode("CamCollisionNode");
-	camHelperNode = sceneMgr->getSceneNode("CamHelperNode");
-	camOrginNode = sceneMgr->getSceneNode("CamOrginNode");
-	charNode = sceneMgr->getSceneNode("CharNode");
-	mtpCamFirstPersonNode = sceneMgr->getSceneNode("CamFirstPersonNode");
-	mtpFirstPersonGunTrackerNode = sceneMgr->getSceneNode("FirstPersonGunTrackerNode");
-	mtpCamGunMoveNode = sceneMgr->getSceneNode("CamMoveNode");
-	mtpCamGunMoveHelperNode = sceneMgr->getSceneNode("CamMoveHelperNode");
-	mtpCamGunCenterNode = sceneMgr->getSceneNode("CamCenterNode");
-	mtpCamGunCenterHelperNode = sceneMgr->getSceneNode("CamCenterHelperNode");
-	mtpCursorMovableGunTrackerNode = sceneMgr->getSceneNode("GunTrackNode");
+	mvScreenWidth = GameFramework::getSingletonPtr()->mpRenderWnd->getWidth();
+	mvScreenHeight = GameFramework::getSingletonPtr()->mpRenderWnd->getHeight();
+
+	//All the nodes that is going to be used
+	mvpCamNoCollisionNode = mvpSceneMgr->getSceneNode("CamNoCollisionNode");
+	mvpCamCollisionNode = mvpSceneMgr->getSceneNode("CamCollisionNode");
+	mvpCamHelperNode = mvpSceneMgr->getSceneNode("CamHelperNode");
+	mvpCamOrginNode = mvpSceneMgr->getSceneNode("CamOrginNode");
+	mvpCharNode = mvpSceneMgr->getSceneNode("CharNode");
+	mvpCamFirstPersonNode = mvpSceneMgr->getSceneNode("CamFirstPersonNode");
+	mvpFirstPersonGunTrackerNode = mvpSceneMgr->getSceneNode("FirstPersonGunTrackerNode");
+	mvpCamGunMoveNode = mvpSceneMgr->getSceneNode("CamMoveNode");
+	mvpCamGunMoveHelperNode = mvpSceneMgr->getSceneNode("CamMoveHelperNode");
+	mvpCamGunCenterNode = mvpSceneMgr->getSceneNode("CamCenterNode");
+	mvpCamGunCenterHelperNode = mvpSceneMgr->getSceneNode("CamCenterHelperNode");
+	mvpCursorMovableGunTrackerNode = mvpSceneMgr->getSceneNode("GunTrackNode");
 
 	setPlayerPtr(p);
-	mtCamMode = NULL;
+	mvCamMode = NULL;
 	setCamMode(Game::Cam_ThirdPerson);
-	mtPitchTrackerThirdPerson = 0;
-	mtPitchTrackerSemiThirdPerson = 0;
-	mtPitchTrackerFirstPerson = 0;
+	mvPitchTrackerThirdPerson = 0;
+	mvPitchTrackerSemiThirdPerson = 0;
+	mvPitchTrackerFirstPerson = 0;
 
 	//Create sphere for collision
 	//Properties
@@ -65,19 +103,36 @@ void CameraHandler::initCameraHandler(Ogre::Camera* cam, OGRE3DRenderSystem* ren
 	/*Create it.
 	cube1m mesh wont show anyway.
 	NxOgre::Vec3(0,2,3) indicates the camera position*/ //@todo spawn at player
-	cameraSphere = renderSystem->createBody(new NxOgre::Sphere(*Settings::getSingletonPtr()->mCamRadius), 
-		NxOgre::Vec3(Settings::getSingletonPtr()->mCamStartPosX,Settings::getSingletonPtr()->mCamStartPosY,Settings::getSingletonPtr()->mCamStartPosZ)+NxOgre::Vec3(Ogre::Vector3(-201.93,11,160.26)), 
+	mvpCamSphere = renderSystem->createBody(new NxOgre::Sphere(*Settings::getSingletonPtr()->mCamRadius),
+		NxOgre::Vec3(Settings::getSingletonPtr()->mCamStartPosX,Settings::getSingletonPtr()->mCamStartPosY,Settings::getSingletonPtr()->mCamStartPosZ)+NxOgre::Vec3(Ogre::Vector3
+			(*Settings::getSingletonPtr()->mPlayerSpawnPointX,*Settings::getSingletonPtr()->mPlayerSpawnPointY,*Settings::getSingletonPtr()->mPlayerSpawnPointZ)), 
 		"cube.1m.mesh", descriptionSphere);
-	cameraSphere->getEntity()->setVisible(false);
+	mvpCamSphere->getEntity()->setVisible(false);
 
 	//Set Collision Flag to group 2
-	NxShape* const* s2 = cameraSphere->getNxActor()->getShapes();
+	NxShape* const* s2 = mvpCamSphere->getNxActor()->getShapes();
 	(*s2)->setGroup(2);
+}
+/*---------------------------------------------------------------------------------*/
+void CameraHandler::MoveCamera()
+{
+	//Get position of bounding sphere and set the camera's position
+	NxOgre::Vec3 collisionSpherePos = mvpCamSphere->getGlobalPosition();
+	mvpCamCollisionNode->setPosition(Ogre::Vector3(collisionSpherePos.x,collisionSpherePos.y,collisionSpherePos.z));
+#ifdef DEBUG	
+	//Update to debugger << DEBUG >>
+	GameFramework::getSingletonPtr()->mpGui->updateDebugCamXYZ(collisionSpherePos.as<Ogre::Vector3>());
+#endif
+
+	//So the camera always will look at the character  
+	Ogre::Vector3 directionToCharacter =  mvpCharNode->_getDerivedPosition() + Ogre::Vector3(0,1.2,0) - mvpCamCollisionNode->_getDerivedPosition(); //@todo 1.2 random?
+	mvpCam->setDirection(directionToCharacter);
 }
 /*---------------------------------------------------------------------------------*/
 void CameraHandler::Rotate(const OIS::MouseEvent &arg)
 {
-	switch (mtCamMode)		
+	//Calls the correct rotation methods.
+	switch (mvCamMode)		
 	{
 	case Game::Cam_ThirdPerson:
 		RotateThirdPerson(arg);
@@ -95,133 +150,50 @@ void CameraHandler::Rotate(const OIS::MouseEvent &arg)
 		RotateFree(arg);
 		break;
 	}
-	mtpPlayer->updateCursorPos(arg.state.X.abs,arg.state.Y.abs);
-}
 
-/*---------------------------------------------------------------------------------*/
-void CameraHandler::RotateFree(const OIS::MouseEvent &arg)
-{
-	//This view is for screenshotting map overview only :)
-	Ogre::Vector3 dirre =   - sceneMgr->getSceneNode("CamFree")->_getDerivedPosition();
-    camera->setDirection(dirre);
-   sceneMgr->getSceneNode("CamFree")->translate(arg.state.X.rel,arg.state.Z.rel,arg.state.Y.rel);
-}
-/*---------------------------------------------------------------------------------*/
-void CameraHandler::Pitch(const OIS::MouseEvent &arg,Ogre::SceneNode* node,float& mtPitchTracker)
-{
-	/*It is not allowed to pitch the camera (rotate around Z axis) if it
-    A. Rotates more than 90 degrees, making the world "flip"
-    B. Position itself under the world.*/
-    bool okToPitch = false;
-
-    //If the relative mouse movement is negative, we only have to worry about Case B.
-	if ( arg.state.Y.rel < 0 && mtPitchTracker < 70 )
-        okToPitch = true;
-    //To get here the mouse movement must be positive. Case A.
-    else if ( arg.state.Y.rel > 0 && mtPitchTracker > -70)
-        okToPitch = true;
-
-    if (okToPitch)
-    {
-        node->pitch(Ogre::Degree(-(*mvpRotate) * arg.state.Y.rel), Ogre::Node::TS_LOCAL);
-		mtPitchTracker+= -(*mvpRotate) * arg.state.Y.rel;
-    }
-}
-
-void CameraHandler::RotateThirdPerson(const OIS::MouseEvent &arg)
-{
-   //Yaw the camera. Rotate around the Y axis
-    //@todo add raycast so the camera cant get stuck behind stuff
-    camOrginNode->yaw(Ogre::Degree(-(*mvpRotate) * arg.state.X.rel), Ogre::Node::TS_LOCAL);
-	Pitch(arg,camHelperNode,mtPitchTrackerThirdPerson);
-	GameFramework::getSingletonPtr()->mpGui->updateCursorPos(arg.state.X.abs,arg.state.Y.abs);
-}
-/*---------------------------------------------------------------------------------*/
-void CameraHandler::RotateFirstPerson(const OIS::MouseEvent &arg)
-{
-	//Yaw and pitch FirstPerson Nodes
-	camOrginNode->yaw(Ogre::Degree(-(*mvpRotate) * arg.state.X.rel), Ogre::Node::TS_LOCAL);
-	Pitch(arg,mtpCamFirstPersonNode,mtPitchTrackerFirstPerson);
-
-	//Kanske inte behöver detta varje frame! Undersök!
-	Ogre::Vector3 charPosition = charNode->_getDerivedPosition();
-	charPosition.y += *mvpCamCharYAdjust;
-    Ogre::Vector3 directionToGunTracker =  mtpFirstPersonGunTrackerNode->_getDerivedPosition() - charPosition  ;
-    camera->setDirection(directionToGunTracker);
-	mtpPlayer->setNeedUpdateBones();
-}
-/*---------------------------------------------------------------------------------*/
-void CameraHandler::RotateMixCursorCenter(const OIS::MouseEvent &arg)
-{
-	//Only changes the the Y value of the GunTrackerNode
-	Ogre::Real x = 0;
-	Ogre::Real y = *mvpCamGunTrackerOffsetY - 2 - (2**mvpCamGunTrackerOffsetX*arg.state.Y.abs)/mtScreenWidth;
-	mtpCursorMovableGunTrackerNode->setPosition(x,y,*mvpCamGunTrackerOffsetZ);
-
-	//Yaw and pitch nodes
-	camOrginNode->yaw(Ogre::Degree(-(*mvpRotate) * arg.state.X.rel), Ogre::Node::TS_LOCAL);
-	Pitch(arg,mtpCamGunCenterNode,mtPitchTrackerSemiThirdPerson);
-
-	//So the camera always will look at the character  
-	Ogre::Vector3 charPosition = charNode->_getDerivedPosition();
-	charPosition.y += *mvpCamCharYAdjust;
-    Ogre::Vector3 directionToCharacter =  charPosition - mtpCamGunCenterHelperNode->_getDerivedPosition();
-    camera->setDirection(directionToCharacter);
-	mtpPlayer->setNeedUpdateBones();
-}
-
-/*---------------------------------------------------------------------------------*/
-void CameraHandler::RotateMixCursorMovable(const OIS::MouseEvent &arg)
-{
-	mtpPlayer->setMousePosition(arg.state.X.abs,arg.state.Y.abs);
-
-	//Changing the gun tracker node that the character "aims" at.
-	Ogre::Real x = -*mvpCamGunTrackerOffsetX + (2**mvpCamGunTrackerOffsetX*arg.state.X.abs)/mtScreenWidth;
-	Ogre::Real y = *mvpCamGunTrackerOffsetY - 2 - (2**mvpCamGunTrackerOffsetY*arg.state.Y.abs)/mtScreenWidth;
-	mtpCursorMovableGunTrackerNode->setPosition(x,y,*mvpCamGunTrackerOffsetZ);
-
-	//Only yaw available in this rotate mode.
-	camOrginNode->yaw(Ogre::Degree(-(*mvpRotate) * arg.state.X.rel), Ogre::Node::TS_LOCAL);
-
-	//So the camera always will look at the character  
-    Ogre::Vector3 directionToCharacter =  charNode->_getDerivedPosition() - mtpCamGunMoveNode->_getDerivedPosition();
-	directionToCharacter.y= 0;
-    camera->setDirection(directionToCharacter);
-	mtpPlayer->setNeedUpdateBones();
-	GameFramework::getSingletonPtr()->mpGui->updateCursorPos(arg.state.X.abs,arg.state.Y.abs );
+	//Needed for raycasting in the Player class
+	mvpPlayer->updateCursorPos(arg.state.X.abs,arg.state.Y.abs);
 }
 
 /*---------------------------------------------------------------------------------*/
 void CameraHandler::setCamMode(int camMode)
 {
-	switch (mtCamMode)		
+	//Detaches the Ogre::Camera from the previous camera mode.
+	switch (mvCamMode)		
 	{
 	case Game::Cam_MixCursorMovable:
-		mtpCamGunMoveHelperNode->detachAllObjects();
+		mvpCamGunMoveHelperNode->detachAllObjects();
 	case Game::Cam_MixCursorCenter:
-		mtpCamGunCenterHelperNode->detachAllObjects();
-		mtpPlayer->semiThirdPersonMode(false);
+		mvpCamGunCenterHelperNode->detachAllObjects();
+		//Hides the gun.
+		mvpPlayer->semiThirdPersonMode(false);
 		break;
 	case Game::Cam_ThirdPerson:
-		camCollisionNode->detachAllObjects();
+		//mvpCamHelperNode->setInitialState();
+		//mvpCamOrginNode->setInitialState();
+		//mvpSceneMgr->getSceneNode("RootNode")->setInitialState();
+		mvpCamCollisionNode->detachAllObjects();
 		break;
 	case Game::Cam_FirstPerson:
-		mtpCamFirstPersonNode->detachAllObjects();
-		mtpPlayer->firstPersonMode(false);
+		mvpCamFirstPersonNode->detachAllObjects();
+		//Makes things visible again (Character mesh and so on)
+		mvpPlayer->firstPersonMode(false);
 		break;
 	}
 
-	mtCamMode = camMode;
+	//New camera mode.
+	mvCamMode = camMode;
 
-	switch (mtCamMode)		
+	//Enter the new camera mode.
+	switch (mvCamMode)		
 	{
 	case Game::Cam_MixCursorMovable:
-		if ((mtpPlayer->getPowerUp() & Game::PowerUp_MoveBoxMode) == 0)
-		mtpPlayer->semiThirdPersonMode(true);
+		if ((mvpPlayer->getPowerUp() & Game::PowerUp_MoveBoxMode) == 0)
+			mvpPlayer->semiThirdPersonMode(true);
 		enterMixCursorMovableMode();
 		break;
 	case Game::Cam_MixCursorCenter:
-		mtpPlayer->semiThirdPersonMode(true);
+		mvpPlayer->semiThirdPersonMode(true);
 		enterMixCursorCenterMode();
 		break;
 	case Game::Cam_ThirdPerson:
@@ -231,61 +203,17 @@ void CameraHandler::setCamMode(int camMode)
 		enterFirstPersonMode();
 		break;
 	case Game::Cam_FreeMode:
-		sceneMgr->getSceneNode("CamFree")->attachObject(camera);
+		mvpSceneMgr->getSceneNode("CamFree")->attachObject(mvpCam);
 		break;
 	}
 
-}
-/*---------------------------------------------------------------------------------*/
-void CameraHandler::enterThirdPersonMode()
-{
-	camCollisionNode->attachObject(camera);
-	mtpPlayer->setManuallyControlled(false);
-	mtpPlayer->setInitialOrientation();
-}
-/*---------------------------------------------------------------------------------*/
-void CameraHandler::enterMixCursorCenterMode()
-{
-	Ogre::Vector3 directionToCharacter = charNode->_getDerivedPosition() - mtpCamGunMoveHelperNode->_getDerivedPosition();
-	directionToCharacter.y = 0;
-	mtpCamGunCenterHelperNode->attachObject(camera);
-	mtpPlayer->setManuallyControlled(true);
-	camera->setDirection(directionToCharacter);	
-	Ogre::Vector3  pos= mtpCursorMovableGunTrackerNode->getPosition();
-	mtpCursorMovableGunTrackerNode->setPosition(0,pos.y,pos.z);
-	GameFramework::getSingletonPtr()->mpGui->updateCursorPos(GameFramework::getSingletonPtr()->mpRenderWnd->getWidth()/2,GameFramework::getSingletonPtr()->mpRenderWnd->getHeight()/2);		
-}
-/*---------------------------------------------------------------------------------*/
-void CameraHandler::enterMixCursorMovableMode()
-{
-	Ogre::Vector3 directionToCharacter = charNode->_getDerivedPosition() - mtpCamGunMoveHelperNode->_getDerivedPosition();
-	mtpCamGunMoveHelperNode->setInitialState();
-	mtpCamGunMoveHelperNode->attachObject(camera);
-	directionToCharacter.y = 0;
-	camera->setDirection(directionToCharacter);	
-
-	Ogre::Vector3  pos= mtpCursorMovableGunTrackerNode->getPosition();
-	mtpCursorMovableGunTrackerNode->setPosition(0,pos.y,pos.z);
-
-	mtpPlayer->setManuallyControlled(true);
-	
-}
-/*---------------------------------------------------------------------------------*/
-void CameraHandler::enterFirstPersonMode()
-{
-	Ogre::Vector3  pos= mtpCursorMovableGunTrackerNode->getPosition();
-	mtpCursorMovableGunTrackerNode->setPosition(0,pos.y,pos.z);
-	GameFramework::getSingletonPtr()->mpGui->updateCursorPos(GameFramework::getSingletonPtr()->mpRenderWnd->getWidth()/2,GameFramework::getSingletonPtr()->mpRenderWnd->getHeight()/2);		
-	mtpCamFirstPersonNode->attachObject(camera);
-	mtpPlayer->setManuallyControlled(true);
-	mtpPlayer->firstPersonMode();
 }
 /*---------------------------------------------------------------------------------*/
 void CameraHandler::Zoom(const OIS::MouseEvent &arg)
 {
 	bool okToZoom = false;
 	//Direction from imaginary camera position to character
-	Ogre::Vector3 directionToCharacter =  charNode->_getDerivedPosition() - camNoCollisionNode->_getDerivedPosition();
+	Ogre::Vector3 directionToCharacter =  mvpCharNode->_getDerivedPosition() - mvpCamNoCollisionNode->_getDerivedPosition();
 	//No direction in Y direction.
 	directionToCharacter.y = 0;
 	//To check if we're too close or too far
@@ -304,42 +232,203 @@ void CameraHandler::Zoom(const OIS::MouseEvent &arg)
 
 	if (okToZoom)
 	{
-	//Always the same speed, not dependent of the distance
-	directionToCharacter.normalise();
-	//At the startup, the camera was translated @ Z axis.
-	camNoCollisionNode->translate(Ogre::Vector3::NEGATIVE_UNIT_Z * (*mvpZoom) * arg.state.Z.rel, Ogre::Node::TS_LOCAL);
+		//Always the same speed, not dependent of the distance
+		directionToCharacter.normalise();
+		//At the startup, the camera was translated @ Z axis.
+		mvpCamNoCollisionNode->translate(Ogre::Vector3::NEGATIVE_UNIT_Z * (*mvpZoom) * arg.state.Z.rel, Ogre::Node::TS_LOCAL);
 	}
 
 }
 
-/*---------------------------------------------------------------------------------*/
-void CameraHandler::AdjustCamera()
-{
-    //Get position of imaginary camera and the bounding sphere.
-    Ogre::Vector3 noCollisionPos = camNoCollisionNode->_getDerivedPosition();
-    NxOgre::Vec3 collisionSpherePos = cameraSphere->getGlobalPosition();
 
-    //Get direction from bounding sphere to imaginary camera and set it as linear velocity
-    NxOgre::Vec3 linearVelocityDirection;
-    linearVelocityDirection.x = (noCollisionPos.x - collisionSpherePos.x) * *mvpCamVelocityXZ;
-    linearVelocityDirection.y = (noCollisionPos.y - collisionSpherePos.y) * *mvpCamVelocityY;
-    linearVelocityDirection.z = (noCollisionPos.z - collisionSpherePos.z) * *mvpCamVelocityXZ  ;
-    cameraSphere->setLinearVelocity(linearVelocityDirection);
+/*---------------------------------------------------------------------------------*/
+
+/*---------------------------------------------------------------------------------*/
+/*									PRIVATE										   */
+/*---------------------------------------------------------------------------------*/
+void CameraHandler::enterFirstPersonMode()
+{
+	//Attach the camera to the correct node.
+	mvpCamFirstPersonNode->attachObject(mvpCam);
+
+	//The GUI cursor icon will always be in the center.
+	GameFramework::getSingletonPtr()->mpGui->updateCursorPos(GameFramework::getSingletonPtr()->mpRenderWnd->getWidth()/2,GameFramework::getSingletonPtr()->mpRenderWnd->getHeight()/2);		
+
+	//Tells the player class to hide some stuff when entering first person camera mode.
+	mvpPlayer->firstPersonMode();
+
+	//See ::enterMixCursorMovableMode();
+	enterGunMode();
+
+}
+/*---------------------------------------------------------------------------------*/
+void CameraHandler::enterGunMode()
+{
+	//Gun mode requires some of the bones in the Player to be manually controlled.
+	mvpPlayer->setManuallyControlled(true);
+
+	//Resets the Aimer tracker Node but keeps the distance (z) and height (y).
+	Ogre::Vector3  pos= mvpCursorMovableGunTrackerNode->getPosition();
+	mvpCursorMovableGunTrackerNode->setPosition(0,pos.y,pos.z);
+}
+/*---------------------------------------------------------------------------------*/
+void CameraHandler::enterMixCursorCenterMode()
+{
+	//So the camera will always look in the correct direction.
+	Ogre::Vector3 directionToCharacter = mvpCharNode->_getDerivedPosition() - mvpCamGunMoveHelperNode->_getDerivedPosition();
+	//To prevent the character from always being in the center of the scene, y = 0.
+	directionToCharacter.y = 0;
+	mvpCam->setDirection(directionToCharacter);	
+
+	//The GUI cursor icon will always be in the center.
+	GameFramework::getSingletonPtr()->mpGui->updateCursorPos(GameFramework::getSingletonPtr()->mpRenderWnd->getWidth()/2,GameFramework::getSingletonPtr()->mpRenderWnd->getHeight()/2);		
+
+	//Attach the camera to the correct node.
+	mvpCamGunCenterHelperNode->attachObject(mvpCam);
+
+	//This camera mode is only available with the Gun Mode
+	enterGunMode();
+}
+/*---------------------------------------------------------------------------------*/
+void CameraHandler::enterMixCursorMovableMode()
+{
+	//So the camera will always look in the correct direction.
+
+	Ogre::Vector3 directionToCharacter = mvpCharNode->_getDerivedPosition() - mvpCamGunMoveHelperNode->_getDerivedPosition();
+	//If the this node (it is being used in other camera modes) has been rotated around the Z axis, it will have a new height.
+	//In this camera mode, rotation around Z won't be possible, so we will have to reset it to it's inital position.
+	mvpCamGunMoveHelperNode->setInitialState();	
+	directionToCharacter.y = 0;
+
+
+	//Attach the camera to the correct node.
+	mvpCamGunMoveHelperNode->attachObject(mvpCam);
+
+	mvpCam->setDirection(directionToCharacter);	
+
+	//This camera mode is available for the PowerUp_MoveBox(See GameEnums.h) and PowerUp_GunMode.
+	//enterGunMode makes manual control of bones in the player mesh available, something needed for both of these powerups.
+	enterGunMode();
+}
+/*---------------------------------------------------------------------------------*/
+void CameraHandler::enterThirdPersonMode()
+{
+	//Attach the camera to the correct node.
+	mvpCamCollisionNode->attachObject(mvpCam);
+
+	//If some bones were rotated during the previus camera mode, they will be reseted.
+	mvpPlayer->setManuallyControlled(false);
+	mvpPlayer->setInitialOrientation();
+}
+
+
+/*---------------------------------------------------------------------------------*/
+void CameraHandler::Pitch(const OIS::MouseEvent &arg,Ogre::SceneNode* node,float& mtPitchTracker)
+{
+	/*It is not allowed to pitch the camera (rotate around Z axis) if it
+	A. Rotates more than 90 degrees, making the world "flip"
+	B. Position itself under the world.
+	
+	Not necessary to check to more than +-70 degrees (instead of 90)
+	*/
+	bool okToPitch = false;
+
+	//If the relative mouse movement is negative, we only have to worry about Case B.
+	if ( arg.state.Y.rel < 0 && mtPitchTracker < 70 )
+		okToPitch = true;
+	//Case A.
+	else if ( arg.state.Y.rel > 0 && mtPitchTracker > -70)
+		okToPitch = true;
+
+	if (okToPitch)
+	{
+		node->pitch(Ogre::Degree(-(*mvpRotate) * arg.state.Y.rel), Ogre::Node::TS_LOCAL);
+		mtPitchTracker+= -(*mvpRotate) * arg.state.Y.rel;
+	}
 }
 
 /*---------------------------------------------------------------------------------*/
-void CameraHandler::MoveCamera()
+void CameraHandler::RotateFirstPerson(const OIS::MouseEvent &arg)
 {
-    //Get position of bounding sphere and set the camera's position
-    NxOgre::Vec3 collisionSpherePos = cameraSphere->getGlobalPosition();
-    camCollisionNode->setPosition(Ogre::Vector3(collisionSpherePos.x,collisionSpherePos.y,collisionSpherePos.z));
-#ifdef DEBUG	
-	//Update to debugger << DEBUG >>
-	GameFramework::getSingletonPtr()->mpGui->updateDebugCamXYZ(collisionSpherePos.as<Ogre::Vector3>());
-#endif
+	//Yaw and pitch FirstPerson Nodes
+	mvpCamOrginNode->yaw(Ogre::Degree(-(*mvpRotate) * arg.state.X.rel), Ogre::Node::TS_LOCAL);
+	Pitch(arg,mvpCamFirstPersonNode,mvPitchTrackerFirstPerson);
 
-    //So the camera always will look at the character  
-	Ogre::Vector3 directionToCharacter =  charNode->_getDerivedPosition() + Ogre::Vector3(0,1.2,0) - camCollisionNode->_getDerivedPosition(); //@todo 1.2 random?
-    camera->setDirection(directionToCharacter);
+	//So the camera always looks at the Gun Tracker Node.
+	Ogre::Vector3 charPosition = mvpCharNode->_getDerivedPosition();
+	charPosition.y += *mvpCamCharYAdjust;
+	Ogre::Vector3 directionToGunTracker =  mvpFirstPersonGunTrackerNode->_getDerivedPosition() - charPosition  ;
+	mvpCam->setDirection(directionToGunTracker);
+
+	//Tells the player class that the bones needs an update in the game loop (Maybe not needed if only single player and no multiplayer).
+	mvpPlayer->setNeedUpdateBones();
+}
+/*---------------------------------------------------------------------------------*/
+void CameraHandler::RotateFree(const OIS::MouseEvent &arg)
+{
+	//This view is for screenshotting map overview only :)
+	Ogre::Vector3 dirre =   - mvpSceneMgr->getSceneNode("CamFree")->_getDerivedPosition();
+	mvpCam->setDirection(dirre);
+	mvpSceneMgr->getSceneNode("CamFree")->translate(arg.state.X.rel,arg.state.Z.rel,arg.state.Y.rel);
+}
+/*---------------------------------------------------------------------------------*/
+void CameraHandler::RotateMixCursorCenter(const OIS::MouseEvent &arg)
+{
+	//Only changes the the Y value of the GunTrackerNode
+	Ogre::Real x = 0;
+	Ogre::Real y = *mvpCamGunTrackerOffsetY - 2 - (2**mvpCamGunTrackerOffsetX*arg.state.Y.abs)/mvScreenWidth;
+	mvpCursorMovableGunTrackerNode->setPosition(x,y,*mvpCamGunTrackerOffsetZ);
+
+	//Yaw and pitch nodes
+	mvpCamOrginNode->yaw(Ogre::Degree(-(*mvpRotate) * arg.state.X.rel), Ogre::Node::TS_LOCAL);
+	Pitch(arg,mvpCamGunCenterNode,mvPitchTrackerSemiThirdPerson);
+
+	//So the camera always will look at the same direction as the vector "Camere to Player"
+	Ogre::Vector3 charPosition = mvpCharNode->_getDerivedPosition();
+	charPosition.y += *mvpCamCharYAdjust;
+	Ogre::Vector3 directionToCharacter =  charPosition - mvpCamGunCenterHelperNode->_getDerivedPosition();
+	mvpCam->setDirection(directionToCharacter);
+	
+	//Tells the player class that the bones needs an update in the game loop.
+	mvpPlayer->setNeedUpdateBones();
+}
+/*---------------------------------------------------------------------------------*/
+void CameraHandler::RotateMixCursorMovable(const OIS::MouseEvent &arg)
+{
+	//The player class needs the mouse position for raycasting.
+	mvpPlayer->updateCursorPos(arg.state.X.abs,arg.state.Y.abs);
+
+	//Changing the gun tracker node that the character "aims" at.
+	Ogre::Real x = -*mvpCamGunTrackerOffsetX + (2**mvpCamGunTrackerOffsetX*arg.state.X.abs)/mvScreenWidth;
+	Ogre::Real y = *mvpCamGunTrackerOffsetY - 2 - (2**mvpCamGunTrackerOffsetY*arg.state.Y.abs)/mvScreenWidth;
+	mvpCursorMovableGunTrackerNode->setPosition(x,y,*mvpCamGunTrackerOffsetZ);
+
+	//Only yaw (rotation around y) available in this rotate mode.
+	mvpCamOrginNode->yaw(Ogre::Degree(-(*mvpRotate) * arg.state.X.rel), Ogre::Node::TS_LOCAL);
+
+	//So the camera always will look at the same direction as the vector "Camere to Player"
+	Ogre::Vector3 directionToCharacter =  mvpCharNode->_getDerivedPosition() - mvpCamGunMoveHelperNode->_getDerivedPosition();
+	directionToCharacter.y= 0;
+	mvpCam->setDirection(directionToCharacter);
+	
+	//Tells the player class that the bones needs an update in the game loop.
+	mvpPlayer->setNeedUpdateBones();
+
+	//Updates the mouse position in the GUI
+	GameFramework::getSingletonPtr()->mpGui->updateCursorPos(arg.state.X.abs,arg.state.Y.abs );
+}
+
+/*---------------------------------------------------------------------------------*/
+void CameraHandler::RotateThirdPerson(const OIS::MouseEvent &arg)
+{
+	//In the future: Implement raycast, so the cameras bound spehere always can see the Player and not get stuck between stuff.
+
+	//Yaw the camera. Rotate around the Y axis
+	mvpCamOrginNode->yaw(Ogre::Degree(-(*mvpRotate) * arg.state.X.rel), Ogre::Node::TS_LOCAL);
+	//Pitch the camera. Rotate around X axis
+	Pitch(arg,mvpCamHelperNode,mvPitchTrackerThirdPerson);
+
+	//Update GUI cursor position
+	GameFramework::getSingletonPtr()->mpGui->updateCursorPos(arg.state.X.abs,arg.state.Y.abs);
 }
 /*---------------------------------------------------------------------------------*/

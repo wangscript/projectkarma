@@ -1,14 +1,25 @@
+/*---------------------------------------------------------------------------------*/
+/* File: Chunks.cpp											   					   */
+/* Author: Per Karlsson, perkarlsson89@gmail.com								   */
+/*																				   */
+/* Description:	Chunks is a class that divides the world into "Chunks", smaller    */
+/* pieces. The player will always be in a chunk and only NPCs and effects in an    */
+/* active chunk area around that chunk will only be updated each frame.			   */
+/*---------------------------------------------------------------------------------*/
+
 #include "Chunks.h"
+
+/*---------------------------------------------------------------------------------*/
+/*									STATIC										   */
 /*---------------------------------------------------------------------------------*/
 int Chunks::left = 0;
 int Chunks::right = 0;
 int Chunks::top = 0;
 int Chunks::bot = 0;
+/*---------------------------------------------------------------------------------*/
 Chunks Chunks::singleton;
 /*---------------------------------------------------------------------------------*/
-Chunks::Chunks()
-{
-}
+Chunks::Chunks(){};
 /*---------------------------------------------------------------------------------*/
 Chunks Chunks::getSingleton()
 {
@@ -19,6 +30,25 @@ Chunks* Chunks::getSingletonPtr()
 {
 	return &singleton;
 }
+/*---------------------------------------------------------------------------------*/
+
+
+/*---------------------------------------------------------------------------------*/
+/*									PUBLIC										   */
+/*---------------------------------------------------------------------------------*/
+void Chunks::addStaticEffects(Effects *effect,const GridData& gridCoords)
+{
+	//Adds an effect to the staticEffects Vector.
+	mvStaticChunks[gridCoords.x][gridCoords.y].staticEffects.push_back(effect);
+}
+/*---------------------------------------------------------------------------------*/
+void Chunks::addStaticNPC(NPC *npc,const GridData& gridCoords)
+{
+	//Adds NPC to a chunk.
+	mvStaticChunks[gridCoords.x][gridCoords.y].staticNPCs.push_back(npc);
+	std::cout << "NPC was added at mvStaticChunks["<< gridCoords.x <<"]["<< gridCoords.y<< "]\n";
+}
+/*---------------------------------------------------------------------------------*/
 void Chunks::createGrid()
 {
 	//Gridsize
@@ -31,7 +61,6 @@ void Chunks::createGrid()
 	for( int i = 0 ; i < mvChunksNumber ; i++ )
 		mvStaticChunks[i] = new chunkData[mvChunksNumber];
 }
-
 /*---------------------------------------------------------------------------------*/
 void Chunks::destroyAll()
 {
@@ -52,23 +81,46 @@ void Chunks::destroyAll()
 	delete [] mvStaticChunks ;
 }
 /*---------------------------------------------------------------------------------*/
-void Chunks::addStaticNPC(NPC *npc,const GridData& gridCoords)
-{
-	//Adds NPC to a chunk.
-	mvStaticChunks[gridCoords.x][gridCoords.y].staticNPCs.push_back(npc);
-	std::cout << "NPC was added at mvStaticChunks["<< gridCoords.x <<"]["<< gridCoords.y<< "]\n";
-}
-/*---------------------------------------------------------------------------------*/
-void Chunks::addStaticEffects(Effects *effect,const GridData& gridCoords)
-{
-	//Adds an effect to the staticEffects Vector.
-	mvStaticChunks[gridCoords.x][gridCoords.y].staticEffects.push_back(effect);
-}
-/*---------------------------------------------------------------------------------*/
 void Chunks::loopCurrentChunksUpdate(const double& timeSinceLastFrame)
 {
 	//Updates NPC in active Chunk area.
 	loopChunks(left,right,top,bot,timeSinceLastFrame,false);
+}
+/*---------------------------------------------------------------------------------*/
+void Chunks::resetAllNPcs()
+{
+	loopChunks(left,right,top,bot,0.0,true);
+}
+/*---------------------------------------------------------------------------------*/
+NPC* Chunks::searchForNPCinChunk(NxActor* actor,bool& headShot)
+{
+	//Loops current active chunk area
+	int i=left;
+	int j=top;
+	while (i<=right)
+	{
+		while (j<=bot)
+		{
+			for(std::vector<NPC*>::const_iterator it = mvStaticChunks[i][j].staticNPCs.begin();
+				it != mvStaticChunks[i][j].staticNPCs.end(); it++)
+			{
+				//Check if the NxActor is the same as the characters HitBoxes
+				//If normal HitBox was hit, headshot = false
+				if ((*it)->getHitBox()->getNxActor() == actor )
+					return *it;
+				//If HitBoxHead was hit, boom Headshot!
+				else if ((*it)->getHitBoxHead()->getNxActor() == actor)
+				{
+					headShot = true;
+					return *it;
+				}
+			}
+			j++;
+		}
+		j=top;
+		i++;
+	}
+	return 0;
 }
 /*---------------------------------------------------------------------------------*/
 void Chunks::setActiveChunkArea(const GridData& d, bool diagonalMove)
@@ -171,11 +223,11 @@ void Chunks::setActiveChunkArea(const GridData& d, bool diagonalMove)
 	bot = newBot;
 	std::cout << "\nNew ChunkBorder. L:" << left << " R:" << right << " T:" << top << " B:" << bot;
 }
+
 /*---------------------------------------------------------------------------------*/
-void Chunks::resetAllNPcs()
-{
-	loopChunks(left,right,top,bot,0.0,true);
-}
+
+/*---------------------------------------------------------------------------------*/
+/*									PRIVATE										   */
 /*---------------------------------------------------------------------------------*/
 void Chunks::resetNPCs(const int l,const int r,const int t,const int b)
 {
@@ -200,36 +252,5 @@ void Chunks::loopChunks(const int l,const int r,const int t,const int b,const do
 		j=t;
 		i++;
 	}		
-}
-/*---------------------------------------------------------------------------------*/
-NPC* Chunks::searchForNPCinChunk(NxActor* actor,bool& headShot)
-{
-	//Loops current active chunk area
-	int i=left;
-	int j=top;
-	while (i<=right)
-	{
-		while (j<=bot)
-		{
-			for(std::vector<NPC*>::const_iterator it = mvStaticChunks[i][j].staticNPCs.begin();
-				it != mvStaticChunks[i][j].staticNPCs.end(); it++)
-			{
-				//Check if the NxActor is the same as the characters HitBoxes
-				//If normal HitBox was hit, headshot = false
-				if ((*it)->getHitBox()->getNxActor() == actor )
-					return *it;
-				//If HitBoxHead was hit, boom Headshot!
-				else if ((*it)->getHitBoxHead()->getNxActor() == actor)
-				{
-					headShot = true;
-					return *it;
-				}
-			}
-			j++;
-		}
-		j=top;
-		i++;
-	}
-	return 0;
 }
 /*---------------------------------------------------------------------------------*/

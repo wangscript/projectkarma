@@ -1,5 +1,16 @@
+/*---------------------------------------------------------------------------------*/
+/* File: NPCHandler.cpp															   */
+/* Author: Per Karlsson, perkarlsson89@gmail.com								   */
+/*																				   */
+/* Description:	NPCHandler keeps track of every NPC. This class is being called    */
+/* from the Chunks when a certain "chunk" need its NPCs updated. It also has a     */
+/* vector for all the temporary resetting NPCs and another one for the dead NPCs.  */
+/*---------------------------------------------------------------------------------*/
+
 #include "NPCHandler.h"
 
+/*---------------------------------------------------------------------------------*/
+/*									STATIC										   */
 /*---------------------------------------------------------------------------------*/
 NPCHandler NPCHandler::singleton;
 /*---------------------------------------------------------------------------------*/
@@ -12,8 +23,39 @@ NPCHandler* NPCHandler::getSingletonPtr()
 {
 	return &singleton;
 }
-
+/*---------------------------------------------------------------------------------*/
 int NPCHandler::killcount = 0;
+/*---------------------------------------------------------------------------------*/
+
+/*---------------------------------------------------------------------------------*/
+/*									PUBLIC										   */
+/*---------------------------------------------------------------------------------*/
+void NPCHandler::addDeadNPC(NPC* npc)
+{
+	//From NPC::die()
+	mvNPCsDead.push_back(npc);
+}
+/*---------------------------------------------------------------------------------*/
+void NPCHandler::updateDeadNPCs(const double& timeSinceLastFrame)
+{
+	//Updates the NPCs in the vector mvNPCsDead
+	std::vector<std::vector<NPC*>::iterator> deleteIt;
+	for (std::vector<NPC*>::iterator it = mvNPCsDead.begin(); it != mvNPCsDead.end();it++)
+	{
+			//If the NPC is respawned, it is queued to be deleted
+			if ((*it)->updateDead(timeSinceLastFrame))
+			{
+				deleteIt.push_back(it);
+				std::cout << "\n deadNPCs are queued to be deleted!";
+			}
+	}
+	//Delete queued NPCs.
+	for (std::vector<std::vector<NPC*>::iterator>::iterator it = deleteIt.begin(); it!= deleteIt.end(); it++)
+	{
+		mvNPCsDead.erase(*it);
+		std::cout << "\n deadNPCs were successfully deleted!";
+	}
+}
 /*---------------------------------------------------------------------------------*/
 void NPCHandler::updateNPCsFromChunk(const std::vector<NPC*>& npcs,const double& timeSinceLastFrame,bool reset)
 {
@@ -56,33 +98,6 @@ void NPCHandler::updateResetNPCs(const double& timeSinceLastFrame)
 	{
 		mvNPCsReset.erase(*it);
 		std::cout << "\n resetNPCs  were successfully deleted!";
-	}
-}
-/*---------------------------------------------------------------------------------*/
-void NPCHandler::addDeadNPC(NPC* npc)
-{
-	//From NPC::die()
-	mvNPCsDead.push_back(npc);
-}	
-/*---------------------------------------------------------------------------------*/
-void NPCHandler::updateDeadNPCs(const double& timeSinceLastFrame)
-{
-	//Updates the NPCs in the vector mvNPCsDead
-	std::vector<std::vector<NPC*>::iterator> deleteIt;
-	for (std::vector<NPC*>::iterator it = mvNPCsDead.begin(); it != mvNPCsDead.end();it++)
-	{
-			//If the NPC is respawned, it is queued to be deleted
-			if ((*it)->updateDead(timeSinceLastFrame))
-			{
-				deleteIt.push_back(it);
-				std::cout << "\n deadNPCs are queued to be deleted!";
-			}
-	}
-	//Delete queued NPCs.
-	for (std::vector<std::vector<NPC*>::iterator>::iterator it = deleteIt.begin(); it!= deleteIt.end(); it++)
-	{
-		mvNPCsDead.erase(*it);
-		std::cout << "\n deadNPCs were successfully deleted!";
 	}
 }
 /*---------------------------------------------------------------------------------*/

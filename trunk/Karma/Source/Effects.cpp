@@ -1,4 +1,13 @@
+/*---------------------------------------------------------------------------------*/
+/* File: Effects.cpp										   					   */
+/* Author: Per Karlsson, perkarlsson89@gmail.com								   */
+/*																				   */
+/* Description:	Here all effects classes are collected.							   */
+/*---------------------------------------------------------------------------------*/
+
 #include "Effects.h"
+/*---------------------------------------------------------------------------------*/
+/*								Effects
 /*---------------------------------------------------------------------------------*/
 std::vector<Effects*> Effects::mtDynamicEffects;
 /*---------------------------------------------------------------------------------*/
@@ -31,7 +40,9 @@ void Effects::addDynamicEffect(Effects* e)
 	mtDynamicEffects.push_back(e);
 }
 /*---------------------------------------------------------------------------------*/
-/*							Muzzle Fire
+
+/*---------------------------------------------------------------------------------*/
+/*								Muzzle Fire										   */
 /*---------------------------------------------------------------------------------*/
 MuzzleFire::MuzzleFire(const double& timerReset,Ogre::SceneManager* sceneMgr,const Ogre::Real width, const Ogre::Real height, 
 					   const Ogre::String& material,const Ogre::String& name) : Effects(timerReset)
@@ -61,7 +72,9 @@ void MuzzleFire::setVisible(bool state)
 	mvpMuzzleFire->setVisible(state);
 }
 /*---------------------------------------------------------------------------------*/
-/*								MuzzleFireFirstPerson
+
+/*---------------------------------------------------------------------------------*/
+/*								MuzzleFireFirstPerson							   */
 /*---------------------------------------------------------------------------------*/
 MuzzleFireFirstPerson::MuzzleFireFirstPerson(const double& timerReset) : Effects(timerReset){};
 /*---------------------------------------------------------------------------------*/	
@@ -76,12 +89,14 @@ void MuzzleFireFirstPerson::resetTimer()
 	GameFramework::getSingletonPtr()->mpGui->showMuzzleFire(false);
 }
 /*---------------------------------------------------------------------------------*/
-/*									Blood
+
+/*---------------------------------------------------------------------------------*/
+/*									Blood										   */
 /*---------------------------------------------------------------------------------*/
 Blood::Blood(const double& timerReset,Ogre::SceneManager *sceneMgr, const Ogre::String &name, const Ogre::String &particleSystem) : Effects(timerReset)
 {
 	//Creates the particle system.
-	mvpBloodPS = sceneMgr->createParticleSystem(name +Ogre::String("BloodPS"), "blood");
+	mvpBloodPS = sceneMgr->createParticleSystem(name +Ogre::String("BloodPS"), particleSystem);
 	//Not using woorld coordinates.
 	mvpBloodPS->setKeepParticlesInLocalSpace(true);
 	mvpBloodPS->setVisible(false);
@@ -105,13 +120,14 @@ void Blood::resetTimer()
 	//Stops emitting particles
 	mvpBloodPS->setEmitting(false);
 }
+
 /*---------------------------------------------------------------------------------*/
-/*					Manually Controlled Particles
+/*							Manually Controlled Particles						   */
 /*---------------------------------------------------------------------------------*/
-ManuallyControlledParticles::ManuallyControlledParticles(Ogre::SceneManager *sceneMgr,const Ogre::String &name, const Ogre::String &material) : Effects(0)
+ManuallyControlledParticles::ManuallyControlledParticles(Ogre::SceneManager *sceneMgr,const Ogre::String &name, const Ogre::String &particleSystem) : Effects(0)
 {
 	//See Blood::Blood
-	mvpPS = sceneMgr->createParticleSystem(name, material); 
+	mvpPS = sceneMgr->createParticleSystem(name, particleSystem); 
 	mvpPS->setKeepParticlesInLocalSpace(true);
 	mvpPS->setEmitting(false);
 	mvpPS->setVisible(false);
@@ -130,24 +146,35 @@ void ManuallyControlledParticles::resetTimer()
 	mvpPS->setEmitting(false);
 }
 /*---------------------------------------------------------------------------------*/
-/*					Bullet Holes
+
+/*---------------------------------------------------------------------------------*/
+/*								Bullet Holes									   */
 /*---------------------------------------------------------------------------------*/
 BulletHoles BulletHoles::singleton;
 /*---------------------------------------------------------------------------------*/
 void BulletHoles::addBulletHole(const Ogre::Vector3 &normal,const Ogre::Vector3 &pos)
 {
+	//Creates the plane.
 	Ogre::Plane plane(normal,0.001);
 
+	//The name of the plane.
 	Ogre::String name = "bulletHoleNr" + Ogre::StringConverter::toString(mvBulletHoles);
+
+	//An up vector has to be defined. Using a vector that is perpendicular to the normal.
 	Ogre::Vector3 upVector= normal.perpendicular();
+
+	//Creates a mesh from the earlier created plane.
 	Ogre::MeshManager::getSingleton().createPlane(name,
 		Ogre::ResourceGroupManager::DEFAULT_RESOURCE_GROUP_NAME, plane,
 		Settings::getSingletonPtr()->mBulletHoleSize,Settings::getSingletonPtr()->mBulletHoleSize,20,20,true,1,1,1,upVector);
 
+	//Creates an entity from the mesh and attaches it to a scene node.
 	Ogre::Entity* ent = mvpSceneMgr->createEntity(name+"Ent", name);
 	mvpSceneMgr->getRootSceneNode()->createChildSceneNode(pos)->attachObject(ent);
 	ent->setMaterialName("BulletHole");
 	ent->setCastShadows(false);
+
+	//Increment bullet holes counter. 
 	mvBulletHoles++;
 	
 }

@@ -1,103 +1,122 @@
+/*---------------------------------------------------------------------------------*/
+/* File: PhysicsManager.cpp														   */
+/* Author: Per Karlsson, perkarlsson89@gmail.com								   */
+/*																				   */
+/* Description:	PhysicsManager is class that handles all the Physics in the game   */
+/* by using the PhysX wrapper NxOgre.			  								   */
+/*---------------------------------------------------------------------------------*/
+
 #include <PhysicsManager.h>
 
+/*---------------------------------------------------------------------------------*/
+/*									PUBLIC										   */
+/*---------------------------------------------------------------------------------*/
 PhysicsManager::PhysicsManager(Ogre::SceneManager* sceneMgr)
 {
-	mtpSceneMgr = sceneMgr;
-	mtEntityCounter = 0;
+	mvpSceneMgr = sceneMgr;
+	mvEntityCounter = 0;
 
 	// Create the NxOgre physics world
-	mtpPhysicsWorld = NxOgre::World::createWorld();
+	mvpPhysicsWorld = NxOgre::World::createWorld();
 
 	// Create NxOgre physics scene
 	NxOgre::SceneDescription sceneDesc;
 	sceneDesc.mGravity = NxOgre::Vec3(0, -9.8f, 0);
 	sceneDesc.mName = "GameScene";
-	mtpPhysicsScene = mtpPhysicsWorld->createScene(sceneDesc);
+	mvpPhysicsScene = mvpPhysicsWorld->createScene(sceneDesc);
 
 	// Set some physical scene values
-	mtpPhysicsScene->getMaterial(0)->setStaticFriction(*Settings::getSingletonPtr()->mPysicsFrictionStatic);
-	mtpPhysicsScene->getMaterial(0)->setDynamicFriction(*Settings::getSingletonPtr()->mPysicsFrictionDynamic);
-	mtpPhysicsScene->getMaterial(0)->setRestitution(*Settings::getSingletonPtr()->mPysicsRestitution);
+	mvpPhysicsScene->getMaterial(0)->setStaticFriction(*Settings::getSingletonPtr()->mPysicsFrictionStatic);
+	mvpPhysicsScene->getMaterial(0)->setDynamicFriction(*Settings::getSingletonPtr()->mPysicsFrictionDynamic);
+	mvpPhysicsScene->getMaterial(0)->setRestitution(*Settings::getSingletonPtr()->mPysicsRestitution);
 
 	//For kinematic objects
-	mtpPhysicsScene->getScene()->setDominanceGroupPair(1,2,NxConstraintDominance::NxConstraintDominance(1.0f, 0.0f));
+	mvpPhysicsScene->getScene()->setDominanceGroupPair(1,2,NxConstraintDominance::NxConstraintDominance(1.0f, 0.0f));
 
 	// Create NxOgre render system
-	mtpPhysicsRenderSystem = new OGRE3DRenderSystem(mtpPhysicsScene);
+	mvpPhysicsRenderSystem = new OGRE3DRenderSystem(mvpPhysicsScene);
 
 	//Create NxOgre time controller
-	mtpPhysicsTimeController = NxOgre::TimeController::getSingleton();
+	mvpPhysicsTimeController = NxOgre::TimeController::getSingleton();
 
-	//Load own resources for NxOgre
+	//Load resource system for NxOgre
 	NxOgre::ResourceSystem::getSingleton()->openArchive("nxogre", "file:nxogre");
 }
 
-PhysicsManager::~PhysicsManager()
+/*---------------------------------------------------------------------------------*/
+void PhysicsManager::addDynamicRigidBody(const Ogre::Vector3& pos, char* filename, Ogre::Real mass, int collisionGroup)
 {
-}
-
-void PhysicsManager::addStaticTriangleMesh(const Ogre::Vector3& pos ,const char* filename)
-{
-	char nxOgreFileName[80] = "nxogre:";
-	std::strcat(nxOgreFileName,filename);
-	std::strcat(nxOgreFileName,".nxs");
-	std::cout << nxOgreFileName;
-	NxOgre::Mesh* triangleMesh = NxOgre::MeshManager::getSingleton()->load(nxOgreFileName);
-	NxOgre::TriangleGeometry* triangleGeometry = new NxOgre::TriangleGeometry(triangleMesh);
-	NxOgre::SceneGeometry* test = mtpPhysicsScene->createSceneGeometry(triangleGeometry, NxOgre::Matrix44(NxOgre::Vec3(pos)));
-	
-
-	
-	//@todo ska bort, bör finnas i dotscene.
-	/*char ogreFileName[80] = "";
-	std::strcat(ogreFileName,filename);
-	std::strcat(ogreFileName,".mesh");
-	Ogre::Entity* triangleEntity = mtpSceneMgr->createEntity("physicsEntity" + Ogre::StringConverter::toString(mtEntityCounter++), ogreFileName);
-	triangleEntity->setCastShadows(false);
-	Ogre::SceneNode* triangleNode = mtpSceneMgr->getRootSceneNode()->createChildSceneNode();
-	triangleNode->attachObject(triangleEntity);
-	triangleNode->setPosition(pos);*/
-}
-
-
-void PhysicsManager::addRigidBody(const Ogre::Vector3& pos, char* filename, Ogre::Real mass, int collisionGroup)
-{
-	char nxOgreFileName[80] = "nxogre:";
-	std::strcat(nxOgreFileName,filename);
-	std::strcat(nxOgreFileName,".nxs");
-
-	char ogreFileName[80] = "";
-	std::strcat(ogreFileName,filename);
-	std::strcat(ogreFileName,".mesh");
-	NxOgre::Mesh* triangleMesh = NxOgre::MeshManager::getSingleton()->load(nxOgreFileName);
+	//Load the PhysX skeleton
+	NxOgre::Mesh* triangleMesh = NxOgre::MeshManager::getSingleton()->load(PhysxFilename(filename).c_str());
 	NxOgre::TriangleGeometry* triangleGeometry = new NxOgre::TriangleGeometry(triangleMesh);
 
+	//Properties for the rigid body.
 	NxOgre::RigidBodyDescription description;
-	description.mGroup = collisionGroup;
 	description.mMass = mass;
 	
-	mtpPhysicsRenderSystem->createBody(triangleGeometry,pos,ogreFileName,description);
+	//Adds the body to both OGRE and PhysX.
+	OGRE3DBody* body = 	mvpPhysicsRenderSystem->createBody(triangleGeometry,pos,OgreFilename(filename),description);
+
+	//Set the collision group
+	NxShape* const* shapes = body ->getNxActor()->getShapes();
+	(*shapes)->setGroup(collisionGroup);
+
 }
 
-void PhysicsManager::addKinematicTriangleMesh(const std::vector<Ogre::Vector3> posList, const Ogre::Real speed,const char* filename)
+/*---------------------------------------------------------------------------------*/
+void PhysicsManager::addKinematicCircle(const Ogre::Real angVel, const Ogre::Vector3 orgin, const Ogre::Real radius, const char* filename)
 {
-	char nxOgreFileName[80] = "nxogre:";
-	std::strcat(nxOgreFileName,filename);
-	std::strcat(nxOgreFileName,".nxs");
-
-	char ogreFileName[80] = "";
-	std::strcat(ogreFileName,filename);
-	std::strcat(ogreFileName,".mesh");
-	NxOgre::Mesh* triangleMesh = NxOgre::MeshManager::getSingleton()->load(nxOgreFileName);
+	//Load the PhysX skeleton
+	NxOgre::Mesh* triangleMesh = NxOgre::MeshManager::getSingleton()->load(PhysxFilename(filename).c_str());
 	NxOgre::TriangleGeometry* triangleGeometry = new NxOgre::TriangleGeometry(triangleMesh);
 
+	//Creates a struct_kinematicObjectCircle and raises the flag that disable rotation and gravity.
+	PhysicsManager::struct_kinematicObjectCircle kinematicObject;
+	NxOgre::RigidBodyDescription description;
+	description.mBodyFlags |= NxOgre::Enums::BodyFlags_FreezeRotation; 
+	description.mBodyFlags |= NxOgre::Enums::BodyFlags_DisableGravity;
+
+	//Offsets the starting position by moving the radius distance on the X-axis.
+	NxOgre::Vec3 spawnPoint = NxOgre::Vec3(orgin);
+	spawnPoint.x += radius;
+
+	//Adds the struct_kinematicObjectCircle to both OGRE and PhysX.
+	kinematicObject.body = mvpPhysicsRenderSystem->createBody(triangleGeometry,spawnPoint, OgreFilename(filename),description);
+
+	//So that the object won't be pushed away by the character.
+	kinematicObject.body->getNxActor()->setDominanceGroup(2);
+
+	//See struct_kinematicObjectCircle definition.
+	kinematicObject.radius = radius;
+	kinematicObject.degree = angVel * 2 * Ogre::Math::PI;
+	kinematicObject.deltaTime = 0;
+	kinematicObject.orgin = NxOgre::Vec3(orgin);
+
+	//Finally adds the struct_kinematicObjectCircle to the mvKinematicObjectsCircle vector.
+	mvKinematicObjectsCircle.push_back(kinematicObject);
+}
+
+
+/*---------------------------------------------------------------------------------*/
+void PhysicsManager::addKinematicTriangleMesh(const std::vector<Ogre::Vector3> posList, const Ogre::Real speed,const char* filename)
+{
+	//Load the PhysX skeleton
+	NxOgre::Mesh* triangleMesh = NxOgre::MeshManager::getSingleton()->load(PhysxFilename(filename).c_str());
+	NxOgre::TriangleGeometry* triangleGeometry = new NxOgre::TriangleGeometry(triangleMesh);
+
+	//Creates a struct_kinematicObject and raises the flag that disable rotation and gravity.
 	struct_kinematicObject kinematicObject;
 	NxOgre::RigidBodyDescription description;
 	description.mBodyFlags |= NxOgre::Enums::BodyFlags_FreezeRotation; 
 	description.mBodyFlags |= NxOgre::Enums::BodyFlags_DisableGravity;
 
-	kinematicObject.body = mtpPhysicsRenderSystem->createBody(triangleGeometry,posList[0],ogreFileName,description);
+	//Adds the struct_kinematicObject to both OGRE and PhysX.
+	kinematicObject.body = mvpPhysicsRenderSystem->createBody(triangleGeometry,posList[0],OgreFilename(filename),description);
+
+	//So that the object won't be pushed away by the character.
 	kinematicObject.body->getNxActor()->setDominanceGroup(2);
+
+	//See struct_kinematicObject definition.
 	kinematicObject.speed = speed;
 	kinematicObject.deltaTime = 0;
 	kinematicObject.time = 0;
@@ -107,101 +126,130 @@ void PhysicsManager::addKinematicTriangleMesh(const std::vector<Ogre::Vector3> p
 		kinematicObject.posQueue.push( NxOgre::Vec3(posList[i]) );
 		std::cout << "IMPORT : " << posList[i].x << " " << posList[i].y << " " << posList[i].z <<"\n";	
 	}
-	mtKinematicObjects.push_back(kinematicObject);
 
+	//Finally adds the struct_kinematicObject to the mvKinematicObjects vector.
+	mvKinematicObjects.push_back(kinematicObject);
 }
 
-void PhysicsManager::addKinematicCircle(const Ogre::Real angVel, const Ogre::Vector3 orgin, const Ogre::Real radius, const char* filename)
+/*---------------------------------------------------------------------------------*/
+void PhysicsManager::addStaticTriangleMesh(const Ogre::Vector3& pos ,const char* filename)
 {
+	//Loads the PhysX skeleton and creates a static object in the Physics world at "pos".
+	NxOgre::Mesh* triangleMesh = NxOgre::MeshManager::getSingleton()->load(PhysxFilename(filename).c_str());
+	NxOgre::TriangleGeometry* triangleGeometry = new NxOgre::TriangleGeometry(triangleMesh);
+	mvpPhysicsScene->createSceneGeometry(triangleGeometry, NxOgre::Matrix44(NxOgre::Vec3(pos)));
+}
+/*---------------------------------------------------------------------------------*/
+void PhysicsManager::destroyPhysicsWorld()
+{
+	//Delete all the physics.
+	delete		mvpPhysicsRenderSystem;
+	mvpPhysicsWorld->destroyWorld();
+	mvpPhysicsWorld->destroySingletons();
+}
+/*---------------------------------------------------------------------------------*/
+void PhysicsManager::pause()
+{
+	//Pauses the PhysX scene.
+	mvpPhysicsTimeController->pause();
+}
+
+/*---------------------------------------------------------------------------------*/
+void PhysicsManager::resume()
+{
+	//Resumes the PhysX scene.
+	mvpPhysicsTimeController->resume();
+}
+/*---------------------------------------------------------------------------------*/
+void PhysicsManager::update(const double timeSinceLastFrame)
+{
+	//Changes moving directions of the kinematic objects (might not be needed for regular kinematics objects)
+	moveKinematicObjects(timeSinceLastFrame);
+	moveKinematicObjectsCircle(timeSinceLastFrame);
+
+	//Steps the physics scene with timeSinceLastFrame seconds.
+	mvpPhysicsTimeController->advance(timeSinceLastFrame);
+}
+/*---------------------------------------------------------------------------------*/
+
+/*---------------------------------------------------------------------------------*/
+/*									PRIVATE										   */
+/*---------------------------------------------------------------------------------*/
+void PhysicsManager::moveKinematicObjects(const double timeSinceLastFrame)
+{
+	//Loops trough all regular kinematicObjects
+	for (unsigned int i=0; i < mvKinematicObjects.size(); i++)
+	{	
+		//If deltaTime > time, the object has reached its position in the queue and news a new moving direction.
+		if (mvKinematicObjects[i].deltaTime >= mvKinematicObjects[i].time)
+		{
+			//Adds the current position to the back.
+			mvKinematicObjects[i].posQueue.push(mvKinematicObjects[i].posQueue.front());
+
+			//Pop the front.
+			mvKinematicObjects[i].posQueue.pop();
+
+			//Reset deltatime
+			mvKinematicObjects[i].deltaTime = 0;
+
+			//Calculate the new moving direction.
+			mvKinematicObjects[i].curDir = mvKinematicObjects[i].posQueue.front() - mvKinematicObjects[i].body->getGlobalPosition();
+
+			//Calculate how long it will take to reach the new position
+			mvKinematicObjects[i].time = mvKinematicObjects[i].curDir.magnitude() / mvKinematicObjects[i].speed;
+			mvKinematicObjects[i].curDir /= mvKinematicObjects[i].time;
+
+			//Add velocity in the moving direction
+			mvKinematicObjects[i].body->setLinearVelocity(mvKinematicObjects[i].curDir);
+		}
+
+		//Add time to deltaTime.
+		mvKinematicObjects[i].deltaTime += timeSinceLastFrame;
+	}
+}
+
+/*---------------------------------------------------------------------------------*/
+void PhysicsManager::moveKinematicObjectsCircle(const double timeSinceLastFrame)
+{
+	//Loop trough all kinematicObjects with a circular moving path
+	for (unsigned int i=0; i < mvKinematicObjectsCircle.size(); i++)
+	{	
+		//Add time to deltaTime.
+		mvKinematicObjectsCircle[i].deltaTime += timeSinceLastFrame;
+
+		//If deltaTime * degree > 2 * PI, The object has moved 360 degrees.
+		if (mvKinematicObjectsCircle[i].deltaTime * mvKinematicObjectsCircle[i].degree >= 2 * Ogre::Math::PI)
+		{
+			mvKinematicObjectsCircle[i].deltaTime = 0;
+		}
+
+		//Every frame the object needs a new moving direction.
+		NxOgre::Vec3 curPos =  mvKinematicObjectsCircle[i].body->getGlobalPosition();
+		NxOgre::Real x = mvKinematicObjectsCircle[i].radius * Ogre::Math::Cos(mvKinematicObjectsCircle[i].degree * mvKinematicObjectsCircle[i].deltaTime) + mvKinematicObjectsCircle[i].orgin.x ;
+		NxOgre::Real z = mvKinematicObjectsCircle[i].radius * Ogre::Math::Sin(mvKinematicObjectsCircle[i].degree * mvKinematicObjectsCircle[i].deltaTime) + mvKinematicObjectsCircle[i].orgin.z ;
+		NxOgre::Vec3 dirPos(x,curPos.y,z);
+		mvKinematicObjectsCircle[i].body->setLinearVelocity(dirPos-curPos);
+	}
+}
+/*---------------------------------------------------------------------------------*/
+Ogre::String PhysicsManager::PhysxFilename(const char* filename)
+{
+	//Adds nxogre: at the start of the "filename" char array and ".nxs" at the end.
 	char nxOgreFileName[80] = "nxogre:";
 	std::strcat(nxOgreFileName,filename);
-	std::strcat(nxOgreFileName,".xns");
+	std::strcat(nxOgreFileName,".nxs");
+	std::cout << "INUTI ÄR DEN = " << nxOgreFileName;
+	return Ogre::String(nxOgreFileName);
+}
 
+/*---------------------------------------------------------------------------------*/
+Ogre::String PhysicsManager::OgreFilename(const char* filename)
+{
+	//Adds ".mesh" at the end of "filename".
 	char ogreFileName[80] = "";
 	std::strcat(ogreFileName,filename);
 	std::strcat(ogreFileName,".mesh");
-	NxOgre::Mesh* triangleMesh = NxOgre::MeshManager::getSingleton()->load(nxOgreFileName);
-	NxOgre::TriangleGeometry* triangleGeometry = new NxOgre::TriangleGeometry(triangleMesh);
-
-	PhysicsManager::struct_kinematicObjectCircle kinematicObject;
-	NxOgre::RigidBodyDescription description;
-	description.mBodyFlags |= NxOgre::Enums::BodyFlags_FreezeRotation; 
-	description.mBodyFlags |= NxOgre::Enums::BodyFlags_DisableGravity;
-
-	NxOgre::Vec3 spawnPoint = NxOgre::Vec3(orgin);
-	spawnPoint.x += radius;
-	kinematicObject.body = mtpPhysicsRenderSystem->createBody(triangleGeometry,spawnPoint, ogreFileName,description);
-	kinematicObject.body->getNxActor()->setDominanceGroup(2);
-	kinematicObject.radius = radius;
-	kinematicObject.degree = angVel * 2 * Ogre::Math::PI;
-	kinematicObject.deltaTime = 0;
-	kinematicObject.orgin = NxOgre::Vec3(orgin);
-
-	mtKinematicObjectsCircle.push_back(kinematicObject);
+	std::cout << "INUTI ÄR DEN = " << ogreFileName;
+	return Ogre::String(ogreFileName);
 }
-
-
-void PhysicsManager::moveKinematicObjects(const double timeSinceLastFrame)
-{
-	for (unsigned int i=0; i < mtKinematicObjects.size(); i++)
-	{	
-		if (mtKinematicObjects[i].deltaTime >= mtKinematicObjects[i].time)
-		{
-			mtKinematicObjects[i].posQueue.push(mtKinematicObjects[i].posQueue.front());
-			mtKinematicObjects[i].posQueue.pop();
-			mtKinematicObjects[i].deltaTime = 0;
-			mtKinematicObjects[i].curDir = mtKinematicObjects[i].posQueue.front() - mtKinematicObjects[i].body->getGlobalPosition();
-			mtKinematicObjects[i].time = mtKinematicObjects[i].curDir.magnitude() / mtKinematicObjects[i].speed;
-			mtKinematicObjects[i].curDir /= mtKinematicObjects[i].time;
-			mtKinematicObjects[i].body->setLinearVelocity(mtKinematicObjects[i].curDir);
-
-		}
-		mtKinematicObjects[i].deltaTime += timeSinceLastFrame;
-	}
-}
-
-void PhysicsManager::moveKinematicObjectsCircle(const double timeSinceLastFrame)
-{
-	for (unsigned int i=0; i < mtKinematicObjectsCircle.size(); i++)
-	{	
-		mtKinematicObjectsCircle[i].deltaTime += timeSinceLastFrame;
-		if (mtKinematicObjectsCircle[i].deltaTime * mtKinematicObjectsCircle[i].degree >= 2 * Ogre::Math::PI)
-		{
-			mtKinematicObjectsCircle[i].deltaTime = 0;
-		}
-	
-		NxOgre::Vec3 curPos =  mtKinematicObjectsCircle[i].body->getGlobalPosition();
-		//Tables available
-		NxOgre::Real x = mtKinematicObjectsCircle[i].radius * Ogre::Math::Cos(mtKinematicObjectsCircle[i].degree * mtKinematicObjectsCircle[i].deltaTime) + mtKinematicObjectsCircle[i].orgin.x ;
-		NxOgre::Real z = mtKinematicObjectsCircle[i].radius * Ogre::Math::Sin(mtKinematicObjectsCircle[i].degree * mtKinematicObjectsCircle[i].deltaTime) + mtKinematicObjectsCircle[i].orgin.z ;
-		NxOgre::Vec3 dirPos(x,curPos.y,z);
-		mtKinematicObjectsCircle[i].body->setLinearVelocity(dirPos-curPos);
-	}
-}
-
-void PhysicsManager::update(const double timeSinceLastFrame)
-{
-	//Steps the physics scene with timeSinceLastFrame seconds.
-	moveKinematicObjects(timeSinceLastFrame);
-	moveKinematicObjectsCircle(timeSinceLastFrame);
-	mtpPhysicsTimeController->advance(timeSinceLastFrame);
-
-
-}
-
-void PhysicsManager::pause()
-{
-	mtpPhysicsTimeController->pause();
-}
-
-void PhysicsManager::resume()
-{
-	mtpPhysicsTimeController->resume();
-}
-
-void PhysicsManager::destroyPhysicsWorld()
-{
-	delete		mtpPhysicsRenderSystem;
-	mtpPhysicsWorld->destroyWorld();
-	mtpPhysicsWorld->destroySingletons();
-}
+/*---------------------------------------------------------------------------------*/

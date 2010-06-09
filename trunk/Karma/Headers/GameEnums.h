@@ -1,3 +1,11 @@
+/*---------------------------------------------------------------------------------*/
+/* File: GameEnums.h											   				   */
+/* Author: Per Karlsson, perkarlsson89@gmail.com								   */
+/*																				   */
+/* Description:	Enums for CameraMode,MoveDirection, PowerUps, CollisionGroups      */
+/* Action Bar, Cursor and Animation. Makes the code "Cleaner".					   */
+/*---------------------------------------------------------------------------------*/
+
 #ifndef GAMEENUMS_H
 #define GAMEENUMS_H
 

@@ -1,10 +1,25 @@
+/*---------------------------------------------------------------------------------*/
+/* File: Aimer.cpp																   */
+/* Author: Per Karlsson, perkarlsson89@gmail.com								   */
+/*																				   */
+/* Description:	Aimer is a class that fire weapons and uses raycasting to          */
+/* determine if the shot was a hit or not. It also has functions for manually      */
+/* rotating bones in a characters skeleton.										   */
+/*---------------------------------------------------------------------------------*/
+
 #include "Aimer.h"
 
 /*---------------------------------------------------------------------------------*/
+/*									STATIC										   */
+/*---------------------------------------------------------------------------------*/
 NxOgre::Scene*	Aimer::mvpPhysicsScene = 0;
 /*---------------------------------------------------------------------------------*/
+
+/*---------------------------------------------------------------------------------*/
+/*									PUBLIC										   */
+/*---------------------------------------------------------------------------------*/
 Aimer::Aimer():
-mvContinuousShoot(false),
+mtContinuousShoot(false),
 mvpFireDistanceMax(&Settings::getSingletonPtr()->mAimerFireDistanceMax),
 mvpFireDistanceMin(&Settings::getSingletonPtr()->mAimerFireDistanceMin),
 mvpShotDmgNormal(&Settings::getSingletonPtr()->mAimerShotDmgNormal),
@@ -19,30 +34,20 @@ Aimer::~Aimer()
 	delete mvpBlood;
 }
 /*---------------------------------------------------------------------------------*/
-void Aimer::setNodes(Ogre::SceneNode* charNode,Ogre::SceneManager* sceneMgr,const Ogre::String& name)
+void Aimer::setInitialOrientation()
 {
-	//Links stuff from child
-	mtvCharNode = charNode;
-	mvpName = &name;
-	mvpSceneMgr = sceneMgr;
-	mvContinuousShoot = false;
-	mvContinuousShootTimer = 0.2;
-
-	//This node is unique for Aimer. Used for aiming
-	mtvGunTrackNode = sceneMgr->getSceneNode("CamOrginNode")->createChildSceneNode(name + Ogre::String("GunTrackNode"),
-		Ogre::Vector3(0.0f,Settings::getSingletonPtr()->mCamCharYAdjust, 
-		Settings::getSingletonPtr()->mCamGunTrackerOffsetZ ));
+	//Set the bones to their initial orientation. Used when going from manually controlled to controlled
+	mtpBoneArmRight->setOrientation(mtpBoneArmRight->getInitialOrientation());
+	mtpBoneArmLeft->setOrientation(mtpBoneArmLeft->getInitialOrientation());
+	mtpBoneHead->setOrientation(mtpBoneHead->getInitialOrientation());
 }
 /*---------------------------------------------------------------------------------*/
-void Aimer::setBones(Ogre::Entity* charEnt,Ogre::String& strUpArmR, Ogre::String& strUpArmL, Ogre::String& strLowArmL, Ogre::String& strLowArmR,Ogre::String& strHead)
+void Aimer::setManuallyControlled(bool state)
 {
-	//Pointers to the entity and the bones.
-	mvpCharEnt = charEnt;
-	mtpBoneArmRight = charEnt->getSkeleton()->getBone(strUpArmR);
-	mtpBoneArmLeft = charEnt->getSkeleton()->getBone(strUpArmL);
-	mtpBoneLowArmRight = charEnt->getSkeleton()->getBone(strLowArmR);
-	mtpBoneLowArmLeft = charEnt->getSkeleton()->getBone(strLowArmL);
-	mtpBoneHead = charEnt->getSkeleton()->getBone(strHead);
+	//Activte/Deactivates ManuallyControlled. Going to/from GunMode.
+	mtpBoneArmRight->setManuallyControlled(state);
+	mtpBoneArmLeft->setManuallyControlled(state);
+	mtpBoneHead->setManuallyControlled(state);
 }
 /*---------------------------------------------------------------------------------*/
 void Aimer::updateBones(Ogre::SceneNode* aimNode)
@@ -62,30 +67,35 @@ void Aimer::updateBones(Ogre::SceneNode* aimNode)
 	mtpBoneHead->yaw(Ogre::Degree(180));//haaaacks
 }
 /*---------------------------------------------------------------------------------*/
-void Aimer::destroyNodeTracks(Ogre::Animation* animation)
+
+/*---------------------------------------------------------------------------------*/
+/*									PROTECTED									   */
+/*---------------------------------------------------------------------------------*/
+void Aimer::addBloodParticleSystem(bool addToChunk, GridData chunk)
 {
-	//Destroy the node tracks for an animation. Must be done if the animation has key nodes for the bones in this animation
-	std::cout << "\nDestroying" << animation->getName() <<"\n";
-	animation->destroyNodeTrack(mtpBoneArmRight->getHandle());
-	animation->destroyNodeTrack(mtpBoneArmLeft->getHandle());
-	animation->destroyNodeTrack(mtpBoneLowArmRight->getHandle());
-	animation->destroyNodeTrack(mtpBoneLowArmLeft->getHandle());
-	animation->destroyNodeTrack(mtpBoneHead->getHandle());
+	//Each Aimer has a Blood Particle System that will be started when an enemy has been hitted.
+	mvpBlood = new Blood(0.2,mvpSceneMgr,*mvpName,"blood");
+
+	//See Aimer::addMuzzleFire
+	if (addToChunk)
+		Chunks::getSingletonPtr()->addStaticEffects(mvpBlood,chunk);
+	else
+		Effects::addDynamicEffect(mvpBlood);
 }
 /*---------------------------------------------------------------------------------*/
 void Aimer::addGun(const Ogre::String& hand1,Ogre::Quaternion rot1,Ogre::Vector3 offset1, const Ogre::String& hand2,Ogre::Quaternion rot2,Ogre::Vector3 offset2)
 {
 	//Adds two pistols the hands. Not so general. @todo...
-	mvpGun1Ent= mvpSceneMgr->createEntity(*mvpName + Ogre::String("Gun1"), "pistol.mesh");
-	mvpGun1Ent->setMaterialName("gunmaterial");//@todo fixa
-	mvpGun2Ent = mvpSceneMgr->createEntity(*mvpName + Ogre::String("Gun2"), "pistol.mesh");
-	mvpGun2Ent->setMaterialName("gunmaterial");//@todo fixa
+	mtpGun1Ent= mvpSceneMgr->createEntity(*mvpName + Ogre::String("Gun1"), "pistol.mesh");
+	mtpGun1Ent->setMaterialName("gunmaterial");//@todo fixa
+	mtpGun2Ent = mvpSceneMgr->createEntity(*mvpName + Ogre::String("Gun2"), "pistol.mesh");
+	mtpGun2Ent->setMaterialName("gunmaterial");//@todo fixa
 
-	mvpCharEnt->attachObjectToBone(hand1,mvpGun1Ent,rot1,offset1); 
-	mvpCharEnt->attachObjectToBone(hand2,mvpGun2Ent,rot2,offset2);
+	mvpCharEnt->attachObjectToBone(hand1,mtpGun1Ent,rot1,offset1); 
+	mvpCharEnt->attachObjectToBone(hand2,mtpGun2Ent,rot2,offset2);
 
-	mvpGun1Ent->setVisible(false);
-	mvpGun2Ent->setVisible(false);
+	mtpGun1Ent->setVisible(false);
+	mtpGun2Ent->setVisible(false);
 }
 /*---------------------------------------------------------------------------------*/
 void Aimer::addMuzzleFire(const Ogre::String& hand1,Ogre::Quaternion rot1,Ogre::Vector3 offset1, const Ogre::String& hand2,Ogre::Quaternion rot2,Ogre::Vector3 offset2,bool addToChunk, GridData chunk)
@@ -112,16 +122,15 @@ void Aimer::addMuzzleFire(const Ogre::String& hand1,Ogre::Quaternion rot1,Ogre::
 	}
 }
 /*---------------------------------------------------------------------------------*/
-void Aimer::addBloodParticleSystem(bool addToChunk, GridData chunk)
+void Aimer::destroyNodeTracks(Ogre::Animation* animation)
 {
-	//Each Aimer has a Blood Particle System that will be started when an enemy has been hitted.
-	mvpBlood = new Blood(0.2,mvpSceneMgr,*mvpName,"blood");
-	
-	//See Aimer::addMuzzleFire
-	if (addToChunk)
-		Chunks::getSingletonPtr()->addStaticEffects(mvpBlood,chunk);
-	else
-		Effects::addDynamicEffect(mvpBlood);
+	//Destroy the node tracks for an animation. Must be done if the animation has key nodes for the bones in this animation
+	std::cout << "\nDestroying" << animation->getName() <<"\n";
+	animation->destroyNodeTrack(mtpBoneArmRight->getHandle());
+	animation->destroyNodeTrack(mtpBoneArmLeft->getHandle());
+	animation->destroyNodeTrack(mtpBoneLowArmRight->getHandle());
+	animation->destroyNodeTrack(mtpBoneLowArmLeft->getHandle());
+	animation->destroyNodeTrack(mtpBoneHead->getHandle());
 }
 /*---------------------------------------------------------------------------------*/
 void Aimer::fire(const Ogre::Vector3& start, const Ogre::Vector3& dir,int filterGroup)
@@ -136,7 +145,7 @@ void Aimer::fire(const Ogre::Vector3& start, const Ogre::Vector3& dir,int filter
 	//Create PhysX Ray
 	NxOgre::Vec3 rayDirection(dir);
 	NxOgre::Vec3 rayOrgin(start);
-	
+
 	//NxOgre Raycast. ~filterGroup means it will not hit the CollisionGroups in filterGroup
 	NxOgre::RaycastHit rayCastResult = mvpPhysicsScene->raycastClosestShape(NxOgre::Ray(rayOrgin,rayDirection),NxOgre::Enums::ShapesType_All,~filterGroup);
 
@@ -177,9 +186,9 @@ void Aimer::fire(const Ogre::Vector3& start, const Ogre::Vector3& dir,int filter
 		//If the rigidbody wasn't a character
 		else if (!hitChar)
 			//GameFramework::getSingletonPtr()->mpSound->playSound(GameFramework::getSingletonPtr()->mpSound->mpWood,rayCastResult.mWorldImpact.as<Ogre::Vector3>());
-		
-		std::cout << "TRAFF!!!!";
-		
+
+			std::cout << "TRAFF!!!!";
+
 		//Adds force
 		NxOgre::Vec3 force = rayCastResult.mWorldImpact - NxOgre::Vec3(mtvCharNode->_getDerivedPosition());
 		force.normalise();
@@ -192,22 +201,41 @@ void Aimer::fire(const Ogre::Vector3& start, const Ogre::Vector3& dir,int filter
 
 	std::cout << rayCastResult.mWorldImpact.x << " " <<rayCastResult.mWorldImpact.y  << " " << rayCastResult.mWorldImpact.z;
 }
+
+
 /*---------------------------------------------------------------------------------*/
-void Aimer::setInitialOrientation()
+void Aimer::setBones(Ogre::Entity* charEnt,Ogre::String& strUpArmR, Ogre::String& strUpArmL, Ogre::String& strLowArmL, Ogre::String& strLowArmR,Ogre::String& strHead)
 {
-	//Set the bones to their initial orientation. Used when going from manually controlled to controlled
-	mtpBoneArmRight->setOrientation(mtpBoneArmRight->getInitialOrientation());
-	mtpBoneArmLeft->setOrientation(mtpBoneArmLeft->getInitialOrientation());
-	mtpBoneHead->setOrientation(mtpBoneHead->getInitialOrientation());
+	//Pointers to the entity and the bones.
+	mvpCharEnt = charEnt;
+	mtpBoneArmRight = charEnt->getSkeleton()->getBone(strUpArmR);
+	mtpBoneArmLeft = charEnt->getSkeleton()->getBone(strUpArmL);
+	mtpBoneLowArmRight = charEnt->getSkeleton()->getBone(strLowArmR);
+	mtpBoneLowArmLeft = charEnt->getSkeleton()->getBone(strLowArmL);
+	mtpBoneHead = charEnt->getSkeleton()->getBone(strHead);
+}
+
+
+
+/*---------------------------------------------------------------------------------*/
+void Aimer::setNodes(Ogre::SceneNode* charNode,Ogre::SceneManager* sceneMgr,const Ogre::String& name)
+{
+	//Links stuff from child
+	mtvCharNode = charNode;
+	mvpName = &name;
+	mvpSceneMgr = sceneMgr;
+	mtContinuousShoot = false;
+	mtContinuousShootTimer = 0.2;
+
+	//This node is unique for Aimer. Used for aiming
+	mtvGunTrackNode = sceneMgr->getSceneNode("CamOrginNode")->createChildSceneNode(name + Ogre::String("GunTrackNode"),
+		Ogre::Vector3(0.0f,Settings::getSingletonPtr()->mCamCharYAdjust, 
+		Settings::getSingletonPtr()->mCamGunTrackerOffsetZ ));
 }
 /*---------------------------------------------------------------------------------*/
-void Aimer::setManuallyControlled(bool state)
-{
-	//Activte/Deactivates ManuallyControlled. Going to/from GunMode.
-	mtpBoneArmRight->setManuallyControlled(state);
-	mtpBoneArmLeft->setManuallyControlled(state);
-	mtpBoneHead->setManuallyControlled(state);
-}
+
+/*---------------------------------------------------------------------------------*/
+/*									PRIVATE										   */
 /*---------------------------------------------------------------------------------*/
 void Aimer::RotateBone(Ogre::Bone* bone, Ogre::SceneNode* aimNode)
 {
@@ -234,3 +262,4 @@ void Aimer::RotateBone(Ogre::Bone* bone, Ogre::SceneNode* aimNode)
 	rot = neckBoneWorldOrientation.Inverse()*rot;
 	bone->setOrientation(rot);
 }
+/*---------------------------------------------------------------------------------*/

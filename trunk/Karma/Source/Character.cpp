@@ -1,7 +1,22 @@
+/*---------------------------------------------------------------------------------*/
+/* File: Character.cpp															   */
+/* Author: Per Karlsson, perkarlsson89@gmail.com								   */
+/*																				   */
+/* Description:	Character is the superclass for all characters. It involves	       */
+/* functions and member variables that is common for all characters.			   */
+/*---------------------------------------------------------------------------------*/
+
 #include "Character.h"
 #include "Chunks.h"
 
+/*---------------------------------------------------------------------------------*/
+/*									STATIC										   */
+/*---------------------------------------------------------------------------------*/
 std::vector<Character*> Character::mtDynamicCharacters;
+/*---------------------------------------------------------------------------------*/
+
+/*---------------------------------------------------------------------------------*/
+/*									PUBLIC										   */
 /*---------------------------------------------------------------------------------*/
 Character::Character(Ogre::SceneManager* sceneMgr,NxOgre::Scene* physScene,OGRE3DRenderSystem* renderSystem, Ogre::String filename, 
 					 Ogre::String name, Ogre::Vector3 spawnPoint , float scale, float hp , float walkSpeed, int collisionGroup) : 
@@ -173,26 +188,6 @@ float Character::updateHp(float minusHP)
 	return mtHPCur;
 }
 /*---------------------------------------------------------------------------------*/
-void Character::die()
-{
-	//Is a virtual function, can (and should) be overwritten
-	std::cout << "Dead, respawning";
-	mtHPCur = mtHP;
-	mtDying=true;
-}
-/*---------------------------------------------------------------------------------*/
-void Character::rotateCharacter(Ogre::SceneNode* sceneNode,const Ogre::Vector3& dest, const Ogre::Vector3& originalDir)
-{
-	//Makes the character face a certain direction, i.e the camToChar direction or maybe charToGunTrack direction (first Person)
-	
-	//Get offset from original orientation
-	Ogre::Vector3 src = sceneNode->getOrientation()  * originalDir;
-	//A quaternion that represents the difference
-	Ogre::Quaternion quat = src.getRotationTo(dest);
-	//Rotate!
-	sceneNode->rotate(quat);
-}
-/*---------------------------------------------------------------------------------*/
 bool Character::updateDead(const double& timeSinceLastFrame)
 {
 	//Update the "Die" animation. Currently no animation added 2010-05-17
@@ -220,6 +215,34 @@ bool Character::updateDead(const double& timeSinceLastFrame)
 	return false;
 }
 
+/*---------------------------------------------------------------------------------*/
+GridData Character::worldToChunk(const float& x, const float& z)
+{
+	//Move the coordinate system to only have positive values
+	double newX = x + *mtWorldSize/2.0;
+	double newY = -z + *mtWorldSize/2.0;
+	
+	//Scales the coordinate system
+	newX = (newX*mtChunksWidth)/ *mtWorldSize;
+	newY = (newY*mtChunksWidth)/ *mtWorldSize;
+
+	//Rounds the double to an int.
+	newX = std::floor(newX + 0.5);
+	newY = std::floor(newY + 0.5);
+	return GridData(newX,newY);
+}
+
+/*---------------------------------------------------------------------------------*/
+/*									PROTECTED									   */
+/*---------------------------------------------------------------------------------*/
+void Character::die()
+{
+	//Is a virtual function, can (and should) be overwritten
+	std::cout << "Dead, respawning";
+	mtHPCur = mtHP;
+	mtDying=true;
+}
+/*---------------------------------------------------------------------------------*/
 void Character::respawn()
 {
 		//Manually moving the physics actor to their spawn points.
@@ -244,20 +267,16 @@ void Character::respawn()
 		//Finally updates the position of the character to the capsule
 		updatePosition();
 }
-
-GridData Character::worldToChunk(const float& x, const float& z)
+/*---------------------------------------------------------------------------------*/
+void Character::rotateCharacter(Ogre::SceneNode* sceneNode,const Ogre::Vector3& dest, const Ogre::Vector3& originalDir)
 {
-	//Move the coordinate system to only have positive values
-	double newX = x + *mtWorldSize/2.0;
-	double newY = -z + *mtWorldSize/2.0;
+	//Makes the character face a certain direction, i.e the camToChar direction or maybe charToGunTrack direction (first Person)
 	
-	//Scales the coordinate system
-	newX = (newX*mtChunksWidth)/ *mtWorldSize;
-	newY = (newY*mtChunksWidth)/ *mtWorldSize;
-
-	//Rounds the double to an int.
-	newX = std::floor(newX + 0.5);
-	newY = std::floor(newY + 0.5);
-	return GridData(newX,newY);
+	//Get offset from original orientation
+	Ogre::Vector3 src = sceneNode->getOrientation()  * originalDir;
+	//A quaternion that represents the difference
+	Ogre::Quaternion quat = src.getRotationTo(dest);
+	//Rotate!
+	sceneNode->rotate(quat);
 }
-
+/*---------------------------------------------------------------------------------*/

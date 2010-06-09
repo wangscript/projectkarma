@@ -1,3 +1,12 @@
+/*---------------------------------------------------------------------------------*/
+/* File: Settings.h																   */
+/* Author: Per Karlsson, perkarlsson89@gmail.com								   */
+/*																				   */
+/* Description:	The settings class unfortunately bad coded. It has lots of		   */
+/* different member variables instead of a map containing them all. Anyway, it     */
+/* is used to prevent re-compiling when testing new values for stuff.			   */
+/*---------------------------------------------------------------------------------*/
+
 #ifndef SETTINGS_H
 #define SETTINGS_H
 
@@ -151,7 +160,10 @@ public:
 	float* mTerrainAdjustY;
 	float* mTerrainTextureWorldSize;
 
+	/* Load settings from the settings.cfg.  */
 	void loadSettingsFromFile();
+
+	/* Delete all pointers. */
 	void deletePointers();
 
 };
