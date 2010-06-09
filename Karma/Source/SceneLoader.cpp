@@ -257,7 +257,7 @@ bool SceneLoader::parseNode(TiXmlElement *XMLNode)
 	}
 	else
 	{
-		mvpPhysicsMgr->addRigidBody(vec3Position,meshNameCharArr,mass,collisionGroup);
+		mvpPhysicsMgr->addDynamicRigidBody(vec3Position,meshNameCharArr,mass,collisionGroup);
 	}
 	
  	

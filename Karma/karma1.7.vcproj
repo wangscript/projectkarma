@@ -191,7 +191,7 @@
 				>
 			</File>
 			<File
-				RelativePath=".\Headers\Character.cpp"
+				RelativePath=".\Source\Character.cpp"
 				>
 			</File>
 			<File
@@ -321,11 +321,11 @@
 				>
 			</File>
 			<File
-				RelativePath=".\Headers\GUI.h"
+				RelativePath=".\Headers\GuiHandler.h"
 				>
 			</File>
 			<File
-				RelativePath=".\Headers\GuiHandler.h"
+				RelativePath=".\Headers\GuiMouseOver.h"
 				>
 			</File>
 			<File

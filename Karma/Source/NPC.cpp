@@ -1,8 +1,23 @@
+/*---------------------------------------------------------------------------------*/
+/* File: NPC.cpp																   */
+/* Author: Per Karlsson, perkarlsson89@gmail.com								   */
+/*																				   */
+/* Description:	NPC is the class between the Character and the derived NPC		   */
+/* classes (i.e NPCAimer). It involves some standard functions for reseting		   */
+/* the NPC.			  															   */
+/*---------------------------------------------------------------------------------*/
+
 #include "NPC.h"
 #include "Chunks.h"
 
 /*---------------------------------------------------------------------------------*/
+/*									STATIC										   */
+/*---------------------------------------------------------------------------------*/
 Ogre::SceneNode* NPC::playerNode = 0;
+/*---------------------------------------------------------------------------------*/
+
+/*---------------------------------------------------------------------------------*/
+/*									PUBLIC										   */
 /*---------------------------------------------------------------------------------*/
 NPC::NPC(Ogre::SceneManager* sceneMgr,NxOgre::Scene* physScene,OGRE3DRenderSystem* renderSystem, Ogre::String filename, 
 		 Ogre::String name, Ogre::Vector3 spawnPoint, float scale, float hp , float walkSpeed)
@@ -60,6 +75,10 @@ void NPC::reset()
 		mtReseting = true;
 	}
 }
+/*---------------------------------------------------------------------------------*/
+
+/*---------------------------------------------------------------------------------*/
+/*									PROTECTED									   */
 /*---------------------------------------------------------------------------------*/
 void NPC::die()
 {

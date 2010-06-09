@@ -1,222 +1,439 @@
+/*---------------------------------------------------------------------------------*/
+/* File: GuiHandler.cpp															   */
+/* Author: Per Karlsson, perkarlsson89@gmail.com								   */
+/*																				   */
+/* Description:	GuiHandler is a class takes care of all the in-game GUI			   */
+/* (and the cursor).															   */
+/*---------------------------------------------------------------------------------*/
+
 #include <GuiHandler.h>
 
+/*---------------------------------------------------------------------------------*/
+/*									PUBLIC										   */
+/*---------------------------------------------------------------------------------*/
 GuiHandler::GuiHandler(Ogre::RenderWindow* renderWnd) :mvpRenderWnd(renderWnd), mvFirstPerson(false),mvCastBar(false)
 {
-	mtpCursorLayer = Ogre::OverlayManager::getSingleton().getByName("CursorMain");
-	mtpCursorNormal = Ogre::OverlayManager::getSingleton().getOverlayElement("CursorNormal");
-	mtpCursorMoveBox = Ogre::OverlayManager::getSingleton().getOverlayElement("CursorMoveBox");
-	mtpCursorMoveBox->hide();
-	mtpCursorMoveBoxGrab = Ogre::OverlayManager::getSingleton().getOverlayElement("CursorMoveBoxGrab");
-	mtpCursorMoveBoxGrab->hide();
-	mtpCursorAim = Ogre::OverlayManager::getSingleton().getOverlayElement("CursorAim");
-	mtpCursorAim->hide();
-
-	mtpCurCursor = mtpCursorNormal;
-
+	//Initiate all the different cursors.
+	//Textures and overlay files are located in a Resource Group called Cursor.
+	mvpCursorLayer = Ogre::OverlayManager::getSingleton().getByName("CursorMain");
+	mvpCursorNormal = Ogre::OverlayManager::getSingleton().getOverlayElement("CursorNormal");
+	mvpCursorMoveBox = Ogre::OverlayManager::getSingleton().getOverlayElement("CursorMoveBox");
+	mvpCursorMoveBox->hide();
+	mvpCursorMoveBoxGrab = Ogre::OverlayManager::getSingleton().getOverlayElement("CursorMoveBoxGrab");
+	mvpCursorMoveBoxGrab->hide();
+	mvpCursorAim = Ogre::OverlayManager::getSingleton().getOverlayElement("CursorAim");
+	mvpCursorAim->hide();
+	
+	//Start with the normal cursor
+	mvpCurCursor = mvpCursorNormal;
 	showCursor();
 }
 
 
-void GuiHandler::firstPerson(bool state)
-{
-	mvFirstPerson = state;
-	if (mvFirstPerson)
-	{
-		mtpFirstPersonLayer->show();
-		updateCursorPos(mvpRenderWnd->getWidth()/2,mvpRenderWnd->getHeight()/2);
-	}
-	else
-		mtpFirstPersonLayer->hide();
-}
-
+/*---------------------------------------------------------------------------------*/
 void GuiHandler::changeCursor(int cursor)
 {
-	mtpCurCursor->hide();
+	//Hide the current Cursor.
+	mvpCurCursor->hide();
+
+	//Set the new cursor.
 	switch (cursor)
 	{
 	case Game::Cursor_Normal:
-		mtpCurCursor = mtpCursorNormal;
+		mvpCurCursor = mvpCursorNormal;
 		break;
 	case Game::Cursor_MoveBox:
-		mtpCurCursor = mtpCursorMoveBox;
+		mvpCurCursor = mvpCursorMoveBox;
 		break;
 	case Game::Cursor_MoveBoxGrab:
-		mtpCurCursor = mtpCursorMoveBoxGrab;
+		mvpCurCursor = mvpCursorMoveBoxGrab;
 		break;
 	case Game::Cursor_Aim:
-		mtpCurCursor = mtpCursorAim;
+		mvpCurCursor = mvpCursorAim;
 	}
-	mtpCurCursor->show();
-	mtpCurCursor->setPosition(mvMouseX,mvMouseY);
+
+	//Show the new cursor and update its position.
+	mvpCurCursor->show();
+	mvpCurCursor->setPosition(mvMouseX,mvMouseY);
 }
 
 
+/*---------------------------------------------------------------------------------*/
+void GuiHandler::firstPerson(bool state)
+{
+	//Either shows or hides the First Person Gun GUI.
+	mvFirstPerson = state;
+	if (mvFirstPerson)
+	{
+		mvpFirstPersonLayer->show();
+		updateCursorPos(mvpRenderWnd->getWidth()/2,mvpRenderWnd->getHeight()/2);
+	}
+	else
+		mvpFirstPersonLayer->hide();
+}
+
+/*---------------------------------------------------------------------------------*/
+void GuiHandler::hideCastingBar()
+{
+	//If the current casting bar has an icon, hide it.
+	if (mvpCurrCastingBarIcon)
+	{
+		mvpCurrCastingBarIcon->hide();
+		mvpCurrCastingBarIcon = 0;
+	}
+
+	//Hide and disable the casting bar.
+	mvCastBar = false;
+	mvpCastingBarLayer->hide();
+}
+/*---------------------------------------------------------------------------------*/
+void GuiHandler::hideCursor()
+{
+	//Hide the Cursor overlay.
+	mvpCursorLayer->hide();
+}
+/*---------------------------------------------------------------------------------*/
 void GuiHandler::initGui()
 {
+	//Initiate all the In-Game GUI components.
 	initActionBar();
 	initCastingBar();
 	initMiniMap();
 	initFirstPersonShooter();
 	initHP();
 }
+/*---------------------------------------------------------------------------------*/
+bool GuiHandler::isLoaded(int powerUp)
+{
+//If a PowerUp is loaded, the regular ".PowerUp" in the ActionBarElement struct is visible.
+switch (powerUp)		
+	{
+	case Game::PowerUp_SuperJump:
+		return mvpActionBarSuperJump.PowerUp->isVisible();
+		break;
+	case Game::PowerUp_SuperSpeed:
+		return mvpActionBarSuperSpeed.PowerUp->isVisible();
+		break;
+	case Game::PowerUp_MoveBoxMode:
+		return mvpActionBarMoveBox.PowerUp->isVisible();
+		break;
+	case Game::PowerUp_GunModePistol:
+		return mvpActionBarPistol.PowerUp->isVisible();
+		break;
+	case Game::PowerUp_GunModeMachineGun:
+		return mvpActionBarMachineGun.PowerUp->isVisible();
+		break;
+	case Game::PowerUp_RocketBootsMode:
+		return mvpActionBarRocketBoots.PowerUp->isVisible();
+	};	
+return false;
+}
 
+/*---------------------------------------------------------------------------------*/
+void GuiHandler::loadCastingBar(int powerUp , float totalTime)
+{
+	//Depending on PowerUp, the casting bar has different text strings and icons.
+	Ogre::String name;
+	switch(powerUp)
+	{
+	case Game::PowerUp_SuperSpeed:
+		mvpCurrCastingBarIcon = mvpCastingBarSuperSpeed;
+		name = "Super Speed";
+		break;
+	case Game::PowerUp_MoveBox:
+		mvpCurrCastingBarIcon = mvpCastingBarMoveBox;
+		name = "Move Box";
+		break;
+	case Game::PowerUp_RocketBootsMode:
+		mvpCurrCastingBarIcon = mvpCastingBarRocketBoots;
+		name = "Rocket Boots";
+	}
+	
+	//Enables casting bar.
+	mvCastBar = true;
+	mvpCastingBarLayer->show();
+	mvpCurrCastingBarIcon->show();
+	
+	//mvpCastingBarCur is a small "bar" that shows current position on the casting bar.
+	//This resets it to start at the same position as the casting bars right edge.
+	//243 = width of casting bar
+	//24 = left offset of casting bar. (the icon is 24 in width)
+	mvpCastingBarCur->setLeft(24+243);
+
+	//Updates the total time and the name of the PowerUp on the casting bar.
+	mvCastingBarTotalTime = totalTime;
+	mvpCastingBarText->setCaption(name);
+	//For example "SuperSpeed      x / 3.0"
+	//SuperSpeed =  mvpCastingBarText
+	//3.0 = mvCastingBarTotalTime
+}
+
+/*---------------------------------------------------------------------------------*/
+void GuiHandler::showCursor()
+{
+	//Show the cursor overlay
+	mvpCursorLayer->show();
+}
+/*---------------------------------------------------------------------------------*/
+void GuiHandler::showMuzzleFire(bool state)
+{
+	//Either shows or hides the First Person muzzle fire.
+	if (state)
+		mvpMuzzleFireFirstPerson->show();
+	else
+		mvpMuzzleFireFirstPerson->hide();
+}
+
+/*---------------------------------------------------------------------------------*/
 void GuiHandler::toggleGameGUI(bool state)
 {
+	//Either shows or hides the In-Game GUI
 	if (state)
 	{
-		mtpMiniMapLayer->show();
+		mvpMiniMapLayer->show();
+		//If the casting bar was enabled before, show it.
 		if (mvCastBar)
-			mtpCastingBarLayer->show();
-		mvActionBar->show();
-		mtpHPLayer->show();
+			mvpCastingBarLayer->show();
+		mvpActionBar->show();
+		mvpHPLayer->show();
 		if (mvFirstPerson)
 			firstPerson(mvFirstPerson);
 	}
 	else
 	{
-		mtpMiniMapLayer->hide();
-		mtpCastingBarLayer->hide();
-		mvActionBar->hide();
-		mtpHPLayer->hide();
+		mvpMiniMapLayer->hide();
+		mvpCastingBarLayer->hide();
+		mvpActionBar->hide();
+		mvpHPLayer->hide();
 		if (mvFirstPerson)
-			mtpFirstPersonLayer->hide();
+			mvpFirstPersonLayer->hide();
 	}
 }
 
-void GuiHandler::initHP()
-{
-	mtpHPLayer = Ogre::OverlayManager::getSingleton().getByName("GuiKarma/HP");
-	mtpHPLayer->show();	
-	mtpHPText = Ogre::OverlayManager::getSingletonPtr()->getOverlayElement("GuiKarma/HPText");
-}
-
-void GuiHandler::updateHP(float hp)
-{
-	mtpHPText->setCaption(Ogre::StringConverter::toString(hp));
-}
-
-
-void GuiHandler::initActionBar()
-{
-	mvActionBar = Ogre::OverlayManager::getSingletonPtr()->getByName("ActionBarOverlay");
-	mvActionBar->show();
-	//Load all elements and only show the locked ones (initial state)
-	mvActionBarSuperJump.PowerUp = Ogre::OverlayManager::getSingletonPtr()->getOverlayElement("ActionBarOverlay/pwrupSuperJump");
-	mvActionBarSuperJump.PowerUpLocked = Ogre::OverlayManager::getSingletonPtr()->getOverlayElement("ActionBarOverlay/pwrupSuperJumpLocked");
-	mvActionBarSuperJump.Active = Ogre::OverlayManager::getSingletonPtr()->getOverlayElement("ActionBarOverlay/pwrupSuperJumpActive");
-	changeActionBarElement(mvActionBarSuperJump,Game::ActionBar_Locked);
-
-	mvActionBarSuperSpeed.PowerUp = Ogre::OverlayManager::getSingletonPtr()->getOverlayElement("ActionBarOverlay/pwrupSuperSpeed");
-	mvActionBarSuperSpeed.PowerUpLocked = Ogre::OverlayManager::getSingletonPtr()->getOverlayElement("ActionBarOverlay/pwrupSuperSpeedLocked");
-	mvActionBarSuperSpeed.Active = Ogre::OverlayManager::getSingletonPtr()->getOverlayElement("ActionBarOverlay/pwrupSuperSpeedActive");
-	changeActionBarElement(mvActionBarSuperSpeed,Game::ActionBar_Locked);
-
-	mvActionBarMoveBox.PowerUp = Ogre::OverlayManager::getSingletonPtr()->getOverlayElement("ActionBarOverlay/pwrupMoveBox");
-	mvActionBarMoveBox.PowerUpLocked = Ogre::OverlayManager::getSingletonPtr()->getOverlayElement("ActionBarOverlay/pwrupMoveBoxLocked");
-	mvActionBarMoveBox.Active = Ogre::OverlayManager::getSingletonPtr()->getOverlayElement("ActionBarOverlay/pwrupMoveBoxActive");
-	changeActionBarElement(mvActionBarMoveBox,Game::ActionBar_Locked);
-
-	mvActionBarPistol.PowerUp = Ogre::OverlayManager::getSingletonPtr()->getOverlayElement("ActionBarOverlay/pwrupPistol");
-	mvActionBarPistol.PowerUpLocked = Ogre::OverlayManager::getSingletonPtr()->getOverlayElement("ActionBarOverlay/pwrupPistolLocked");
-	mvActionBarPistol.Active = Ogre::OverlayManager::getSingletonPtr()->getOverlayElement("ActionBarOverlay/pwrupPistolActive");
-	changeActionBarElement(mvActionBarPistol,Game::ActionBar_Locked);
-
-	mvActionBarMachineGun.PowerUp = Ogre::OverlayManager::getSingletonPtr()->getOverlayElement("ActionBarOverlay/pwrupMachineGun");
-	mvActionBarMachineGun.PowerUpLocked = Ogre::OverlayManager::getSingletonPtr()->getOverlayElement("ActionBarOverlay/pwrupMachineGunLocked");
-	mvActionBarMachineGun.Active = Ogre::OverlayManager::getSingletonPtr()->getOverlayElement("ActionBarOverlay/pwrupMachineGunActive");
-	changeActionBarElement(mvActionBarMachineGun,Game::ActionBar_Locked);
-
-	mvActionBarRocketBoots.PowerUp = Ogre::OverlayManager::getSingletonPtr()->getOverlayElement("ActionBarOverlay/pwrupRocketBoots");
-	mvActionBarRocketBoots.PowerUpLocked = Ogre::OverlayManager::getSingletonPtr()->getOverlayElement("ActionBarOverlay/pwrupRocketBootsLocked");
-	mvActionBarRocketBoots.Active = Ogre::OverlayManager::getSingletonPtr()->getOverlayElement("ActionBarOverlay/pwrupRocketBootsActive");
-	changeActionBarElement(mvActionBarRocketBoots,Game::ActionBar_Locked);
-}
-
-bool GuiHandler::isLoaded(int powerUp)
-{
-switch (powerUp)		
-	{
-	case Game::PowerUp_SuperJump:
-		return mvActionBarSuperJump.PowerUp->isVisible();
-		break;
-	case Game::PowerUp_SuperSpeed:
-		return mvActionBarSuperSpeed.PowerUp->isVisible();
-		break;
-	case Game::PowerUp_MoveBoxMode:
-		return mvActionBarMoveBox.PowerUp->isVisible();
-		break;
-	case Game::PowerUp_GunModePistol:
-		return mvActionBarPistol.PowerUp->isVisible();
-		break;
-	case Game::PowerUp_GunModeMachineGun:
-		return mvActionBarMachineGun.PowerUp->isVisible();
-		break;
-	case Game::PowerUp_RocketBootsMode:
-		return mvActionBarRocketBoots.PowerUp->isVisible();
-	};	
-return false;
-}
-
+/*---------------------------------------------------------------------------------*/
 void GuiHandler::updateActionBarElement(int powerUp,int ActionBarMode)
 {
+	//In the future: Make this more general maybe.
+
+	//Changes an action bar slot. Some PowerUps are supposed to cancel others.
 	switch (powerUp)		
 	{
 	case Game::PowerUp_SuperJump:
-		changeActionBarElement(mvActionBarSuperJump,ActionBarMode);
+		changeActionBarElement(mvpActionBarSuperJump,ActionBarMode);
+		//If SuperJump is set to active and RocketBoots is loaded, set Rocket Boots icon to normal (and not activ)
 		if (ActionBarMode==Game::ActionBar_Active && isLoaded(Game::PowerUp_RocketBootsMode))
-			changeActionBarElement(mvActionBarRocketBoots,Game::ActionBar_Normal);
+			changeActionBarElement(mvpActionBarRocketBoots,Game::ActionBar_Normal);
 		break;
 
 	case Game::PowerUp_SuperSpeed:
-		changeActionBarElement(mvActionBarSuperSpeed,ActionBarMode);
+		changeActionBarElement(mvpActionBarSuperSpeed,ActionBarMode);
+		//Same as SuperJump (line 213). SuperSpeed cancels RocketBoots and MoveBox.
 		if (ActionBarMode==Game::ActionBar_Active && isLoaded(Game::PowerUp_RocketBootsMode))
-			changeActionBarElement(mvActionBarRocketBoots,Game::ActionBar_Normal);
+			changeActionBarElement(mvpActionBarRocketBoots,Game::ActionBar_Normal);
 		if (ActionBarMode==Game::ActionBar_Active && isLoaded(Game::PowerUp_MoveBoxMode))
-			changeActionBarElement(mvActionBarMoveBox,Game::ActionBar_Normal);
+			changeActionBarElement(mvpActionBarMoveBox,Game::ActionBar_Normal);
 		break;
 
 	case Game::PowerUp_MoveBoxMode:
-		changeActionBarElement(mvActionBarMoveBox,ActionBarMode);
+		changeActionBarElement(mvpActionBarMoveBox,ActionBarMode);
+		//Same as SuperJump (line 213). MoveBox cancels GunMode Pistol, GunMode MachineGun, SuperSpeed and RocketBoots.
 		if (ActionBarMode==Game::ActionBar_Active && isLoaded(Game::PowerUp_GunModePistol))
-			changeActionBarElement(mvActionBarPistol,Game::ActionBar_Normal);
+			changeActionBarElement(mvpActionBarPistol,Game::ActionBar_Normal);
 		if (ActionBarMode==Game::ActionBar_Active && isLoaded(Game::PowerUp_GunModeMachineGun))
-			changeActionBarElement(mvActionBarMachineGun,Game::ActionBar_Normal);
+			changeActionBarElement(mvpActionBarMachineGun,Game::ActionBar_Normal);
 		if (ActionBarMode==Game::ActionBar_Active && isLoaded(Game::PowerUp_SuperSpeed))
-			changeActionBarElement(mvActionBarSuperSpeed,Game::ActionBar_Normal);
+			changeActionBarElement(mvpActionBarSuperSpeed,Game::ActionBar_Normal);
 		if (ActionBarMode==Game::ActionBar_Active && isLoaded(Game::PowerUp_RocketBootsMode))
-			changeActionBarElement(mvActionBarRocketBoots,Game::ActionBar_Normal);
+			changeActionBarElement(mvpActionBarRocketBoots,Game::ActionBar_Normal);
 		break;
 
 	case Game::PowerUp_GunModePistol:
-		changeActionBarElement(mvActionBarPistol,ActionBarMode);
+		changeActionBarElement(mvpActionBarPistol,ActionBarMode);
+		//Same as SuperJump (line 213). GunMode Pistol cancels GunMode MachineGun and MoveBox.
 		if (ActionBarMode==Game::ActionBar_Active && isLoaded(Game::PowerUp_MoveBoxMode))
-			changeActionBarElement(mvActionBarMoveBox,Game::ActionBar_Normal);
+			changeActionBarElement(mvpActionBarMoveBox,Game::ActionBar_Normal);
 		if (ActionBarMode==Game::ActionBar_Active && isLoaded(Game::PowerUp_GunModeMachineGun))
-			changeActionBarElement(mvActionBarMachineGun,Game::ActionBar_Normal);
+			changeActionBarElement(mvpActionBarMachineGun,Game::ActionBar_Normal);
 		break;
 
 	case Game::PowerUp_GunModeMachineGun:
-		changeActionBarElement(mvActionBarMachineGun,ActionBarMode);			
+		changeActionBarElement(mvpActionBarMachineGun,ActionBarMode);			
+		//Same as SuperJump (line 213). GunMode Machine cancels GunMode Pistol and MoveBox.
 		if (ActionBarMode==Game::ActionBar_Active && isLoaded(Game::PowerUp_MoveBoxMode))
-			changeActionBarElement(mvActionBarMoveBox,Game::ActionBar_Normal);
+			changeActionBarElement(mvpActionBarMoveBox,Game::ActionBar_Normal);
 		if (ActionBarMode==Game::ActionBar_Active && isLoaded(Game::PowerUp_GunModePistol))
-			changeActionBarElement(mvActionBarPistol,Game::ActionBar_Normal);
+			changeActionBarElement(mvpActionBarPistol,Game::ActionBar_Normal);
 		break;
 
 	case Game::PowerUp_RocketBootsMode:
-		changeActionBarElement(mvActionBarRocketBoots,ActionBarMode);
+		changeActionBarElement(mvpActionBarRocketBoots,ActionBarMode);
+		//Same as SuperJump (line 213). Rocket Boots cancels SuperSpeed,SuperJump and MoveBox.
 		if (ActionBarMode==Game::ActionBar_Active && isLoaded(Game::PowerUp_SuperJump))
-			changeActionBarElement(mvActionBarSuperJump,Game::ActionBar_Normal);
+			changeActionBarElement(mvpActionBarSuperJump,Game::ActionBar_Normal);
 		if (ActionBarMode==Game::ActionBar_Active && isLoaded(Game::PowerUp_SuperSpeed))
-			changeActionBarElement(mvActionBarSuperSpeed,Game::ActionBar_Normal);
+			changeActionBarElement(mvpActionBarSuperSpeed,Game::ActionBar_Normal);
 		if (ActionBarMode==Game::ActionBar_Active && isLoaded(Game::PowerUp_MoveBoxMode))
-			changeActionBarElement(mvActionBarMoveBox,Game::ActionBar_Normal);
+			changeActionBarElement(mvpActionBarMoveBox,Game::ActionBar_Normal);
 		break;
 	};	
 }
+/*---------------------------------------------------------------------------------*/
+void GuiHandler::updateCastingBar(float curTime)
+{
+	//Get the width in percents. relWidth is in the range 0 <= relWidth <= 1
+	float relWidth = curTime/mvCastingBarTotalTime;
+	
+	//Depending on the curTime, we need to set differnet precisions to avoid 0.000001 etc
+	int precision1 = 2;
+	//Prolbems once curTime = 0.xx
+	if (curTime<1)
+		precision1 = 1;
+	
+	//Once the casting bar is below 0.1 seconds, the casting bar is reseted.
+	//No differnece between 0.1 and 0.0, no one can notice any difference.
+	if (curTime < 0.1)
+	{
+		curTime = 0;
+		mvCastBar = false;
+	}
 
+	static Ogre::String text("/");
+	if (relWidth <= 1)
+	{
+		//Updates the current casting bar text. " 2.3 / 3" for example.
+		mvpCastingBarTextTime->setCaption(Ogre::StringConverter::toString(curTime,precision1)+text+Ogre::StringConverter::toString(mvCastingBarTotalTime,3));
+		
+		//243 = castingbar width
+		//relWidth is in the range 0 <= relWidth <= 1
+		mvpCastingBar->setWidth(243 * relWidth);
+		
+		//See ::loadCastingBar for more information about mvpCastingBarCur
+		mvpCastingBarCur->setLeft(24 + 243 * relWidth);
+	}
+}
+/*---------------------------------------------------------------------------------*/
+void GuiHandler::updateCursorPos(const int x,const int y)
+{
+	/* The (0,0) position of a cursor is the top left corner. Every cursor has the size of
+	32 x 32 pixels. If 16 is subtracted from each cursor position, the cursors center will be where the
+	OIS cursor is.*/
+	mvMouseX = x-16;
+	mvMouseY = y-16;
+	mvpCurCursor->setPosition(mvMouseX,mvMouseY);
+#ifdef DEBUG
+	//updateDebugCursorPos(x,y);
+#endif
+}
+/*---------------------------------------------------------------------------------*/
+void GuiHandler::updateHP(float hp)
+{
+	//Updates the HP-meter
+	mvpHPText->setCaption(Ogre::StringConverter::toString(hp));
+}
+/*---------------------------------------------------------------------------------*/
+void GuiHandler::updateMiniMap(double globalX, double globalZ)
+{
+	//In the future: Read World Size from the Settings class.
+	#define WORLDSIZE 600
+
+	//New coordinate system where x and z can have values between (-1) and (1).
+	double x = (globalX) / (WORLDSIZE / 2);
+	double z = (globalZ) / (WORLDSIZE / 2);
+
+	#define MINIMAPWIDTH 0.24 
+	/* On each side of the minimap there is 12% of the picture.
+		________________________
+	12% |	_________________   |
+		|	|XXXXXXXXXXXXXXX|	|
+	76%	|	|XXXXXXXXXXXXXXX|	|
+		|	|XXXXXXXXXXXXXXX|	|
+		|	|XXXXXXXXXXXXXXX|	|
+	12%	|_______________________|
+		12%        76%		 12%
+
+	XXX = minimap
+	the white space = black empty space on the minimap
+
+	Scales the coordinate system so x and z can have values from (0) to (1-MINIMAPWIDTH=0.76)	*/
+	x = (x + 1) / (2/(1-MINIMAPWIDTH));
+	z = (z + 1) / (2/(1-MINIMAPWIDTH));
+
+	//Set new UV coordinates on the minimap texture
+	Ogre::Real uvXstart = 0.76 - z;
+	Ogre::Real uvXend = uvXstart + 0.24;
+	Ogre::Real uvYstart = x;
+	Ogre::Real uvYend = uvYstart + 0.24;
+
+	//Changes the UV coordinates of the MiniMap layer.
+	Ogre::String value = Ogre::StringConverter::toString(uvXstart);
+	value += " ";
+	value += Ogre::StringConverter::toString(uvYstart);
+	value += " ";
+	value += Ogre::StringConverter::toString(uvXend);
+	value += " ";
+	value += Ogre::StringConverter::toString(uvYend);
+	mvpMiniMap->setParameter("uv_coords" ,value );
+}
+
+/*---------------------------------------------------------------------------------*/
+
+/*---------------------------------------------------------------------------------*/
+/*									PRIVATE										   */
+/*---------------------------------------------------------------------------------*/
+void GuiHandler::initActionBar()
+{
+	//Load Action Bar border.
+	mvpActionBar = Ogre::OverlayManager::getSingletonPtr()->getByName("ActionBarOverlay");
+	mvpActionBar->show();
+
+	//Load all elements and only show the locked ones (initial state)
+	mvpActionBarSuperJump.PowerUp = Ogre::OverlayManager::getSingletonPtr()->getOverlayElement("ActionBarOverlay/pwrupSuperJump");
+	mvpActionBarSuperJump.PowerUpLocked = Ogre::OverlayManager::getSingletonPtr()->getOverlayElement("ActionBarOverlay/pwrupSuperJumpLocked");
+	mvpActionBarSuperJump.Active = Ogre::OverlayManager::getSingletonPtr()->getOverlayElement("ActionBarOverlay/pwrupSuperJumpActive");
+	changeActionBarElement(mvpActionBarSuperJump,Game::ActionBar_Locked);
+
+	mvpActionBarSuperSpeed.PowerUp = Ogre::OverlayManager::getSingletonPtr()->getOverlayElement("ActionBarOverlay/pwrupSuperSpeed");
+	mvpActionBarSuperSpeed.PowerUpLocked = Ogre::OverlayManager::getSingletonPtr()->getOverlayElement("ActionBarOverlay/pwrupSuperSpeedLocked");
+	mvpActionBarSuperSpeed.Active = Ogre::OverlayManager::getSingletonPtr()->getOverlayElement("ActionBarOverlay/pwrupSuperSpeedActive");
+	changeActionBarElement(mvpActionBarSuperSpeed,Game::ActionBar_Locked);
+
+	mvpActionBarMoveBox.PowerUp = Ogre::OverlayManager::getSingletonPtr()->getOverlayElement("ActionBarOverlay/pwrupMoveBox");
+	mvpActionBarMoveBox.PowerUpLocked = Ogre::OverlayManager::getSingletonPtr()->getOverlayElement("ActionBarOverlay/pwrupMoveBoxLocked");
+	mvpActionBarMoveBox.Active = Ogre::OverlayManager::getSingletonPtr()->getOverlayElement("ActionBarOverlay/pwrupMoveBoxActive");
+	changeActionBarElement(mvpActionBarMoveBox,Game::ActionBar_Locked);
+
+	mvpActionBarPistol.PowerUp = Ogre::OverlayManager::getSingletonPtr()->getOverlayElement("ActionBarOverlay/pwrupPistol");
+	mvpActionBarPistol.PowerUpLocked = Ogre::OverlayManager::getSingletonPtr()->getOverlayElement("ActionBarOverlay/pwrupPistolLocked");
+	mvpActionBarPistol.Active = Ogre::OverlayManager::getSingletonPtr()->getOverlayElement("ActionBarOverlay/pwrupPistolActive");
+	changeActionBarElement(mvpActionBarPistol,Game::ActionBar_Locked);
+
+	mvpActionBarMachineGun.PowerUp = Ogre::OverlayManager::getSingletonPtr()->getOverlayElement("ActionBarOverlay/pwrupMachineGun");
+	mvpActionBarMachineGun.PowerUpLocked = Ogre::OverlayManager::getSingletonPtr()->getOverlayElement("ActionBarOverlay/pwrupMachineGunLocked");
+	mvpActionBarMachineGun.Active = Ogre::OverlayManager::getSingletonPtr()->getOverlayElement("ActionBarOverlay/pwrupMachineGunActive");
+	changeActionBarElement(mvpActionBarMachineGun,Game::ActionBar_Locked);
+
+	mvpActionBarRocketBoots.PowerUp = Ogre::OverlayManager::getSingletonPtr()->getOverlayElement("ActionBarOverlay/pwrupRocketBoots");
+	mvpActionBarRocketBoots.PowerUpLocked = Ogre::OverlayManager::getSingletonPtr()->getOverlayElement("ActionBarOverlay/pwrupRocketBootsLocked");
+	mvpActionBarRocketBoots.Active = Ogre::OverlayManager::getSingletonPtr()->getOverlayElement("ActionBarOverlay/pwrupRocketBootsActive");
+	changeActionBarElement(mvpActionBarRocketBoots,Game::ActionBar_Locked);
+}
+
+
+/*---------------------------------------------------------------------------------*/
 void GuiHandler::changeActionBarElement(ActionBarElements& ae, int ActionBarMode)
 {
+	/*Changes a slot in the Action Bar.
+	
+	Action Bar Mode == Game::ActionBar_Normal
+	Show normal layer, hide locked and active.
+
+	Action Bar Mode == Game::ActionBar_Active
+	Show active layer and normal layer, hide locked.
+
+	Action Bar Mode == Game::ActionBar_Locked
+	Show locked layer, hide locked and normal.
+	*/
+
 	if (ActionBarMode == Game::ActionBar_Normal)
 	{
 		ae.Active->hide();
@@ -237,161 +454,57 @@ void GuiHandler::changeActionBarElement(ActionBarElements& ae, int ActionBarMode
 	}
 }
 
+/*---------------------------------------------------------------------------------*/
 void GuiHandler::initCastingBar()
 {
-	mtpCastingBarLayer = Ogre::OverlayManager::getSingleton().getByName("GuiKarma/CastingBar");
-	mtpCastingBar =	Ogre::OverlayManager::getSingleton().getOverlayElement("GuiKarma/CastingbarPanel/Texture"); 
-	mtpCastingBarCur =Ogre::OverlayManager::getSingleton().getOverlayElement("GuiKarma/CastingBarPanel/TextureCurrent"); 
-	mtpCastingBarText =	Ogre::OverlayManager::getSingleton().getOverlayElement("GuiKarma/CastingbarPanel/Text");
-	mtpCastingBarTextTime = Ogre::OverlayManager::getSingleton().getOverlayElement("GuiKarma/CastingbarPanel/TextTime");
+	//Initiate the casting bar overlays.
+	mvpCastingBarLayer = Ogre::OverlayManager::getSingleton().getByName("GuiKarma/CastingBar");
+	mvpCastingBar =	Ogre::OverlayManager::getSingleton().getOverlayElement("GuiKarma/CastingbarPanel/Texture"); 
+	mvpCastingBarCur =Ogre::OverlayManager::getSingleton().getOverlayElement("GuiKarma/CastingBarPanel/TextureCurrent"); 
+	mvpCastingBarText =	Ogre::OverlayManager::getSingleton().getOverlayElement("GuiKarma/CastingbarPanel/Text");
+	mvpCastingBarTextTime = Ogre::OverlayManager::getSingleton().getOverlayElement("GuiKarma/CastingbarPanel/TextTime");
 
-	mtpCastingBarSuperSpeed = Ogre::OverlayManager::getSingleton().getOverlayElement("GuiKarma/CastingbarPanel/SuperSpeed");
-	mtpCastingBarSuperSpeed->hide();
-	mtpCastingBarMoveBox = Ogre::OverlayManager::getSingleton().getOverlayElement("GuiKarma/CastingbarPanel/MoveBox");
-	mtpCastingBarMoveBox->hide();
-	mtpCastingBarRocketBoots = Ogre::OverlayManager::getSingleton().getOverlayElement("GuiKarma/CastingbarPanel/RocketBoots");
-	mtpCastingBarRocketBoots->hide();
+	//Initiate the casting bar icons. Default hidden.
+	mvpCastingBarSuperSpeed = Ogre::OverlayManager::getSingleton().getOverlayElement("GuiKarma/CastingbarPanel/SuperSpeed");
+	mvpCastingBarSuperSpeed->hide();
+	mvpCastingBarMoveBox = Ogre::OverlayManager::getSingleton().getOverlayElement("GuiKarma/CastingbarPanel/MoveBox");
+	mvpCastingBarMoveBox->hide();
+	mvpCastingBarRocketBoots = Ogre::OverlayManager::getSingleton().getOverlayElement("GuiKarma/CastingbarPanel/RocketBoots");
+	mvpCastingBarRocketBoots->hide();
 
-
-	mtpCurrCastingBarIcon = 0;
-
-
+	//At first, no icon is active.
+	mvpCurrCastingBarIcon = 0;
 }
-
-void GuiHandler::loadCastingBar(int powerUp , float totalTime)
-{
-	Ogre::String name;
-	switch(powerUp)
-	{
-	case Game::PowerUp_SuperSpeed:
-		mtpCurrCastingBarIcon = mtpCastingBarSuperSpeed;
-		name = "Super Speed";
-		break;
-	case Game::PowerUp_MoveBox:
-		mtpCurrCastingBarIcon = mtpCastingBarMoveBox;
-		name = "Move Box";
-		break;
-	case Game::PowerUp_RocketBootsMode:
-		mtpCurrCastingBarIcon = mtpCastingBarRocketBoots;
-		name = "Rocket Boots";
-	}
-	mvCastBar = true;
-	mtpCastingBarCur->setLeft(24+243);
-	mtpCastingBarLayer->show();
-	mtpCurrCastingBarIcon->show();
-	mtCastingBarTotalTime = totalTime;
-	mtpCastingBarText->setCaption(name);
-}
-
-void GuiHandler::updateCastingBar(float curTime)
-{
-	float relWidth = curTime/mtCastingBarTotalTime;
-	int precision1 = 2;
-	if (curTime<1)
-		precision1 = 1;
-	if (curTime < 0.1)
-	{
-		curTime = 0;
-		mvCastBar = false;
-	}
-	static Ogre::String text("/");
-	if (relWidth <= 1)
-	{
-		mtpCastingBarTextTime->setCaption(Ogre::StringConverter::toString(curTime,precision1)+text+Ogre::StringConverter::toString(mtCastingBarTotalTime,3));
-		//243 = castingbar width
-		mtpCastingBar->setWidth(243 * relWidth);
-		mtpCastingBarCur->setLeft(24 + 243 * relWidth);
-	}
-}
-
-void GuiHandler::hideCastingBar()
-{
-	if (mtpCurrCastingBarIcon)
-	{
-		mtpCurrCastingBarIcon->hide();
-		mtpCurrCastingBarIcon = 0;
-	}
-	mvCastBar = false;
-	mtpCastingBarLayer->hide();
-}
-void GuiHandler::showCursor()
-{
-	mtpCursorLayer->show();
-}
-
-void GuiHandler::hideCursor()
-{
-	mtpCursorLayer->hide();
-}
-
-void GuiHandler::updateCursorPos(const int x,const int y)
-{
-	mvMouseX = x-16;
-	mvMouseY = y-16;
-	mtpCurCursor->setPosition(mvMouseX,mvMouseY);
-#ifdef DEBUG
-	//updateDebugCursorPos(x,y);
-#endif
-}
-
+/*---------------------------------------------------------------------------------*/
 void GuiHandler::initMiniMap()
 {
-	mtpMiniMapLayer = Ogre::OverlayManager::getSingleton().getByName("GuiKarma/MiniMap");
-	mtpMiniMapLayer->show();
-	//mtpCursorLayer->setZOrder(400);
-	mtpMiniMap = Ogre::OverlayManager::getSingleton().getOverlayElement("GuiKarma/MiniMapImage"); 
+	//Initiate the MiniMap
+	mvpMiniMapLayer = Ogre::OverlayManager::getSingleton().getByName("GuiKarma/MiniMap");
+	mvpMiniMapLayer->show();
+	mvpMiniMap = Ogre::OverlayManager::getSingleton().getOverlayElement("GuiKarma/MiniMapImage"); 
 }
-void GuiHandler::updateMiniMap(double globalX, double globalZ)
-{
-	//#define TERRAIN_OFFSET_X -115
-	//#define TERRAIN_OFFSET_Z 12
-	//#define WORLDSIZE 400
-
-#define TERRAIN_OFFSET_X 0
-#define TERRAIN_OFFSET_Z 0
-#define WORLDSIZE 600
-
-	//Nytt koordinatsystem där x och z kan gå från (-1) till (1);
-	double x = (globalX - TERRAIN_OFFSET_X) / (WORLDSIZE / 2);
-	double z = (globalZ - TERRAIN_OFFSET_Z) / (WORLDSIZE / 2);
-
-#define MINIMAPWIDTH 0.24 // 24%
-	//Skalar ner koordinatsystem så x och z kan gå från (0) till (1-MINIMAPWIDTH);
-	x = (x + 1) / (2/(1-MINIMAPWIDTH));
-	z = (z + 1) / (2/(1-MINIMAPWIDTH));
-
-	Ogre::Real uvXstart = 0.76 - z;
-	Ogre::Real uvXend = uvXstart + 0.24;
-
-	Ogre::Real uvYstart = x;
-	Ogre::Real uvYend = uvYstart + 0.24;
-	Ogre::String value = Ogre::StringConverter::toString(uvXstart);
-	value += " ";
-	value += Ogre::StringConverter::toString(uvYstart);
-	value += " ";
-	value += Ogre::StringConverter::toString(uvXend);
-	value += " ";
-	value += Ogre::StringConverter::toString(uvYend);
-	mtpMiniMap->setParameter("uv_coords" ,value );
-}
-
+/*---------------------------------------------------------------------------------*/
 void GuiHandler::initFirstPersonShooter()
 {
-	mtpMuzzleFireFirstPerson = Ogre::OverlayManager::getSingleton().getByName("GuiKarma/FirstPersonMuzzle");
-	mtpMuzzleFireFirstPerson->hide();
-	mtpFirstPersonLayer = Ogre::OverlayManager::getSingleton().getByName("GuiKarma/FirstPerson");
-	mtpFirstPersonLayer->hide();
-	mtpMiniMapLayer->setZOrder(1);
+	//Initiate the First Person GUI (Muzzle Fire and Gun). Starts hidden
+	mvpMuzzleFireFirstPerson = Ogre::OverlayManager::getSingleton().getByName("GuiKarma/FirstPersonMuzzle");
+	mvpMuzzleFireFirstPerson->hide();
+	mvpFirstPersonLayer = Ogre::OverlayManager::getSingleton().getByName("GuiKarma/FirstPerson");
+	mvpFirstPersonLayer->hide();
+	mvpMiniMapLayer->setZOrder(1);
 }
 
-void GuiHandler::showMuzzleFire(bool state)
+
+/*---------------------------------------------------------------------------------*/
+void GuiHandler::initHP()
 {
-	if (state)
-		mtpMuzzleFireFirstPerson->show();
-	else
-		mtpMuzzleFireFirstPerson->hide();
+	//Initiate the HP-meter.
+	mvpHPLayer = Ogre::OverlayManager::getSingleton().getByName("GuiKarma/HP");
+	mvpHPLayer->show();	
+	mvpHPText = Ogre::OverlayManager::getSingletonPtr()->getOverlayElement("GuiKarma/HPText");
 }
 
+/*---------------------------------------------------------------------------------*/
 #ifdef DEBUG
 void GuiHandler::initDebugGui()
 {

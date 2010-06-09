@@ -1,10 +1,17 @@
+/*---------------------------------------------------------------------------------*/
+/* File: GameCommon.h											   				   */
+/* Author: Per Karlsson, perkarlsson89@gmail.com								   */
+/*																				   */
+/* Description:	All common #includes that almost every class needs.				   */
+/*---------------------------------------------------------------------------------*/
+
 #ifndef GAMECOMMON_H
 #define GAMECOMMON_H
 
 #include <Ogre.h>
 #include <OISMouse.h>
 #include <NxOgreOGRE3D.h>
-#include "AppState.h"//Singelton usage
+#include "AppState.h"
 #include <NxActor.h>
 #include <NxScene.h>
 #include <NxUserContactReport.h>
@@ -15,6 +22,7 @@
 #include "Debug.h"
 #include "GameEnums.h"
 
+/* GridData is a class used for chunks.*/
 class GridData
 {
 public:

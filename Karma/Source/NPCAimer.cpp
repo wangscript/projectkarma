@@ -1,17 +1,29 @@
+/*---------------------------------------------------------------------------------*/
+/* File: NPCAimer.cpp															   */
+/* Author: Per Karlsson, perkarlsson89@gmail.com								   */
+/*																				   */
+/* Description:	NPCAimer is a class used for NPCs that can shoot. Inherits from    */
+/* both the NPC and Aimer class.			  									   */
+/*---------------------------------------------------------------------------------*/
+
 #include "NPCAimer.h"
 
+/*---------------------------------------------------------------------------------*/
+/*									PUBLIC										   */
+/*---------------------------------------------------------------------------------*/
 NPCAimer::NPCAimer(Ogre::SceneManager* sceneMgr,NxOgre::Scene* physScene,OGRE3DRenderSystem* renderSystem, Ogre::String filename, 
 				   Ogre::String name, Ogre::Vector3 spawnPoint , float scale, float hp , float walkSpeed) : NPC
 				   (sceneMgr,physScene,renderSystem,filename,name,spawnPoint,scale,hp,walkSpeed),
 			mvShootFreq(0),
 			mvShootTimer(0),
-			mtDirNPCtoChar(Ogre::Vector3(0,0,0)),
+			mvDirNPCtoChar(Ogre::Vector3(0,0,0)),
 			mvpRangeLong(&Settings::getSingletonPtr()->mNPCAimerRangeLong),
 			mvpRangeShort(&Settings::getSingletonPtr()->mNPCAimerRangeShort),
 			mvpRangeLongFreq(&Settings::getSingletonPtr()->mNPCAimerRangeLongFreq),
 			mvpRangeShortFreq(&Settings::getSingletonPtr()->mNPCAimerRangeShortFreq),
 			mvpRandomFactor(&Settings::getSingletonPtr()->mNPCAimerRandomness)
 {
+	//See Player::Player() for more info about the following lines.
 	setNodes(mtpCharNode, sceneMgr,name);
 	setBones(mtpCharEnt,Ogre::String("UpArm.L"), Ogre::String("UpArm.R"),Ogre::String("LowArm.L"),Ogre::String("LowArm.R"),Ogre::String("Head"));
 	destroyNodeTracks(mtpCharEnt->getSkeleton()->getAnimation(0));
@@ -29,8 +41,7 @@ NPCAimer::NPCAimer(Ogre::SceneManager* sceneMgr,NxOgre::Scene* physScene,OGRE3DR
 	addBloodParticleSystem();
 	setManuallyControlled(true);
 
-	//BIG TODO. effekterna ska in i chunksen, inte dynamicEffects
-
+	//Special attributes for the NPCAimer class.
 	mvUpdateTimerFreq = 1 / Settings::getSingletonPtr()->mNPCUpdateTimerFreq;
 	mtpCharEnt->setMaterialName("NPCAimer");
 
@@ -38,25 +49,24 @@ NPCAimer::NPCAimer(Ogre::SceneManager* sceneMgr,NxOgre::Scene* physScene,OGRE3DR
 /*---------------------------------------------------------------------------------*/
 void NPCAimer::update(const double& timeSinceLastFrame)
 {
-	//Long = 5, Short = 3 @ todo
 	if (mtReseting || mtDying)
 		return;
 
 	updatePosition();
-	mtDirNPCtoChar = playerNode->_getDerivedPosition()  - mtpCharNode->_getDerivedPosition();
+	mvDirNPCtoChar = playerNode->_getDerivedPosition()  - mtpCharNode->_getDerivedPosition();
 
 	mtUpdateTimer+=timeSinceLastFrame;
 	if (mtUpdateTimer > mvUpdateTimerFreq)
 	{
 	mtUpdateTimer = 0;
 	updateBones(playerNode);
-	rotateCharacter(mtpCharNode,mtDirNPCtoChar - Ogre::Vector3(0,mtDirNPCtoChar.y,0),*mtFaceDirection);
+	rotateCharacter(mtpCharNode,mvDirNPCtoChar - Ogre::Vector3(0,mvDirNPCtoChar.y,0),*mtFaceDirection);
 	}
 
 	//Is the NPC inside the "long" range? 
 	//Yes -> Continue
 	//No -> move
-	if (!(mtDirNPCtoChar.x > -(*mvpRangeLong) && mtDirNPCtoChar.x < (*mvpRangeLong)&& mtDirNPCtoChar.z > -(*mvpRangeLong)&& mtDirNPCtoChar.z < (*mvpRangeLong)))
+	if (!(mvDirNPCtoChar.x > -(*mvpRangeLong) && mvDirNPCtoChar.x < (*mvpRangeLong)&& mvDirNPCtoChar.z > -(*mvpRangeLong)&& mvDirNPCtoChar.z < (*mvpRangeLong)))
 	{
 		//No
 		move(timeSinceLastFrame);
@@ -70,7 +80,7 @@ void NPCAimer::update(const double& timeSinceLastFrame)
 		//Is inside the "short" range ?
 		// Yes -> ShootFreq fast
 		// No -> Move
-		if (!(mtDirNPCtoChar.x > -(*mvpRangeShort) && mtDirNPCtoChar.x < (*mvpRangeShort)&& mtDirNPCtoChar.z > -(*mvpRangeShort)&& mtDirNPCtoChar.z < (*mvpRangeShort)))
+		if (!(mvDirNPCtoChar.x > -(*mvpRangeShort) && mvDirNPCtoChar.x < (*mvpRangeShort)&& mvDirNPCtoChar.z > -(*mvpRangeShort)&& mvDirNPCtoChar.z < (*mvpRangeShort)))
 		{
 			//No
 			move(timeSinceLastFrame);
@@ -90,35 +100,9 @@ void NPCAimer::update(const double& timeSinceLastFrame)
 
 }
 /*---------------------------------------------------------------------------------*/
-void NPCAimer::queueFire()
-{
-	//If the mvShootTimer is bigger than the current frequency, shoot!
-	if (mvShootTimer > mvShootFreq)
-	{
-		//Offset the shot
-		//Ogre::Vector3 destination = mtpCharNode->_getDerivedPosition() +
-			Ogre::Vector3(-(*mvpRandomFactor)+ (std::rand() % int((*mvpRandomFactor)*2)),
-			-(*mvpRandomFactor) + (std::rand() % int((*mvpRandomFactor)*2)),
-			-(*mvpRandomFactor) + (std::rand() % int((*mvpRandomFactor)*2)));
-		Ogre::Vector3 destination = mtpCharNode->_getDerivedPosition() + Ogre::Vector3(0,0.5,0);
 
-		//Aimer::Fire. No collision with the MoveBoxReference or NPC collision group.
-		fire(destination, mtDirNPCtoChar.normalisedCopy(),(1 << Game::CollisionGroup_NPC)|(1 << Game::CollisionGroup_MoveBoxReference)); 
-		mvShootTimer = 0;
-	}
-
-}
 /*---------------------------------------------------------------------------------*/
-void NPCAimer::move(const double& timeSinceLastFrame)
-{
-	//Animate the NPC
-	changeAnimation("Walk", timeSinceLastFrame);
-
-	//Move the Capsule
-	Ogre::Vector3 dirNPCtoChar = mtDirNPCtoChar - mtDirNPCtoChar.y;
-	dirNPCtoChar.normalise();
-	mtpHitBox->setLinearVelocity(NxOgre::Vec3(dirNPCtoChar.x*mtWalkSpeed ,mtpHitBox->getLinearVelocity().y,dirNPCtoChar.z*mtWalkSpeed ));		
-}
+/*									PRIVATE										   */
 /*---------------------------------------------------------------------------------*/
 void NPCAimer::die()
 {
@@ -157,3 +141,35 @@ void NPCAimer::die()
 	//Adds the dead NPC to a vector in the NPC Manager
 	NPCHandler::getSingletonPtr()->addDeadNPC(this);
 }
+/*---------------------------------------------------------------------------------*/
+void NPCAimer::move(const double& timeSinceLastFrame)
+{
+	//Animate the NPC
+	changeAnimation("Walk", timeSinceLastFrame);
+
+	//Move the Capsule
+	Ogre::Vector3 dirNPCtoChar = mvDirNPCtoChar - mvDirNPCtoChar.y;
+	dirNPCtoChar.normalise();
+	mtpHitBox->setLinearVelocity(NxOgre::Vec3(dirNPCtoChar.x*mtWalkSpeed ,mtpHitBox->getLinearVelocity().y,dirNPCtoChar.z*mtWalkSpeed ));		
+}
+/*---------------------------------------------------------------------------------*/
+void NPCAimer::queueFire()
+{
+	//If the mvShootTimer is bigger than the current frequency, shoot!
+	if (mvShootTimer > mvShootFreq)
+	{
+		/*Offset the shot (Not being used 2010-05-03)
+		Ogre::Vector3 destination = mtpCharNode->_getDerivedPosition() +
+			Ogre::Vector3(-(*mvpRandomFactor)+ (std::rand() % int((*mvpRandomFactor)*2)),
+			-(*mvpRandomFactor) + (std::rand() % int((*mvpRandomFactor)*2)),
+			-(*mvpRandomFactor) + (std::rand() % int((*mvpRandomFactor)*2)));*/
+
+		Ogre::Vector3 startPosition = mtpCharNode->_getDerivedPosition() + Ogre::Vector3(0,0.5,0);
+
+		//Aimer::Fire. No collision with the MoveBoxReference or NPC collision group.
+		fire(startPosition, mvDirNPCtoChar.normalisedCopy(),(1 << Game::CollisionGroup_NPC)|(1 << Game::CollisionGroup_MoveBoxReference)); 
+		mvShootTimer = 0;
+	}
+
+}
+/*---------------------------------------------------------------------------------*/

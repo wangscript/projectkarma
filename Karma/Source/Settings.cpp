@@ -1,7 +1,23 @@
+/*---------------------------------------------------------------------------------*/
+/* File: Settings.cpp															   */
+/* Author: Per Karlsson, perkarlsson89@gmail.com								   */
+/*																				   */
+/* Description:	The settings class unfortunately bad coded. It has lots of		   */
+/* different member variables instead of a map containing them all. Anyway, it     */
+/* is used to prevent re-compiling when testing new values for stuff.			   */
+/*---------------------------------------------------------------------------------*/
+
 #include "Settings.h"
 
+/*---------------------------------------------------------------------------------*/
+/*									STATIC										   */
+/*---------------------------------------------------------------------------------*/
 Settings Settings::singleton;
+/*---------------------------------------------------------------------------------*/
 
+/*---------------------------------------------------------------------------------*/
+/*									PUBLIC										   */
+/*---------------------------------------------------------------------------------*/
 void Settings::loadSettingsFromFile()
 {
 	float temp;
@@ -1119,7 +1135,7 @@ void Settings::loadSettingsFromFile()
 	/*-----------------------------------------------------------------------------------------------*/
 	mpLog->logMessage("Settings loaded from settings.txt!");
 }
-
+/*---------------------------------------------------------------------------------*/
 void Settings::deletePointers()
 {
 	for (unsigned int i=0;i<vectorNumbers.size();i++)
@@ -1128,3 +1144,4 @@ void Settings::deletePointers()
 	for (unsigned int i=0;i<vectorStrings.size();i++)
 		delete vectorStrings[i];
 }
+/*---------------------------------------------------------------------------------*/
